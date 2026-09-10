@@ -118,6 +118,12 @@ export default {
           from: { transform: 'translateY(100%)' },
           to: { transform: 'translateY(0)' },
         },
+        /* The drawer enters from the edge it is anchored to, so the movement
+           names where it came from and where a dismiss sends it back. */
+        'drawer-in': {
+          from: { transform: 'translateX(-100%)' },
+          to: { transform: 'translateX(0)' },
+        },
         /*
          * Written as an animation rather than a transition off a starting
          * class: the global reduced-motion rule zeroes durations, which lands
@@ -132,6 +138,7 @@ export default {
       animation: {
         'toast-in': 'toast-in 200ms cubic-bezier(0, 0, 0.2, 1)',
         'sheet-in': 'sheet-in 240ms cubic-bezier(0.2, 0, 0, 1)',
+        'drawer-in': 'drawer-in 260ms cubic-bezier(0.2, 0, 0, 1)',
         'rise-in': 'rise-in 320ms cubic-bezier(0, 0, 0.2, 1) both',
       },
     },

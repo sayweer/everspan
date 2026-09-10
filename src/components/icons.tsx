@@ -140,6 +140,24 @@ export function InfoIcon({ className }: IconProps): ReactElement {
   )
 }
 
+export function GlobeIcon({ className }: IconProps): ReactElement {
+  return (
+    <Icon className={className}>
+      <circle cx="12" cy="12" r="10" />
+      <path d="M2 12h20" />
+      <path d="M12 2a15.3 15.3 0 0 1 0 20a15.3 15.3 0 0 1 0-20" />
+    </Icon>
+  )
+}
+
+export function MessageIcon({ className }: IconProps): ReactElement {
+  return (
+    <Icon className={className}>
+      <path d="M21 11.5a8.4 8.4 0 0 1-9 8.4a9 9 0 0 1-3.3-.6L3 21l1.8-5.1A8.4 8.4 0 0 1 12 3.1a8.4 8.4 0 0 1 9 8.4Z" />
+    </Icon>
+  )
+}
+
 export function XIcon({ className }: IconProps): ReactElement {
   return (
     <Icon className={className}>

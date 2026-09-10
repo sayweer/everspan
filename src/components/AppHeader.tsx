@@ -1,10 +1,10 @@
 /** The app's top bar: one row at every width. */
 import { useState, type ReactElement } from 'react'
-import { Link } from 'react-router-dom'
 import { markets, type MarketKey } from '../config'
-import { buttonClasses, iconButtonClasses } from '../lib/buttonStyles'
+import { buttonClasses } from '../lib/buttonStyles'
+import { AccountDrawer } from './AccountDrawer'
 import { BottomSheet } from './BottomSheet'
-import { BrandMark } from './BrandMark'
+import { MenuButton } from './MenuButton'
 import { ChevronDownIcon } from './icons'
 import { MarketSwitcher } from './MarketSwitcher'
 import { ThemeToggle } from './ThemeToggle'
@@ -29,22 +29,25 @@ interface AppHeaderProps {
  */
 export function AppHeader({ marketKey, onSwitchMarket }: AppHeaderProps): ReactElement {
   const [marketSheetOpen, setMarketSheetOpen] = useState(false)
+  const [drawerOpen, setDrawerOpen] = useState(false)
   const switchable = markets.length > 1
   const current = markets.find((market) => market.key === marketKey) ?? markets[0]
 
   return (
     <header className="sticky top-[env(safe-area-inset-top)] z-20 -mx-4 flex h-14 items-center gap-2 border-b border-hairline bg-neutral-950/90 px-4 backdrop-blur lg:mx-0 lg:h-16 lg:px-0">
-      {/* Below 375px the row cannot hold the mark, the market chip and a wallet
-          control at once, and of the three the mark is the one the reader is
-          not there for — the More panel carries the way home instead. */}
-      <Link
-        to="/"
-        aria-label="Everspan home"
-        className={`${iconButtonClasses({ variant: 'ghost' })} -ml-2 hidden min-[375px]:inline-flex lg:hidden`}
-      >
-        <BrandMark className="h-6 w-6 text-neutral-50" />
-      </Link>
-
+      {/* The mark used to sit here and had to be dropped below 375px, which
+          left the narrowest phones with no left-hand control at all. The menu
+          takes the slot instead: it fits at every width, and the way home is
+          one of the things it holds. The desktop rail already carries both the
+          mark and the navigation, so this is the phone's control only. */}
+      <span className="lg:hidden">
+        <MenuButton
+          open={drawerOpen}
+          onClick={() => {
+            setDrawerOpen((current) => !current)
+          }}
+        />
+      </span>
       {switchable && (
         <>
           <div className="hidden lg:block">
@@ -75,6 +78,13 @@ export function AppHeader({ marketKey, onSwitchMarket }: AppHeaderProps): ReactE
         </span>
         <WalletButton />
       </div>
+
+      <AccountDrawer
+        open={drawerOpen}
+        onClose={() => {
+          setDrawerOpen(false)
+        }}
+      />
 
       {switchable && (
         <BottomSheet
