@@ -238,7 +238,7 @@ export function OpeningScene({
         </div>
         <dl className="mt-20 grid grid-cols-1 gap-px bg-neutral-50/15 sm:grid-cols-2">
           {stats.map((stat) => (
-            <div key={stat.label} className="min-w-0 bg-neutral-950 px-5 py-10 text-neutral-50">
+            <div key={stat.label} className="surface-ink min-w-0 bg-neutral-950 px-5 py-10 text-neutral-50">
               <dt className="font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-400">
                 {stat.note}
               </dt>

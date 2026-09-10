@@ -18,6 +18,7 @@ import { maturityCountdown } from '../lib/yield'
 import { formatAmount } from '../lib/format'
 import { ArrowRightIcon, ChartBarIcon, DropletIcon, LockIcon, SwapIcon } from '../components/icons'
 import { FIGURE_TONE, figureText } from '../lib/figures'
+import { LanguageToggle } from '../components/LanguageToggle'
 
 /* ─────────────────────────────────────────────────────────
  * LANDING STORYBOARD
@@ -127,7 +128,7 @@ export function Landing(): ReactElement {
               </OpeningScene>
             </ScrollScene>
 
-            <ScrollScene id="story" className="bg-neutral-950 text-neutral-50">
+            <ScrollScene id="story" className="surface-ink bg-neutral-950 text-neutral-50">
               <SceneBody className="text-center">
                 <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent-300">
                   The Everspan primitive
@@ -209,7 +210,7 @@ export function Landing(): ReactElement {
               </SceneBody>
             </ScrollScene>
 
-            <ScrollScene className="bg-neutral-950 text-neutral-50">
+            <ScrollScene className="surface-ink bg-neutral-950 text-neutral-50">
               <SceneBody className="grid items-center gap-16 lg:grid-cols-2">
                 <div>
                   <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent-300">
@@ -359,7 +360,10 @@ function SiteHeader({ onNavigate }: { onNavigate: (scene: number) => void }): Re
           ))}
         </nav>
 
-        <PrimaryLink compact>Launch App</PrimaryLink>
+        <div className="flex items-center gap-2">
+          <LanguageToggle light />
+          <PrimaryLink compact>Launch App</PrimaryLink>
+        </div>
       </div>
     </header>
   )
@@ -481,7 +485,7 @@ function TokenTile({
 }): ReactElement {
   return (
     <div
-      className={`rounded-2xl p-5 ${accent ? 'bg-accent-500 text-neutral-50' : 'bg-neutral-950 text-neutral-50'}`}
+      className={`rounded-2xl p-5 ${accent ? 'bg-accent-500 text-onAccent' : 'bg-neutral-950 text-neutral-50'}`}
     >
       <p className="text-4xl font-medium tracking-[-0.045em]">{label}</p>
       <p className="mt-2 text-xs opacity-90">{value}</p>
@@ -499,7 +503,7 @@ function YieldSource({
   body: string
 }): ReactElement {
   return (
-    <article className="flex min-h-80 flex-col justify-between bg-neutral-900 p-6 sm:p-8">
+    <article className="surface-ink flex min-h-80 flex-col justify-between bg-neutral-900 p-6 sm:p-8">
       <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-accent-300">{label}</p>
       <div>
         <h3 className="text-3xl font-medium tracking-[-0.04em]">{title}</h3>
@@ -529,7 +533,7 @@ function Assurance({
 
 function SiteFooter(): ReactElement {
   return (
-    <footer className="bg-neutral-950 text-neutral-50">
+    <footer className="surface-ink bg-neutral-950 text-neutral-50">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-5 py-10 sm:flex-row sm:items-center sm:justify-between sm:px-8 lg:px-10">
         <div className="flex items-center gap-2.5">
           <BrandMark className="h-5 w-5 text-accent-400" />
