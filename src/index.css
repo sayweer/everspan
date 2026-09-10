@@ -6,89 +6,107 @@
 
 @layer base {
   :root {
-    --brand-paper: #f6eddd;
-    --brand-paper-elevated: #eee0cc;
-    --brand-ink: #2a0e0e;
-    --brand-ember-deep: #5e0006;
-    --brand-accent: #9b0f06;
-    --brand-accent-soft: #e49e78;
+    /*
+     * Everspan is black and white. The whole surface system — page, cards,
+     * edges, type, and every ordinary control — is a greyscale ramp with a
+     * measured chroma of exactly zero, so no step can drift onto a hue.
+     *
+     * Exactly two colours are spent, and only on meaning that a reader acts
+     * on: green for an action that commits or acquires, red for one that
+     * destroys or reverses, and for the failure that follows. Nothing else in
+     * the app is allowed a hue — a warning is grey, a concept icon is grey, a
+     * primary button is simply the ink. `src/lib/theme.test.ts` pins that
+     * split: every token is either achromatic or one of those two families.
+     */
+    --brand-paper: #ffffff;
+    --brand-paper-elevated: #f2f2f2;
+    --brand-ink: #000000;
+    --brand-ember-deep: #000000;
+    --brand-accent: #000000;
+    --brand-accent-soft: #808080;
 
-    /* Utility ramps are variables so the app can change theme without making
-       the intentionally light marketing route theme-dependent. */
-    /* Every step is on the line from the cream seed to the ember-black one, so
-       there is no neutral grey anywhere — a grey beside these would read as a
-       different palette showing through. `src/lib/theme.test.ts` pins the
-       ratios the muted steps have to hold on the surfaces they are read on. */
-    --neutral-50: 238 217 185;
-    --neutral-100: 227 203 170;
-    --neutral-200: 216 188 152;
-    --neutral-300: 196 161 130;
-    --neutral-400: 181 152 138;
-    --neutral-500: 160 132 119;
-    --neutral-600: 150 121 109;
-    --neutral-850: 35 9 10;
-    --neutral-900: 27 5 6;
-    --neutral-950: 20 3 4;
-    --boundary: 138 90 72;
+    /* The default product surface: black ground, white ink. The steps are
+       spaced by perceptual lightness rather than by channel value — near
+       black, equal channel steps are almost invisible, which is how a card
+       ends up indistinguishable from the page it sits on. */
+    --neutral-50: 255 255 255;
+    --neutral-100: 238 238 238;
+    --neutral-200: 219 219 219;
+    --neutral-300: 199 199 199;
+    --neutral-400: 177 177 177;
+    --neutral-500: 161 161 161;
+    --neutral-600: 146 146 146;
+    --neutral-850: 46 46 46;
+    --neutral-900: 27 27 27;
+    --neutral-950: 0 0 0;
     /* `boundary` is the 3:1 edge every interactive control needs. `hairline`
        is the decorative one — card edges and dividers — and `raised` is the
        fill a control takes when it is selected, hovered or standing in for
-       content. Splitting them is what lets the light surface below give each
-       role its own value instead of bending one step to serve all three. */
-    --hairline: 58 22 20;
-    --raised: 51 17 15;
-    /* The Ember gradient itself: 400/500/600 are the given seeds, and the
-       lighter steps are read off the run from the ember orange to the cream. */
-    --accent-100: 234 194 160;
-    --accent-200: 228 158 120;
-    --accent-300: 222 115 73;
-    --accent-400: 213 62 15;
-    --accent-500: 155 15 6;
-    --accent-600: 94 0 6;
+       content. Splitting them is what lets each role take its own value
+       instead of bending one step to serve all three. */
+    --boundary: 113 113 113;
+    --hairline: 51 51 51;
+    --raised: 38 38 38;
     /*
-     * Status roles used to collapse onto the brand, because the brand was blue
-     * and there was no second hue to spend. An ember brand cannot do that: an
-     * error painted in the brand red is indistinguishable from a button. So
-     * success takes the olive and warning takes the terracotta from the
-     * extended palette, and only failure keeps the ember — which is the one
-     * place where red is also the meaning.
+     * With no brand hue left to spend, the accent is simply the ink: on a
+     * black ground the loudest a control can be is white, so a primary button
+     * is a white pill with black type. On paper the pair swaps. This is what
+     * keeps an ordinary action colourless — colour in this app means the
+     * reader is about to commit or to destroy something, and a "Continue"
+     * is neither.
      */
-    --positive-100: 220 230 210;
-    --positive-200: 185 204 168;
-    --positive-300: 157 180 137;
-    --positive-400: 122 146 104;
-    --positive-500: 96 116 86;
-    --warning-100: 244 218 205;
-    --warning-200: 227 179 156;
-    --warning-300: 206 138 105;
-    --warning-400: 186 106 76;
-    --warning-500: 160 85 58;
-    --negative-100: 234 194 160;
-    --negative-200: 228 158 120;
-    --negative-300: 222 115 73;
-    --negative-400: 213 62 15;
-    --negative-500: 155 15 6;
-    --on-accent: 246 237 221;
+    --accent-100: 152 152 152;
+    --accent-200: 177 177 177;
+    --accent-300: 199 199 199;
+    --accent-400: 222 222 222;
+    --accent-500: 255 255 255;
+    --accent-600: 228 228 228;
+    --on-accent: 0 0 0;
+    /* Green is for the action that commits or acquires, and for the state that
+       follows one. -300 is the tone that carries text on a card; -500 is the
+       fill a button takes, dark enough to hold white type at 5.0:1 in both
+       themes, which is why it is the same value on either surface. */
+    --positive-100: 187 247 208;
+    --positive-200: 134 239 172;
+    --positive-300: 74 222 128;
+    --positive-400: 34 163 74;
+    --positive-500: 21 128 61;
+    /* Red is the mirror: the action that destroys or reverses, and the failure
+       that follows. Same construction, same white type. */
+    --negative-100: 254 202 202;
+    --negative-200: 252 165 165;
+    --negative-300: 248 113 113;
+    --negative-400: 220 38 38;
+    --negative-500: 185 28 28;
+    --on-positive: 255 255 255;
+    --on-negative: 255 255 255;
     /*
-     * Figure tones: the identity colour of a *concept* icon, and nothing else.
-     * Every figurative mark used to be the same muted brown, so a lock, a chart
-     * and a droplet arrived as one texture rather than three signs.
-     *
-     * These are deliberately their own family rather than borrowed status
-     * tones. Painting a lock in `positive` would make an ordinary navigation
-     * row read as a confirmation, which is the exact failure `brand.md` warns
-     * about when it says not to spend olive and terracotta as decoration. The
-     * four sit on earth-pigment hues (41° / 78° / 191° / 347°) so they are
-     * tellable apart at 20px, and `theme.test.ts` pins both that separation and
-     * their distance from the three status roles.
-     *
-     * They appear only inside an icon's own mark or tile — never as text, a
-     * fill, or a border anywhere a status colour could be expected.
+     * A warning is not an action — it is a caution attached to one — so it
+     * does not earn a hue. It stays on the greyscale and separates from body
+     * copy by weight, by its icon and by the words. Spending amber here would
+     * have put a third colour in front of the reader for something they
+     * cannot press.
      */
-    --figure-ember: 222 115 73;
-    --figure-ochre: 214 162 74;
-    --figure-verdigris: 79 168 164;
-    --figure-mulberry: 201 124 166;
+    --warning-100: 146 146 146;
+    --warning-200: 161 161 161;
+    --warning-300: 183 183 183;
+    --warning-400: 202 202 202;
+    --warning-500: 171 171 171;
+    /*
+     * Figure tones used to be four hues, so a lock, a chart and a droplet each
+     * arrived as its own colour. Black and white cannot pay for that, and it
+     * would breach the rule above in any case: an icon is not an action. They
+     * collapse to one grey and the icons go back to being told apart by what
+     * they are drawings of.
+     *
+     * The four names stay because every call site spells one of them, and
+     * keeping them is what makes this reversible in one block rather than in
+     * forty components.
+     */
+    --figure-ember: 177 177 177;
+    --figure-ochre: 177 177 177;
+    --figure-verdigris: 177 177 177;
+    --figure-mulberry: 177 177 177;
   }
 
   html {
@@ -108,83 +126,122 @@
 
   .surface-app[data-theme='light'] {
     color-scheme: light;
-    --neutral-50: 42 14 14;
-    --neutral-100: 58 22 20;
-    --neutral-200: 123 37 37;
-    --neutral-300: 111 78 61;
-    --neutral-400: 111 78 61;
-    --neutral-500: 111 78 61;
-    --neutral-600: 111 78 61;
-    --neutral-850: 238 224 204;
-    /* Elevated panels sit a shade *over* the page here: the canvas is the
-       parchment seed, so a card earns its separation by being closer to white
-       rather than by being darker. */
-    --neutral-900: 255 252 245;
-    --neutral-950: 246 237 221;
-    --boundary: 150 119 95;
-    /* Matches the marketing route's ink/10 card edge so a panel reads the same
-       weight on both surfaces. */
-    --hairline: 228 215 194;
-    --raised: 238 224 204;
-    /* Every ramp darkens on a light surface: the tones that carry text on the
-       ember canvas are far too pale to be read on parchment. */
-    --accent-100: 123 37 37;
-    --accent-200: 123 37 37;
-    --accent-300: 123 37 37;
-    --accent-400: 155 15 6;
-    --positive-100: 65 81 58;
-    --positive-200: 65 81 58;
-    --positive-300: 65 81 58;
-    --positive-400: 96 116 86;
-    --positive-500: 96 116 86;
-    --negative-100: 123 37 37;
-    --negative-200: 123 37 37;
-    --negative-300: 123 37 37;
-    --negative-400: 155 15 6;
-    --negative-500: 155 15 6;
-    --warning-100: 138 69 48;
-    --warning-200: 138 69 48;
-    --warning-300: 138 69 48;
-    --warning-400: 186 106 76;
-    --warning-500: 160 85 58;
-    /* The figure tones darken on parchment for the same reason the ramps do —
-       the values that carry a mark on the ember canvas vanish on paper. */
-    --figure-ember: 155 15 6;
-    --figure-ochre: 122 90 18;
-    --figure-verdigris: 20 98 94;
-    --figure-mulberry: 110 42 87;
+    /* The same ramp read the other way round: white page, black ink. The page
+       keeps a 4% grey so an elevated card can be the pure white one and earn
+       its separation by being lighter. */
+    --neutral-50: 0 0 0;
+    --neutral-100: 18 18 18;
+    --neutral-200: 46 46 46;
+    --neutral-300: 85 85 85;
+    --neutral-400: 85 85 85;
+    --neutral-500: 85 85 85;
+    --neutral-600: 85 85 85;
+    --neutral-850: 232 232 232;
+    --neutral-900: 255 255 255;
+    --neutral-950: 242 242 242;
+    --boundary: 128 128 128;
+    --hairline: 222 222 222;
+    --raised: 232 232 232;
+    /* The accent swaps back: black fill, white type. */
+    --accent-100: 22 22 22;
+    --accent-200: 22 22 22;
+    --accent-300: 22 22 22;
+    --accent-400: 6 6 6;
+    --accent-500: 0 0 0;
+    --accent-600: 0 0 0;
+    --on-accent: 255 255 255;
+    /* The two semantic hues darken instead of brightening — the tone that
+       carries a mark on black is far too pale to be read on white — but the
+       -500 fills stay put, because a button's fill answers to the white type
+       on top of it rather than to the page behind it. */
+    --positive-100: 21 101 52;
+    --positive-200: 21 101 52;
+    --positive-300: 21 101 52;
+    --positive-400: 22 140 66;
+    --positive-500: 21 128 61;
+    --negative-100: 153 27 27;
+    --negative-200: 153 27 27;
+    --negative-300: 153 27 27;
+    --negative-400: 200 32 32;
+    --negative-500: 185 28 28;
+    --warning-100: 46 46 46;
+    --warning-200: 46 46 46;
+    --warning-300: 46 46 46;
+    --warning-400: 31 31 31;
+    --warning-500: 31 31 31;
+    --figure-ember: 27 27 27;
+    --figure-ochre: 27 27 27;
+    --figure-verdigris: 27 27 27;
+    --figure-mulberry: 27 27 27;
   }
 
   .surface-site {
     color-scheme: light;
     /*
-     * The marketing route is the parchment surface, and its dark chapters are
-     * ember-night rather than the app's near-black canvas. `neutral-900` has to
-     * be overridden with them: the shared value is *darker* than this route's
-     * `neutral-950`, so a card on a dark chapter would have sunk into it.
+     * The marketing route is the white surface, and its dark chapters are the
+     * black ground. `neutral-900` has to be overridden with them: the shared
+     * value is *darker* than this route's `neutral-950`, so a card on a dark
+     * chapter would have sunk into it.
      */
-    --neutral-50: 246 237 221;
-    --neutral-200: 238 224 204;
-    --neutral-600: 111 78 61;
-    --neutral-900: 58 22 20;
-    --neutral-950: 42 14 14;
-    --figure-ember: 155 15 6;
-    --figure-ochre: 122 90 18;
-    --figure-verdigris: 20 98 94;
-    --figure-mulberry: 110 42 87;
+    --neutral-50: 242 242 242;
+    --neutral-200: 232 232 232;
+    --neutral-600: 85 85 85;
+    --neutral-900: 27 27 27;
+    --neutral-950: 0 0 0;
+    /*
+     * The accent inversion in `:root` is written for the black ground, where
+     * white is the loudest thing available. This route is paper, so it has to
+     * take the paper-tuned pair back or its primary action would be a white
+     * pill on a white page.
+     */
+    --accent-100: 22 22 22;
+    --accent-200: 22 22 22;
+    --accent-300: 22 22 22;
+    --accent-400: 6 6 6;
+    --accent-500: 0 0 0;
+    --accent-600: 0 0 0;
+    --on-accent: 255 255 255;
+    --boundary: 128 128 128;
+    --hairline: 222 222 222;
+    --raised: 232 232 232;
+    --warning-100: 46 46 46;
+    --warning-200: 46 46 46;
+    --warning-300: 46 46 46;
+    --warning-400: 31 31 31;
+    --warning-500: 31 31 31;
+    --figure-ember: 27 27 27;
+    --figure-ochre: 27 27 27;
+    --figure-verdigris: 27 27 27;
+    --figure-mulberry: 27 27 27;
     @apply bg-neutral-50 text-neutral-950;
   }
 
-  /* A dark chapter *inside* the parchment route. The route as a whole is light,
-     so it carries the paper-tuned figure tones — a card that inverts to
-     ember-night has to take the canvas-tuned ones back or its mark goes black
-     on black. Scoped to the card, not the section, so surrounding copy keeps
-     the route's own values. */
+  /* A dark chapter *inside* the white route. The route as a whole is light, so
+     it carries the paper-tuned accent, warning and figure values — a chapter
+     that inverts to the black ground has to take the canvas-tuned ones back or
+     its action goes black-on-black and its marks go dark on dark. The two
+     semantic hues are deliberately absent: green and red are chosen to hold
+     white type on either ground, so they need no per-surface variant. */
   .surface-ink {
-    --figure-ember: 222 115 73;
-    --figure-ochre: 214 162 74;
-    --figure-verdigris: 79 168 164;
-    --figure-mulberry: 201 124 166;
+    --accent-100: 152 152 152;
+    --accent-200: 177 177 177;
+    --accent-300: 199 199 199;
+    --accent-400: 222 222 222;
+    --accent-500: 255 255 255;
+    --accent-600: 228 228 228;
+    --on-accent: 0 0 0;
+    --boundary: 113 113 113;
+    --hairline: 51 51 51;
+    --raised: 38 38 38;
+    --warning-100: 146 146 146;
+    --warning-200: 161 161 161;
+    --warning-300: 183 183 183;
+    --warning-400: 202 202 202;
+    --warning-500: 171 171 171;
+    --figure-ember: 177 177 177;
+    --figure-ochre: 177 177 177;
+    --figure-verdigris: 177 177 177;
+    --figure-mulberry: 177 177 177;
   }
 
   body {
@@ -235,8 +292,8 @@
 @layer components {
   .landing-hero-visual {
     background-image:
-      linear-gradient(rgb(42 14 14 / 0.08) 1px, transparent 1px),
-      linear-gradient(90deg, rgb(42 14 14 / 0.08) 1px, transparent 1px);
+      linear-gradient(rgb(0 0 0 / 0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(0 0 0 / 0.08) 1px, transparent 1px);
     background-size: 3rem 3rem;
   }
 
@@ -316,7 +373,7 @@
     border: 1px solid rgb(255 255 255 / 0.18);
     border-radius: 999px;
     color: var(--brand-paper);
-    background: rgb(42 14 14 / 0.88);
+    background: rgb(0 0 0 / 0.88);
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     font-size: 0.625rem;
     letter-spacing: 0.12em;

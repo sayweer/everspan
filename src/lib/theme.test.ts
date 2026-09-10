@@ -60,12 +60,29 @@ function perceptualDistance(a: [number, number, number], b: [number, number, num
   return Math.hypot(first[0] - second[0], first[1] - second[1], first[2] - second[2])
 }
 
-function hueSeparation(a: [number, number, number], b: [number, number, number]): number {
-  const angle = ([, x, y]: [number, number, number]): number =>
-    ((Math.atan2(y, x) * 180) / Math.PI + 360) % 360
-  const delta = Math.abs(angle(oklab(a)) - angle(oklab(b)))
+/* Chroma and hue in OKLab are what let the palette assert its own definition:
+   every token has to be a point on the line between the oxblood and white, so
+   a chromatic one must sit on the seed's hue and an achromatic one must have
+   no hue left to be wrong about. */
+function chroma([, a, b]: [number, number, number]): number {
+  return Math.hypot(a, b)
+}
+
+function hueAngle([, a, b]: [number, number, number]): number {
+  return ((Math.atan2(b, a) * 180) / Math.PI + 360) % 360
+}
+
+function hueDistance(a: [number, number, number], b: [number, number, number]): number {
+  const delta = Math.abs(hueAngle(oklab(a)) - hueAngle(oklab(b)))
   return Math.min(delta, 360 - delta)
 }
+
+
+/* The two hues the palette is allowed to spend, as the tests understand them:
+   the green a commit takes and the red a reversal takes. Every other token in
+   the app has to be a grey. */
+const GREEN: [number, number, number] = [21, 128, 61]
+const RED: [number, number, number] = [185, 28, 28]
 
 describe('app theme contrast', () => {
   const dark = declarations(':root')
@@ -103,46 +120,62 @@ describe('app theme contrast', () => {
   })
 
   /*
-   * The status roles used to be required to equal the brand, because the brand
-   * was blue and spending a second hue on meaning would have broken a
-   * single-colour identity. An ember brand inverts that: a failure painted in
-   * the brand red cannot be told apart from a primary button, so success and
-   * warning now carry the olive and the terracotta. These two tests are what
-   * stop them quietly collapsing back onto the accent in a future palette pass.
+   * The palette spends colour only where the reader is about to act: green
+   * commits or acquires, red destroys or reverses. These tests are what stop
+   * a future pass either bleeding those two hues into the surface system or
+   * quietly collapsing them back onto the colourless accent.
    */
-  it.each([
-    ['positive', 'dark'],
-    ['warning', 'dark'],
-    ['negative', 'dark'],
-  ])('%s status text is readable on the %s card', (role) => {
-    expect(contrast(rgb(dark, `--${role}-300`), rgb(dark, '--neutral-900'))).toBeGreaterThanOrEqual(
-      4.5,
-    )
-    expect(
-      contrast(rgb(light, `--${role}-100`), rgb(light, '--neutral-900')),
-    ).toBeGreaterThanOrEqual(4.5)
-  })
-
   it.each([
     ['success', 'positive'],
     ['warning', 'warning'],
-  ])('%s stays distinguishable from the brand ember', (_label, role) => {
+  ])('%s never lands on the accent', (_label, role) => {
     for (const source of [dark, light]) {
       expect(rgb(source, `--${role}-400`)).not.toEqual(rgb(source, '--accent-400'))
       expect(rgb(source, `--${role}-500`)).not.toEqual(rgb(source, '--accent-500'))
     }
   })
 
-  it('keeps failure on the ember, where red is also the meaning', () => {
-    expect(rgb(dark, '--negative-500')).toEqual(rgb(dark, '--accent-500'))
+  /*
+   * The accent is the ink, so an ordinary action is colourless. A failure that
+   * reused it would be indistinguishable from a "Continue" — which is exactly
+   * what the previous palette had to live with, and the reason red is now
+   * spent on meaning rather than on the brand.
+   */
+  it('keeps failure on the red rather than on the colourless accent', () => {
+    for (const source of [dark, light]) {
+      expect(rgb(source, '--negative-500')).not.toEqual(rgb(source, '--accent-500'))
+      expect(hueDistance(rgb(source, '--negative-500'), RED)).toBeLessThan(15)
+    }
+  })
+
+  it.each([
+    ['dark', 'dark'],
+    ['light', 'light'],
+  ])('keeps the commit and the reversal far apart on the %s surface', (surface) => {
+    const source = surface === 'dark' ? dark : light
+    const [green, red] = [rgb(source, '--positive-500'), rgb(source, '--negative-500')]
+    expect(hueDistance(green, red)).toBeGreaterThan(90)
+    expect(perceptualDistance(green, red)).toBeGreaterThan(0.1)
+  })
+
+  it.each([
+    ['dark', 'dark'],
+    ['light', 'light'],
+  ])('holds white type on both action fills on the %s surface', (surface) => {
+    const source = surface === 'dark' ? dark : light
+    for (const role of ['positive', 'negative']) {
+      expect(contrast(rgb(source, `--on-${role}`), rgb(source, `--${role}-500`))).toBeGreaterThanOrEqual(4.5)
+    }
   })
 })
 
 /*
- * The figure tones give a concept icon its own identity colour. They earn a
- * test of their own because they are the one place the app spends more than one
- * hue, and the whole argument for doing so collapses if they either blur into
- * each other or start reading as status.
+ * The figure tones used to give a concept icon its own identity colour, and
+ * they were the one place the app spent more than one hue. A two-colour
+ * palette cannot pay for that, so the family collapsed to a single brand tone
+ * and the icons went back to being told apart by what they are drawings of.
+ * The names survive because every call site spells one of them; these tests
+ * are what stop a future pass quietly reintroducing four hues under them.
  */
 describe('figure tones', () => {
   const dark = declarations(':root')
@@ -165,32 +198,9 @@ describe('figure tones', () => {
   it.each([
     ['dark', dark],
     ['light', light],
-  ])('tones stay tellable apart from each other on the %s surface', (_surface, source) => {
-    for (let i = 0; i < TONES.length; i += 1) {
-      for (let j = i + 1; j < TONES.length; j += 1) {
-        expect(
-          perceptualDistance(rgb(source, `--figure-${TONES[i]}`), rgb(source, `--figure-${TONES[j]}`)),
-        ).toBeGreaterThan(0.1)
-      }
-    }
-  })
-
-  /*
-   * Ember is exempt: it *is* the brand red, and the brand red is also failure.
-   * A split or a swap mark in the accent is the app naming itself, not raising
-   * an error — the three status roles keep their own surfaces and copy.
-   */
-  it.each([
-    ['dark', dark],
-    ['light', light],
-  ])('no tone but ember drifts onto a status hue on the %s surface', (_surface, source) => {
-    for (const tone of TONES.filter((name) => name !== 'ember')) {
-      for (const role of ['positive', 'warning', 'negative']) {
-        expect(
-          hueSeparation(rgb(source, `--figure-${tone}`), rgb(source, `--${role}-300`)),
-        ).toBeGreaterThan(25)
-      }
-    }
+  ])('resolves to one shared tone on the %s surface', (_surface, source) => {
+    const [first, ...rest] = TONES.map((tone) => rgb(source, `--figure-${tone}`))
+    for (const tone of rest) expect(tone).toEqual(first)
   })
 
   it('carries the paper-tuned tones into the marketing route and back out on ink', () => {
@@ -199,5 +209,48 @@ describe('figure tones', () => {
       expect(rgb(site, `--figure-${tone}`)).toEqual(rgb(light, `--figure-${tone}`))
       expect(rgb(ink, `--figure-${tone}`)).toEqual(rgb(dark, `--figure-${tone}`))
     }
+  })
+})
+
+/*
+ * The palette's actual promise — a greyscale surface system with exactly two
+ * hues spent on meaning. Contrast tests cannot catch a breach of it: a teal
+ * with the right luminance passes every ratio above. This is the test that
+ * fails the moment a third colour appears anywhere in the theme, which is the
+ * one way this palette can be lost by accident.
+ */
+describe('black-and-white palette', () => {
+  /* Below this a token has no colour left to be wrong about; the greyscale
+     ramp is generated with a measured chroma of exactly zero, so anything
+     above it was written by hand. */
+  const ACHROMATIC = 0.02
+  const HUED = /^--(positive|negative|on-positive|on-negative)-?/
+
+  it.each([
+    [':root'],
+    [".surface-app[data-theme='light']"],
+    ['.surface-site'],
+    ['.surface-ink'],
+  ])('paints every %s token grey unless it carries an action', (selector) => {
+    const tokens = [...declarations(selector).matchAll(/--([a-z0-9-]+):\s*(\d+)\s+(\d+)\s+(\d+)\s*;/g)]
+    expect(tokens.length).toBeGreaterThan(0)
+    for (const [, name, r, g, b] of tokens) {
+      const colour: [number, number, number] = [Number(r), Number(g), Number(b)]
+      if (!HUED.test(`--${name}`)) {
+        expect(chroma(oklab(colour)), `--${name} is not an action, so it may not carry a hue`).toBeLessThan(
+          ACHROMATIC,
+        )
+        continue
+      }
+      if (chroma(oklab(colour)) < ACHROMATIC) continue
+      const nearest = name.startsWith('positive') || name.startsWith('on-positive') ? GREEN : RED
+      expect(hueDistance(colour, nearest), `--${name} drifts off its action hue`).toBeLessThan(25)
+    }
+  })
+
+  it('spends black and white themselves as the ends of the surface ramp', () => {
+    const root = declarations(':root')
+    expect(rgb(root, '--neutral-950')).toEqual([0, 0, 0])
+    expect(rgb(root, '--neutral-50')).toEqual([255, 255, 255])
   })
 })

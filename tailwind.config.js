@@ -28,7 +28,7 @@ export default {
           900: 'rgb(var(--neutral-900) / <alpha-value>)',
           950: 'rgb(var(--neutral-950) / <alpha-value>)',
         },
-        /** Everspan red. Use cream text on 500/600 fills. */
+        /** The ink itself — black on paper, white on the black ground. */
         accent: {
           100: 'rgb(var(--accent-100) / <alpha-value>)',
           200: 'rgb(var(--accent-200) / <alpha-value>)',
@@ -37,7 +37,11 @@ export default {
           500: 'rgb(var(--accent-500) / <alpha-value>)',
           600: 'rgb(var(--accent-600) / <alpha-value>)',
         },
-        /** Semantic roles derived from the brand red; icons and copy carry the status meaning. */
+        /**
+         * The only two hues the palette spends: green commits or acquires,
+         * red destroys or reverses. `warning` stays on the greyscale — a
+         * caution is not something the reader presses.
+         */
         positive: {
           100: 'rgb(var(--positive-100) / <alpha-value>)',
           200: 'rgb(var(--positive-200) / <alpha-value>)',
@@ -70,6 +74,9 @@ export default {
           mulberry: 'rgb(var(--figure-mulberry) / <alpha-value>)',
         },
         onAccent: 'rgb(var(--on-accent) / <alpha-value>)',
+        /** Type that sits on a `positive`/`negative` fill. White on both. */
+        onPositive: 'rgb(var(--on-positive) / <alpha-value>)',
+        onNegative: 'rgb(var(--on-negative) / <alpha-value>)',
         /** Edge of an interactive control — carries the 3:1 non-text contrast. */
         boundary: 'rgb(var(--boundary) / <alpha-value>)',
         /** Decorative edge: card outlines and dividers. */
