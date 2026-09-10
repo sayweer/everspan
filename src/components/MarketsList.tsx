@@ -67,7 +67,16 @@ export function MarketsList({
       ) : (
         <>
           {live.length > 0 ? (
-            <ul className="mt-6 space-y-3 sm:space-y-0 sm:divide-y sm:divide-hairline">
+            /*
+             * A rail on a phone, the same divided rows as before above `sm`.
+             * Maturities are the one set here that varies in length and repeats
+             * one template, which is what a rail is for: six of them stacked
+             * push everything below them off the screen, and the reader is
+             * comparing them against each other rather than reading each in
+             * turn. The negative margin lets the next card peek past the page
+             * gutter, which is the only honest signal that the row continues.
+             */
+            <ul className="-mx-4 mt-6 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:block sm:space-y-0 sm:overflow-x-visible sm:px-0 sm:pb-0 sm:divide-y sm:divide-hairline">
               {live.map((mp) => (
                 <MarketRow
                   key={mp.maturity.toString()}
@@ -99,7 +108,7 @@ export function MarketsList({
                 {showMatured ? 'Hide' : 'Show'} matured ({matured.length})
               </Button>
               {showMatured && (
-                <ul className="mt-2 space-y-3 sm:space-y-0 sm:divide-y sm:divide-hairline">
+                <ul className="-mx-4 mt-2 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:block sm:space-y-0 sm:overflow-x-visible sm:px-0 sm:pb-0 sm:divide-y sm:divide-hairline">
                   {matured.map((mp) => (
                     <MarketRow
                       key={mp.maturity.toString()}
@@ -176,7 +185,7 @@ function MarketRow({ mp, nowMs, rateInfo, liveRate, onTrade }: MarketRowProps): 
      * the two supporting figures in a quiet strip — which is the order someone
      * actually chooses a maturity in.
      */
-    <li className="rounded-2xl border border-hairline bg-neutral-900 p-4 sm:flex sm:flex-wrap sm:items-center sm:gap-x-8 sm:gap-y-4 sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0 sm:py-5">
+    <li className="w-[81%] shrink-0 snap-start only:w-full sm:only:w-auto rounded-2xl border border-hairline bg-neutral-900 p-4 sm:flex sm:w-auto sm:flex-wrap sm:items-center sm:gap-x-8 sm:gap-y-4 sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0 sm:py-5">
       <div className="flex items-start justify-between gap-4 sm:contents">
         <div className="min-w-0 sm:min-w-[8rem]">
           <Label>Maturity</Label>
