@@ -49,15 +49,65 @@ function localizeNode(root: Node, language: Language): void {
   for (const child of root.childNodes) localizeNode(child, language)
 }
 
+const OBSERVED: MutationObserverInit = {
+  subtree: true,
+  childList: true,
+  characterData: true,
+  attributes: true,
+  attributeFilter: [...TRANSLATABLE_ATTRIBUTES],
+}
+
 /** Persistent application language plus a bridge for the existing UI copy. */
 export function LanguageProvider({ children }: { children: ReactNode }): ReactElement {
   const [language, setLanguage] = useState<Language>(initialLanguage)
 
   useLayoutEffect(() => {
-    document.documentElement.lang = language
-    document.documentElement.dataset.language = language
-    document.title = translateUiText(document.title, language)
-    localizeNode(document.body, language)
+    /*
+     * This observer rewrites the DOM it is watching, so every write it makes
+     * has to happen with the observer switched off. Left connected it feeds
+     * itself: `document.title = …` re-writes the title element's text node
+     * even when the string is identical — the DOM spec queues a characterData
+     * record for the assignment, not for a change in value — so the callback
+     * re-entered forever and starved the main thread. Because this runs in a
+     * layout effect, that happened before the first paint and the app shipped
+     * a blank page.
+     *
+     * `disconnect()` also empties the pending record queue, which is what
+     * discards the records our own writes just produced.
+     */
+    const observer = new MutationObserver((mutations) => {
+      write(() => {
+        for (const mutation of mutations) {
+          if (mutation.type === 'attributes' || mutation.type === 'characterData') {
+            localizeNode(mutation.target, language)
+            continue
+          }
+          for (const node of mutation.addedNodes) localizeNode(node, language)
+        }
+        localizeTitle()
+      })
+    })
+
+    function write(mutate: () => void): void {
+      observer.disconnect()
+      try {
+        mutate()
+      } finally {
+        observer.observe(document.documentElement, OBSERVED)
+      }
+    }
+
+    function localizeTitle(): void {
+      const translated = translateUiText(document.title, language)
+      if (translated !== document.title) document.title = translated
+    }
+
+    write(() => {
+      document.documentElement.lang = language
+      document.documentElement.dataset.language = language
+      localizeTitle()
+      localizeNode(document.body, language)
+    })
 
     try {
       window.localStorage.setItem(STORAGE_KEY, language)
@@ -65,27 +115,6 @@ export function LanguageProvider({ children }: { children: ReactNode }): ReactEl
       // The in-memory preference still applies for this visit.
     }
 
-    const observer = new MutationObserver((mutations) => {
-      for (const mutation of mutations) {
-        if (mutation.type === 'attributes') {
-          localizeNode(mutation.target, language)
-          continue
-        }
-        if (mutation.type === 'characterData') {
-          localizeNode(mutation.target, language)
-          continue
-        }
-        for (const node of mutation.addedNodes) localizeNode(node, language)
-      }
-      document.title = translateUiText(document.title, language)
-    })
-    observer.observe(document.documentElement, {
-      subtree: true,
-      childList: true,
-      characterData: true,
-      attributes: true,
-      attributeFilter: [...TRANSLATABLE_ATTRIBUTES],
-    })
     return () => observer.disconnect()
   }, [language])
 
