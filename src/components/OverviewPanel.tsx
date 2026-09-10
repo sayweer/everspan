@@ -113,7 +113,16 @@ export function OverviewPanel({
           little the screen knows them; the heading below is the better first
           thing for them to meet. */}
       {connected && (
-        <BalanceHero holdings={holdings} symbol={market.underlyingSymbol} loading={loading} />
+        <BalanceHero
+          holdings={holdings}
+          symbol={market.underlyingSymbol}
+          loading={loading}
+          onConvert={onConvert}
+          onPortfolio={onPortfolio}
+          onLiquidity={() => {
+            onEarn('liquidity')
+          }}
+        />
       )}
 
       <header className="max-w-2xl">

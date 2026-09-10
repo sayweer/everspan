@@ -3,12 +3,23 @@ import { useEffect, useState, type ReactElement } from 'react'
 import type { Holdings } from '../lib/holdings'
 import { formatAmount } from '../lib/format'
 import { focusRing } from '../lib/buttonStyles'
-import { EyeIcon, EyeOffIcon } from './icons'
+import {
+  ChartBarIcon,
+  ChevronDownIcon,
+  CoinsIcon,
+  DropletIcon,
+  EyeIcon,
+  EyeOffIcon,
+  LockIcon,
+} from './icons'
 
 interface BalanceHeroProps {
   holdings: Holdings
   symbol: string
   loading: boolean
+  onConvert: () => void
+  onPortfolio: () => void
+  onLiquidity: () => void
 }
 
 const STORAGE_KEY = 'everspan:amounts-hidden'
@@ -29,7 +40,14 @@ function initialHidden(): boolean {
  * away. It persists because a reader who hides it once is telling us about
  * where they use this, not about this visit.
  */
-export function BalanceHero({ holdings, symbol, loading }: BalanceHeroProps): ReactElement {
+export function BalanceHero({
+  holdings,
+  symbol,
+  loading,
+  onConvert,
+  onPortfolio,
+  onLiquidity,
+}: BalanceHeroProps): ReactElement {
   const [hidden, setHidden] = useState(initialHidden)
 
   useEffect(() => {
@@ -41,11 +59,41 @@ export function BalanceHero({ holdings, symbol, loading }: BalanceHeroProps): Re
   }, [hidden])
 
   const parts = splitAmount(formatAmount(holdings.total, 4))
+  /*
+   * The parts the total is made of, each one a way into the screen that acts
+   * on it. The reference this follows lists assets here; ours would have been
+   * the portfolio tab printed twice, so the rows carry the same breakdown and
+   * spend the tap on getting somewhere instead.
+   */
   const segments = [
-    { label: 'Liquid', value: holdings.liquid },
-    { label: 'Principal', value: holdings.principal },
-    { label: 'Liquidity', value: holdings.liquidity },
-    { label: 'Claimable', value: holdings.claimable },
+    {
+      label: 'Liquid',
+      hint: `${symbol} and SY you can act with now`,
+      value: holdings.liquid,
+      icon: <CoinsIcon className="h-5 w-5" />,
+      onSelect: onConvert,
+    },
+    {
+      label: 'Principal',
+      hint: 'PT held, marked at the pool',
+      value: holdings.principal,
+      icon: <LockIcon className="h-5 w-5" />,
+      onSelect: onPortfolio,
+    },
+    {
+      label: 'Liquidity',
+      hint: 'Your share of the pools',
+      value: holdings.liquidity,
+      icon: <DropletIcon className="h-5 w-5" />,
+      onSelect: onLiquidity,
+    },
+    {
+      label: 'Claimable',
+      hint: 'Yield accrued and waiting',
+      value: holdings.claimable,
+      icon: <ChartBarIcon className="h-5 w-5" />,
+      onSelect: onPortfolio,
+    },
   ].filter((segment) => segment.value > 0n)
 
   return (
@@ -73,7 +121,7 @@ export function BalanceHero({ holdings, symbol, loading }: BalanceHeroProps): Re
         <span className="text-sm font-medium text-neutral-400">{symbol}</span>
       </p>
 
-      <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
+      <div className="mt-3">
         <button
           type="button"
           aria-pressed={hidden}
@@ -85,15 +133,40 @@ export function BalanceHero({ holdings, symbol, loading }: BalanceHeroProps): Re
           {hidden ? <EyeIcon className="h-4 w-4" /> : <EyeOffIcon className="h-4 w-4" />}
           {hidden ? 'Show amounts' : 'Hide amounts'}
         </button>
-
-        {!hidden &&
-          segments.map((segment) => (
-            <span key={segment.label} className="text-xs text-neutral-500">
-              <span className="text-neutral-300">{segment.label}</span>{' '}
-              <span className="tabular-nums">{formatAmount(segment.value, 2)}</span>
-            </span>
-          ))}
       </div>
+
+      {segments.length > 0 && (
+        <ul className="mt-4 divide-y divide-hairline border-y border-hairline">
+          {segments.map((segment) => (
+            <li key={segment.label}>
+              <button
+                type="button"
+                onClick={segment.onSelect}
+                className={`flex w-full items-center gap-3 py-3 text-left transition-colors duration-100 hover:bg-raised ${focusRing}`}
+              >
+                <span aria-hidden="true" className="shrink-0 text-neutral-400">
+                  {segment.icon}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-medium text-neutral-100">
+                    {segment.label}
+                  </span>
+                  <span className="mt-0.5 block truncate text-xs text-neutral-500">
+                    {segment.hint}
+                  </span>
+                </span>
+                <span className="shrink-0 tabular-nums text-sm text-neutral-200">
+                  {hidden ? MASK : formatAmount(segment.value, 2)}
+                </span>
+                <ChevronDownIcon
+                  aria-hidden="true"
+                  className="h-4 w-4 shrink-0 -rotate-90 text-neutral-600"
+                />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
 
       {holdings.yt > 0n && !hidden && (
         <p className="mt-3 text-xs leading-relaxed text-neutral-500">
