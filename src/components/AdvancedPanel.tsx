@@ -5,6 +5,7 @@ import type { Portfolio } from '../hooks/usePortfolio'
 import { OnboardingSteps } from './OnboardingSteps'
 import { WrapCard } from './WrapCard'
 import { SplitCard } from './SplitCard'
+import { useLanguage } from '../context/LanguageContext'
 
 interface AdvancedPanelProps {
   address: string
@@ -23,6 +24,8 @@ export function AdvancedPanel({
   isWrongNetwork,
   onSuccess,
 }: AdvancedPanelProps): ReactElement {
+  const { language } = useLanguage()
+  const underlyingSymbol = activeMarket().underlyingSymbol
   const hasSplit = portfolio.positions.some((p) => p.position.pt > 0n || p.position.yt > 0n)
 
   return (
@@ -32,8 +35,9 @@ export function AdvancedPanel({
           Convert and split assets
         </h2>
         <p className="mt-1 text-sm text-neutral-400">
-          Prepare {activeMarket().underlyingSymbol} for Everspan, or manually separate principal and
-          yield. Most people can start from Earn instead.
+          {language === 'tr'
+            ? `${underlyingSymbol} varlığını Everspan için hazırlayın veya anapara ile getiriyi manuel olarak ayırın. Çoğu kullanıcı doğrudan Kazanç bölümünden başlayabilir.`
+            : `Prepare ${underlyingSymbol} for Everspan, or manually separate principal and yield. Most people can start from Earn instead.`}
         </p>
       </header>
 

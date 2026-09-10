@@ -6,6 +6,7 @@ import { activeMarket } from '../lib/market'
 import { DropletIcon } from './icons'
 import { FIGURE_TONE, figureText } from '../lib/figures'
 import { Button } from './Button'
+import { useLanguage } from '../context/LanguageContext'
 
 /** Faucet amount per click: 1,000 tokens (7 decimals). */
 export const FAUCET_AMOUNT = 1_000_0000000n
@@ -17,16 +18,21 @@ interface FaucetButtonProps {
 }
 
 export function FaucetButton({ pending, disabled, onClick }: FaucetButtonProps): ReactElement {
+  const { language } = useLanguage()
+  const symbol = activeMarket().underlyingSymbol
+
   return (
     <Button
       variant="secondary"
       onClick={onClick}
       disabled={disabled}
       pending={pending}
-      pendingLabel={`Sending 1,000 ${activeMarket().underlyingSymbol}…`}
+      pendingLabel={
+        language === 'tr' ? `1.000 ${symbol} gönderiliyor…` : `Sending 1,000 ${symbol}…`
+      }
     >
       <DropletIcon className={`h-4 w-4 ${figureText(FIGURE_TONE.liquidity)}`} />
-      Get 1,000 {activeMarket().underlyingSymbol}
+      {language === 'tr' ? `1.000 ${symbol} al` : `Get 1,000 ${symbol}`}
     </Button>
   )
 }

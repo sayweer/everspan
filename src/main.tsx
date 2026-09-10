@@ -15,6 +15,7 @@ import { ThemeProvider } from './context/ThemeContext.tsx'
 import { TransactionSafetyProvider } from './context/TransactionSafetyContext.tsx'
 import { TransactionSafetyBanner } from './components/TransactionSafetyBanner.tsx'
 import { Toast } from './components/Toast.tsx'
+import { LanguageProvider } from './context/LanguageContext.tsx'
 
 if (config.sentryDsn) {
   Sentry.init({ dsn: config.sentryDsn })
@@ -29,23 +30,25 @@ createRoot(rootElement).render(
   <StrictMode>
     <ErrorBoundary>
       <ToastProvider>
-        <ThemeProvider>
-          <TransactionSafetyProvider>
-            {/* The wallet provider wraps both routes so a session restored while
-                reading the marketing page is already connected on /app. */}
-            <WalletProvider>
-              <BrowserRouter>
-                <TransactionSafetyBanner />
-                <Routes>
-                  <Route path="/" element={<LandingRoute />} />
-                  <Route path="/app" element={<App />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-                <Toast />
-              </BrowserRouter>
-            </WalletProvider>
-          </TransactionSafetyProvider>
-        </ThemeProvider>
+        <LanguageProvider>
+          <ThemeProvider>
+            <TransactionSafetyProvider>
+              {/* The wallet provider wraps both routes so a session restored while
+                  reading the marketing page is already connected on /app. */}
+              <WalletProvider>
+                <BrowserRouter>
+                  <TransactionSafetyBanner />
+                  <Routes>
+                    <Route path="/" element={<LandingRoute />} />
+                    <Route path="/app" element={<App />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                  <Toast />
+                </BrowserRouter>
+              </WalletProvider>
+            </TransactionSafetyProvider>
+          </ThemeProvider>
+        </LanguageProvider>
       </ToastProvider>
     </ErrorBoundary>
     <Analytics />

@@ -335,7 +335,9 @@ function SiteHeader({ onNavigate }: { onNavigate: (scene: number) => void }): Re
           className="flex min-h-11 items-center gap-2.5 rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 focus-visible:ring-offset-4 focus-visible:ring-offset-neutral-50"
         >
           <BrandMark className="h-6 w-6 text-accent-500" />
-          <span className="text-base font-medium tracking-[-0.025em]">Everspan</span>
+          <span className="hidden text-base font-medium tracking-[-0.025em] min-[375px]:inline">
+            Everspan
+          </span>
         </Link>
 
         {/* While the stage is pinned every scene sits at the same document

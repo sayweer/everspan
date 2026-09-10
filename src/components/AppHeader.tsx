@@ -9,6 +9,7 @@ import { ChevronDownIcon } from './icons'
 import { MarketSwitcher } from './MarketSwitcher'
 import { ThemeToggle } from './ThemeToggle'
 import { WalletButton } from './WalletButton'
+import { LanguageToggle } from './LanguageToggle'
 
 interface AppHeaderProps {
   marketKey: MarketKey
@@ -66,6 +67,7 @@ export function AppHeader({ marketKey, onSwitchMarket }: AppHeaderProps): ReactE
       )}
 
       <div className="ml-auto flex shrink-0 items-center gap-2">
+        <LanguageToggle />
         {/* A preference, not a task: on a phone it lives in the More panel so
             the row can spend its width on the market and the wallet. */}
         <span className="hidden sm:inline-flex">

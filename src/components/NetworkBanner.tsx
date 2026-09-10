@@ -2,8 +2,10 @@
 import type { ReactElement } from 'react'
 import { useWallet } from '../context/WalletContext'
 import { AlertTriangleIcon } from './icons'
+import { useLanguage } from '../context/LanguageContext'
 
 export function NetworkBanner(): ReactElement | null {
+  const { language } = useLanguage()
   const { isWrongNetwork, networkUnknown, network } = useWallet()
   if (!isWrongNetwork && !networkUnknown) return null
 
@@ -13,15 +15,38 @@ export function NetworkBanner(): ReactElement | null {
         <AlertTriangleIcon className="h-5 w-5 shrink-0 text-warning-400" />
         {isWrongNetwork ? (
           <p>
-            <span className="font-semibold">
-              Everspan uses Stellar Testnet; your wallet is on {network ?? 'another network'}.
-            </span>{' '}
-            Switch the active network in your wallet. Financial actions are paused until it matches.
+            {language === 'tr' ? (
+              <>
+                <span className="font-semibold">
+                  Everspan Stellar Testnet kullanıyor; cüzdanınız {network ?? 'başka bir ağ'}{' '}
+                  ağında.
+                </span>{' '}
+                Cüzdanınızdaki etkin ağı değiştirin. Ağ eşleşene kadar finansal işlemler
+                duraklatılır.
+              </>
+            ) : (
+              <>
+                <span className="font-semibold">
+                  Everspan uses Stellar Testnet; your wallet is on {network ?? 'another network'}.
+                </span>{' '}
+                Switch the active network in your wallet. Financial actions are paused until it
+                matches.
+              </>
+            )}
           </p>
         ) : (
           <p>
-            <span className="font-semibold">Network unverified.</span> Your wallet didn’t report its
-            network — make sure it’s on Stellar Testnet before sending.
+            {language === 'tr' ? (
+              <>
+                <span className="font-semibold">Ağ doğrulanamadı.</span> Cüzdanınız ağ bilgisini
+                bildirmedi — göndermeden önce Stellar Testnet’te olduğundan emin olun.
+              </>
+            ) : (
+              <>
+                <span className="font-semibold">Network unverified.</span> Your wallet didn’t report
+                its network — make sure it’s on Stellar Testnet before sending.
+              </>
+            )}
           </p>
         )}
       </div>
