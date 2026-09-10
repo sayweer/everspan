@@ -24,7 +24,7 @@
  * so one string is correct on the canvas, on a panel and inside an inset box.
  */
 
-export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'warning'
+export type ButtonVariant = 'primary' | 'positive' | 'secondary' | 'ghost' | 'danger' | 'warning'
 export type ButtonSize = 'sm' | 'md' | 'lg'
 
 export interface ButtonStyleOptions {
@@ -77,14 +77,20 @@ const ICON_SIZES: Record<ButtonSize, string> = {
 
 /*
  * One `disabled:` spelling per variant, where the app previously had five
- * across the codebase. `danger` keeps its own slot even though `negative-*`
- * currently resolves to the same blue as the accent: the meaning is carried by
- * the icon and the copy, per brand.md, and the ramp can diverge later without
- * touching a call site.
+ * across the codebase.
+ *
+ * `primary` is deliberately colourless — it is the ink, black on paper and
+ * white on the black ground. Colour in this app means the reader is about to
+ * commit something or to undo something, so it belongs to `positive` and
+ * `danger` alone; a "Continue" that borrowed green would spend the signal on
+ * a step that carries no consequence.
  */
 const VARIANTS: Record<ButtonVariant, string> = {
   primary:
     'bg-accent-500 text-onAccent hover:bg-accent-400 active:bg-accent-600 disabled:bg-raised disabled:text-neutral-600',
+  /* The commit: signing a deposit, buying a position, adding liquidity. */
+  positive:
+    'bg-positive-500 text-onPositive hover:bg-positive-400 active:bg-positive-500 disabled:bg-raised disabled:text-neutral-600',
   secondary:
     'border border-boundary bg-neutral-900 text-neutral-200 hover:bg-raised hover:text-neutral-100 active:bg-raised disabled:border-hairline disabled:bg-transparent disabled:text-neutral-600',
   ghost:
@@ -92,11 +98,9 @@ const VARIANTS: Record<ButtonVariant, string> = {
   danger:
     'border border-negative-300 text-negative-100 hover:bg-negative-500/10 active:bg-negative-500/20 disabled:border-hairline disabled:text-neutral-600',
   /*
-   * The transaction-safety banner's three controls. `danger` and `warning`
-   * paint identically while both ramps resolve to the same blue, but they are
-   * different decisions — "this failed" versus "this may still be running" —
-   * and keeping the slots apart is what lets the ramps diverge later without
-   * revisiting the call sites.
+   * The transaction-safety banner's three controls. `danger` is red because
+   * it reverses something; `warning` is grey because "this may still be
+   * running" is a caution, not a destructive act.
    */
   warning:
     'border border-warning-300 text-warning-100 hover:bg-warning-500/10 active:bg-warning-500/20 disabled:border-hairline disabled:text-neutral-600',

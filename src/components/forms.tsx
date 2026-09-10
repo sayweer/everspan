@@ -139,7 +139,7 @@ interface ActionButtonProps {
   pending?: boolean
   pendingLabel?: string
   children: ReactNode
-  variant?: 'primary' | 'secondary'
+  variant?: 'positive' | 'primary' | 'secondary'
   className?: string
 }
 
@@ -149,6 +149,12 @@ interface ActionButtonProps {
  * Kept as its own name so the twelve call sites do not have to churn, but it
  * is now only a shape: `Button` owns the paint, the press behaviour and the
  * pending semantics.
+ *
+ * It defaults to `positive` because that is what an action card's submit
+ * always is — the moment the reader commits funds, signs, and acquires a
+ * position. Setting it here rather than at each call site is what keeps the
+ * green attached to the meaning instead of to five separate strings; the
+ * secondary choices inside a card still opt out explicitly.
  */
 export function ActionButton({
   onClick,
@@ -156,7 +162,7 @@ export function ActionButton({
   pending,
   pendingLabel = 'Working…',
   children,
-  variant = 'primary',
+  variant = 'positive',
   className = '',
 }: ActionButtonProps): ReactElement {
   return (
