@@ -8,6 +8,7 @@ import { useDocumentTitle } from './hooks/useDocumentTitle'
 import { useBalance } from './hooks/useBalance'
 import { usePortfolio } from './hooks/usePortfolio'
 import { usePools } from './hooks/usePools'
+import { useHoldings } from './hooks/useHoldings'
 import { useLiveRate } from './hooks/useLiveRate'
 import { useProtocolEvents } from './hooks/useProtocolEvents'
 import { config, isContractsConfigured, markets, type MarketKey } from './config'
@@ -131,6 +132,7 @@ function MarketContent({
   const { portfolio, loading, error, refresh, refreshSilent } = usePortfolio(address)
   const pools = usePools(address, portfolio.maturities)
   const liveRate = useLiveRate(portfolio.rateInfo)
+  const holdings = useHoldings(portfolio, pools.pools, liveRate)
   const refreshPools = pools.refresh
   const refreshBalance = balance.refresh
   const seenDataVersion = useRef(dataVersion)
@@ -307,6 +309,7 @@ function MarketContent({
                 underlying={portfolio.underlying}
                 sy={portfolio.sy}
                 positions={portfolio.positions}
+                holdings={holdings}
                 loading={pools.loading || loading}
                 pools={pools.pools}
                 rateInfo={portfolio.rateInfo}
