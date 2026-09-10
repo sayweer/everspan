@@ -119,7 +119,7 @@ function JourneyVisual({ activeStep }: { activeStep: number }): ReactElement {
             note={activeStep >= 2 ? 'Redeem at maturity' : 'Principal separated'}
           />
           <PositionCard
-            className="bg-accent-500 text-neutral-50"
+            className="bg-accent-500 text-onAccent"
             label="YIELD TOKEN"
             amount="1,000 YT"
             note={activeStep >= 2 ? 'Yield until maturity' : 'Yield separated'}
