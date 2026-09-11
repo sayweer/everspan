@@ -26,7 +26,14 @@ export async function submitThroughRelay(
 ): Promise<{ hash: string } | AppError> {
   // A reload keeps the session record but not the kit's in-memory connection,
   // and signing needs the connection.
-  const reopened = await ensureOpen(walletAddress, storedCredentialId() ?? undefined)
+  const credentialId = storedCredentialId()
+  if (credentialId === null) {
+    return {
+      code: 'passkey_not_remembered',
+      message: 'This device no longer holds the passkey for that wallet. Sign in again.',
+    }
+  }
+  const reopened = await ensureOpen(walletAddress, credentialId)
   if (reopened) return reopened
 
   const signed = await signAssembled(tx)

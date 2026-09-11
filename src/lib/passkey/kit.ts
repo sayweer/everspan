@@ -82,10 +82,14 @@ let kitPromise: Promise<PasskeyKitLike> | null = null
 interface PasskeyKitLike {
   createWallet(app: string, user: string): Promise<CreateResult>
   confirmWalletCreation(created: unknown, hash: string): Promise<unknown>
-  connectWallet(options?: { keyId?: string }): Promise<ConnectResult>
   sign<T>(tx: T): Promise<T>
   disconnect(): void
   readonly contractId: string | undefined
+  /* Assigned rather than reached through `connectWallet` — see `attach`. */
+  wallet: unknown
+  keyId: string | undefined
+  readonly rpcUrl: string
+  readonly networkPassphrase: string
 }
 
 /** Only the fields this module reads. The rest travels in `kitResult`. */
@@ -93,11 +97,6 @@ interface CreateResult {
   contractId: string
   keyIdBase64: string
   signedTx: string
-}
-
-interface ConnectResult {
-  contractId: string
-  keyIdBase64: string
 }
 
 async function loadKit(): Promise<PasskeyKitLike> {
@@ -122,6 +121,41 @@ async function loadKit(): Promise<PasskeyKitLike> {
 function kit(): Promise<PasskeyKitLike> {
   kitPromise ??= loadKit()
   return kitPromise
+}
+
+/**
+ * Point the kit at a wallet.
+ *
+ * This is what `connectWallet` does at the end of its verification loop, and
+ * we do it directly because that loop cannot complete on this version: it reads
+ * a signer's expiration and guards it with `!== undefined`, so a signer with no
+ * expiration — which is every signer this app creates — arrives as `null`,
+ * passes the guard, and throws on `null.toString()`. Reported upstream shape:
+ * `kit.js` in 0.18.3, the `signerExpirationLedger` branch. There is no later
+ * release to move to.
+ *
+ * What the loop would have bought us is proof that the passkey really is a
+ * signer on this wallet, before showing it. Skipping it means a tampered
+ * localStorage could point the screen at someone else's wallet — and stop
+ * there: moving anything out of it still needs an authorizing signature from a
+ * passkey the attacker does not have, which the wallet contract checks itself.
+ * On a Testnet feedback build that trade is worth making; on mainnet this
+ * whole feature comes out anyway.
+ */
+async function attach(contractId: string, credentialId: string): Promise<AppError | null> {
+  try {
+    const instance = await kit()
+    const { PasskeyClient } = await import('passkey-kit')
+    instance.wallet = new PasskeyClient({
+      contractId,
+      rpcUrl: instance.rpcUrl,
+      networkPassphrase: instance.networkPassphrase,
+    })
+    instance.keyId = credentialId
+    return null
+  } catch (e) {
+    return humanise('attach wallet', e)
+  }
 }
 
 /** Drop the kit so the next connection starts clean. */
@@ -165,23 +199,28 @@ export async function adoptWallet(
   try {
     const instance = await kit()
     await instance.confirmWalletCreation(created.kitResult, deployHash)
-    const connected = await instance.connectWallet({ keyId: created.credentialId })
-    return { contractId: connected.contractId, credentialId: connected.keyIdBase64 }
+    const attached = await attach(created.contractId, created.credentialId)
+    if (attached) return attached
+    return { contractId: created.contractId, credentialId: created.credentialId }
   } catch (e) {
     return humanise('adopt wallet', e)
   }
 }
 
-/** Re-open an existing wallet from a credential this device already holds. */
-export async function openWallet(credentialId?: string): Promise<PasskeyIdentity | AppError> {
-  try {
-    const connected = await (await kit()).connectWallet(
-      credentialId ? { keyId: credentialId } : undefined,
-    )
-    return { contractId: connected.contractId, credentialId: connected.keyIdBase64 }
-  } catch (e) {
-    return humanise('open wallet', e)
-  }
+/**
+ * Re-open the wallet this device remembers.
+ *
+ * No ceremony here, deliberately. The authenticator is asked for the first
+ * thing the reader actually signs, which is where possession has to be proved
+ * anyway — prompting twice to show a balance buys nothing.
+ */
+export async function openWallet(
+  contractId: string,
+  credentialId: string,
+): Promise<PasskeyIdentity | AppError> {
+  const attached = await attach(contractId, credentialId)
+  if (attached) return attached
+  return { contractId, credentialId }
 }
 
 /**
@@ -191,13 +230,11 @@ export async function openWallet(credentialId?: string): Promise<PasskeyIdentity
  */
 export async function ensureOpen(
   expectedAddress: string,
-  credentialId?: string,
+  credentialId: string,
 ): Promise<AppError | null> {
   const instance = await kit()
   if (instance.contractId === expectedAddress) return null
-  const opened = await openWallet(credentialId)
-  if ('code' in opened) return opened
-  return opened.contractId === expectedAddress ? null : OWNERSHIP
+  return attach(expectedAddress, credentialId)
 }
 
 /** Sign an assembled transaction's authorization entries with the passkey. */

@@ -17,6 +17,7 @@
 
 const SESSION_ADDRESS = 'everspan:passkey:address'
 const CREDENTIAL_ID = 'everspan:passkey:credential'
+const REMEMBERED_ADDRESS = 'everspan:passkey:wallet'
 
 function read(storage: Storage, key: string): string | null {
   try {
@@ -55,10 +56,22 @@ export function storedCredentialId(): string | null {
   return read(localStorage, CREDENTIAL_ID)
 }
 
+/**
+ * The wallet this device remembers, if any — a public address and the
+ * credential that opens it. Both are durable: a returning reader needs the
+ * address as much as the credential, and neither is a secret.
+ */
+export function rememberedWallet(): { address: string; credentialId: string } | null {
+  const address = read(localStorage, REMEMBERED_ADDRESS)
+  const credentialId = read(localStorage, CREDENTIAL_ID)
+  return address !== null && credentialId !== null ? { address, credentialId } : null
+}
+
 /** Adopt a smart wallet as this tab's session and remember how to re-open it. */
 export function startPasskeySession(address: string, credentialId: string): void {
   write(sessionStorage, SESSION_ADDRESS, address)
   write(localStorage, CREDENTIAL_ID, credentialId)
+  write(localStorage, REMEMBERED_ADDRESS, address)
 }
 
 /**
@@ -69,5 +82,8 @@ export function startPasskeySession(address: string, credentialId: string): void
  */
 export function endPasskeySession(forget = false): void {
   write(sessionStorage, SESSION_ADDRESS, null)
-  if (forget) write(localStorage, CREDENTIAL_ID, null)
+  if (forget) {
+    write(localStorage, CREDENTIAL_ID, null)
+    write(localStorage, REMEMBERED_ADDRESS, null)
+  }
 }

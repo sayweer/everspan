@@ -146,6 +146,24 @@ in the code can detect this; it is purely which link gets shared.
   when the relay is already broken, but it does name a path — drop it once the
   deployment path is settled.
 
+## Working around an upstream bug
+
+`kit.connectWallet()` cannot complete on `passkey-kit@0.18.3`, which is the
+latest release. It reads a signer's expiration and guards it with
+`!== undefined`, so a signer created without one — every signer this app makes —
+arrives as `null`, passes the guard, and throws on `null.toString()`. It fails
+for every wallet, every time, so there is nothing to configure around it.
+
+`src/lib/passkey/kit.ts` therefore does what that method does at the end of its
+verification loop: assigns `kit.wallet` and `kit.keyId` directly.
+
+What the loop would have bought is proof that the passkey really is a signer on
+the wallet *before* the balance is shown. Without it, a tampered `localStorage`
+could point the screen at someone else's wallet — and stop there: moving
+anything out still needs an authorizing signature the attacker cannot produce,
+which the wallet contract checks itself. Revisit this if a release fixes the
+guard; the call site is one function.
+
 ## What this feature is not
 
 - **It has no recovery.** A passkey is bound to one device's credential store.

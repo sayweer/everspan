@@ -10,7 +10,7 @@ import type { AppError } from '../../types'
 import { isAppError } from '../../types'
 import { adoptWallet, closeWallet, createWallet, openWallet } from './kit'
 import { relayEnvelope } from './relay'
-import { endPasskeySession, startPasskeySession, storedCredentialId } from './session'
+import { endPasskeySession, rememberedWallet, startPasskeySession } from './session'
 
 /** What the reader is called in their authenticator's list of passkeys. */
 const USER_LABEL = 'Everspan Testnet'
@@ -74,7 +74,14 @@ export async function createPasskeyWallet(): Promise<PasskeyConnection | AppErro
  * position they opened.
  */
 export async function reopenPasskeyWallet(): Promise<PasskeyConnection | AppError> {
-  const identity = await openWallet(storedCredentialId() ?? undefined)
+  const remembered = rememberedWallet()
+  if (!remembered) {
+    return {
+      code: 'passkey_not_remembered',
+      message: 'This device does not remember a wallet. Create one, or connect a wallet instead.',
+    }
+  }
+  const identity = await openWallet(remembered.address, remembered.credentialId)
   if (isAppError(identity)) return identity
   startPasskeySession(identity.contractId, identity.credentialId)
   return { address: identity.contractId, fundingError: null }

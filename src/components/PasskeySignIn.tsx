@@ -11,7 +11,7 @@ import { useWallet } from '../context/WalletContext'
 import { passkeyEnabled } from '../lib/passkey/enabled'
 import { passkeyCapability, passkeyLabel, passkeyOffered } from '../lib/passkey/support'
 import type { PasskeyCapability } from '../lib/passkey/support'
-import { storedCredentialId } from '../lib/passkey/session'
+import { rememberedWallet } from '../lib/passkey/session'
 import { buttonClasses } from '../lib/buttonStyles'
 import { isAppError, type AppError } from '../types'
 
@@ -21,7 +21,7 @@ export function PasskeySignIn(): ReactElement | null {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<AppError | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
-  const returning = storedCredentialId() !== null
+  const returning = rememberedWallet() !== null
 
   useEffect(() => {
     if (!passkeyEnabled()) return
