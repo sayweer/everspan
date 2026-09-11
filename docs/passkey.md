@@ -124,12 +124,27 @@ in the code can detect this; it is purely which link gets shared.
   as a 500 with a platform error id *before* the handler runs, so even a
   malformed body came back 500 instead of 400 — which is the tell. The
   admission gate and the fee helpers now live in `api/_lib/`, still pure and
-  still covered (`vitest.config.ts` includes `api/**/*.test.ts`). **Do not add
-  an import from `api/` into `src/`, and give every relative import inside
-  `api/` an explicit `.ts` extension** — typechecking accepts an extensionless
-  one because the tsconfig uses bundler resolution, and the runtime then fails
-  to resolve it at load. `node --experimental-strip-types -e "await
-  import('./api/relay.ts')"` reproduces that in a second, without a deploy.
+  still covered (`vitest.config.ts` includes `api/**/*.test.ts`).
+
+  Two rules came out of getting this wrong twice. **Never import from `api/`
+  into `src/`** — the function bundle does not reach outside `api/`. And
+  **relative imports inside `api/` carry a `.js` extension**, because the
+  platform compiles each file separately without rewriting specifiers;
+  extensionless fails (bundler resolution only satisfies the typechecker) and
+  `.ts` fails once the file on disk is `.js`.
+
+  `relay.ts` loads its gate with a dynamic import inside the handler so a
+  resolution failure comes back as a readable 503 instead of an opaque 500 —
+  the platform gives no way to tell a missing module from a broken one.
+  Reproduce either locally in a second, without a deploy:
+
+  ```
+  node --experimental-strip-types -e "await import('./api/relay.ts')"
+  ```
+
+  The 503 carries a `detail` field with the loader's message. It only appears
+  when the relay is already broken, but it does name a path — drop it once the
+  deployment path is settled.
 
 ## What this feature is not
 

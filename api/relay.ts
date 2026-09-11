@@ -23,12 +23,47 @@ import {
   type Transaction,
 } from '@stellar/stellar-sdk'
 import { Api, Durability, Server } from '@stellar/stellar-sdk/rpc'
-/* Beside the function rather than in src/lib. The serverless bundler resolves
-   what sits under api/; an import reaching outside it fails while the module
-   is loading, which surfaces as a 500 before the handler ever runs — and looks
-   nothing like a missing file. */
-import { admits, parseList, type GuardConfig } from './_lib/guard.ts'
-import { INCLUSION_FEE, paddedResourceFee } from './_lib/fees.ts'
+import type { GuardConfig } from './_lib/guard.js'
+
+/*
+ * The gate and the fee helpers are loaded inside the handler rather than at
+ * module scope, and the specifier carries a `.js` extension even though the
+ * source is `.ts`.
+ *
+ * Both are answers to the same problem. The platform compiles each file
+ * separately and does not rewrite import specifiers, so the name has to be the
+ * compiled one; and a static import that fails takes the whole module down
+ * before the handler exists, which the platform reports as an opaque 500 with
+ * no way to tell a missing module from a broken one. Loading it here means a
+ * resolution failure arrives as a message we can read.
+ *
+ * It fails closed: without the gate there is no admission decision, so there
+ * is no submission either.
+ */
+interface RelayDeps {
+  admits: (funcXdr: string, cfg: GuardConfig) => Promise<boolean>
+  parseList: (value: string | undefined) => string[]
+  INCLUSION_FEE: string
+  paddedResourceFee: (quoted: bigint) => bigint
+}
+
+let cachedDeps: RelayDeps | null = null
+
+async function loadDeps(): Promise<RelayDeps | string> {
+  if (cachedDeps) return cachedDeps
+  try {
+    const [guard, fees] = await Promise.all([import('./_lib/guard.js'), import('./_lib/fees.js')])
+    cachedDeps = {
+      admits: guard.admits,
+      parseList: guard.parseList,
+      INCLUSION_FEE: fees.INCLUSION_FEE,
+      paddedResourceFee: fees.paddedResourceFee,
+    }
+    return cachedDeps
+  } catch (error) {
+    return error instanceof Error ? error.message : String(error)
+  }
+}
 
 const RPC_URL = process.env.RELAY_RPC_URL ?? 'https://soroban-testnet.stellar.org'
 /* Hardcoded rather than read from the environment. This endpoint sponsors
@@ -53,10 +88,10 @@ function sponsor(): Keypair | null {
   }
 }
 
-function guardConfig(server: Server): GuardConfig {
+function guardConfig(server: Server, deps: RelayDeps): GuardConfig {
   return {
-    contracts: parseList(process.env.RELAY_ALLOWED_CONTRACTS),
-    wasmHashes: parseList(process.env.RELAY_ALLOWED_WASM),
+    contracts: deps.parseList(process.env.RELAY_ALLOWED_CONTRACTS),
+    wasmHashes: deps.parseList(process.env.RELAY_ALLOWED_WASM),
     readWasmHash: async (contractId) => {
       const entry = await server.getContractData(
         contractId,
@@ -103,12 +138,13 @@ async function submitHostFunction(
   keypair: Keypair,
   func: xdr.HostFunction,
   auth: xdr.SorobanAuthorizationEntry[],
+  deps: RelayDeps,
 ): Promise<{ hash: string; status: string }> {
   const address = keypair.publicKey()
   const sequence = (await server.getAccount(address)).sequenceNumber()
   const build = (sorobanData?: xdr.SorobanTransactionData): Transaction =>
     new TransactionBuilder(new Account(address, sequence), {
-      fee: INCLUSION_FEE,
+      fee: deps.INCLUSION_FEE,
       networkPassphrase: NETWORK_PASSPHRASE,
       ...(sorobanData ? { sorobanData } : {}),
     })
@@ -123,7 +159,7 @@ async function submitHostFunction(
 
   const data = simulation.transactionData.build()
   data.resourceFee(
-    xdr.Int64.fromString(paddedResourceFee(BigInt(data.resourceFee().toString())).toString()),
+    xdr.Int64.fromString(deps.paddedResourceFee(BigInt(data.resourceFee().toString())).toString()),
   )
 
   const tx = build(data)
@@ -144,11 +180,12 @@ async function submitEnvelope(
   server: Server,
   keypair: Keypair,
   envelopeXdr: string,
+  deps: RelayDeps,
 ): Promise<{ hash: string; status: string }> {
   const inner = TransactionBuilder.fromXDR(envelopeXdr, NETWORK_PASSPHRASE) as Transaction
   const bumped = TransactionBuilder.buildFeeBumpTransaction(
     keypair,
-    INCLUSION_FEE,
+    deps.INCLUSION_FEE,
     inner,
     NETWORK_PASSPHRASE,
   )
@@ -161,6 +198,12 @@ async function submitEnvelope(
 }
 
 export async function POST(request: Request): Promise<Response> {
+  const deps = await loadDeps()
+  if (typeof deps === 'string') {
+    console.error('[relay] could not load its admission gate:', deps)
+    return json({ error: 'Relay is unavailable.', detail: deps }, 503)
+  }
+
   const keypair = sponsor()
   if (!keypair) return json({ error: 'Relay is not configured.' }, 503)
 
@@ -174,7 +217,7 @@ export async function POST(request: Request): Promise<Response> {
 
   const server = new Server(RPC_URL)
   const gated = isCall ? func : hostFunctionOf(envelope as string)
-  if (gated === null || !(await admits(gated, guardConfig(server)))) {
+  if (gated === null || !(await deps.admits(gated, guardConfig(server, deps)))) {
     return json({ error: 'Not allowed.' }, 403)
   }
 
@@ -187,8 +230,9 @@ export async function POST(request: Request): Promise<Response> {
           (auth as string[]).map((entry) =>
             xdr.SorobanAuthorizationEntry.fromXDR(entry, 'base64'),
           ),
+          deps,
         )
-      : await submitEnvelope(server, keypair, envelope as string)
+      : await submitEnvelope(server, keypair, envelope as string, deps)
     return json(result, 200)
   } catch (error) {
     console.error('[relay] submit failed:', error)
