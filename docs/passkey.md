@@ -71,6 +71,12 @@ whenever the feature reaches into an existing file.
 | `src/components/ConnectPrompt.tsx` | renders `<PasskeySignIn />` above the wallet button |
 | `src/components/OverviewPanel.tsx` | renders `<PasskeySignIn />` under the next-step card while disconnected |
 | `src/components/AccountDrawer.tsx` | renders `<PasskeySignIn />` above the connect-a-wallet row |
+| `src/components/AppEntry.tsx` | renders `<PasskeySignIn />` in the entry sheet |
+
+Note that `RequireSession`, `AppEntry` and `useEnterOnConnect` are **not** part
+of this feature — the gate stands on its own and keeps working with only the
+wallet path. Removing the passkey feature means deleting the one
+`<PasskeySignIn />` line inside `AppEntry`, not the entry sheet itself.
 
 ## Share one URL with testers
 

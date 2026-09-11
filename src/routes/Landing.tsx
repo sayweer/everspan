@@ -19,6 +19,8 @@ import { formatAmount } from '../lib/format'
 import { ArrowRightIcon, ChartBarIcon, DropletIcon, LockIcon, SwapIcon } from '../components/icons'
 import { FIGURE_TONE, figureText } from '../lib/figures'
 import { LanguageToggle } from '../components/LanguageToggle'
+import { EnterApp } from '../components/AppEntry'
+import { useEnterOnConnect } from '../hooks/useEnterOnConnect'
 
 /* ─────────────────────────────────────────────────────────
  * LANDING STORYBOARD
@@ -38,6 +40,11 @@ import { LanguageToggle } from '../components/LanguageToggle'
 const NAV_SCENES = { story: 1, markets: 3, security: 7 } as const
 
 export function Landing(): ReactElement {
+  /* The app is gated, so the moment a session arrives the reader should be
+     where they were trying to go. Only a session that arrives during this
+     visit counts — someone already connected opened this page to read it. */
+  useEnterOnConnect()
+
   useSurface('site')
   useDocumentTitle('Everspan — fixed yield, built on Stellar')
 
@@ -283,15 +290,12 @@ export function Landing(): ReactElement {
                   Put your yield to work.
                 </h2>
                 <div className="mt-10 flex flex-wrap items-center gap-4">
-                  <Link
-                    to="/app"
-                    className="group inline-flex min-h-12 items-center gap-2 rounded-full bg-neutral-50 px-7 py-3 text-sm font-medium text-neutral-950 transition-transform duration-100 hover:-translate-y-0.5 active:translate-y-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-50 motion-reduce:transform-none"
-                  >
+                  <EnterApp className="group inline-flex min-h-12 items-center gap-2 rounded-full bg-neutral-50 px-7 py-3 text-sm font-medium text-neutral-950 transition-transform duration-100 hover:-translate-y-0.5 active:translate-y-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-50 motion-reduce:transform-none">
                     Launch App
                     <ArrowRightIcon className="h-4 w-4 transition-transform duration-100 group-hover:translate-x-1 motion-reduce:transform-none" />
-                  </Link>
+                  </EnterApp>
                   <span className="text-sm text-neutral-50/90">
-                    No account. Connect a Stellar wallet.
+                    No account needed to look. Signing needs one.
                   </span>
                 </div>
               </SceneBody>
@@ -379,15 +383,14 @@ function PrimaryLink({
   compact?: boolean
 }): ReactElement {
   return (
-    <Link
-      to="/app"
+    <EnterApp
       className={`group inline-flex items-center justify-center gap-2 rounded-full bg-accent-500 font-medium text-neutral-50 [touch-action:manipulation] [-webkit-tap-highlight-color:transparent] transition-transform duration-100 ease-spring hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 motion-safe:active:scale-[0.97] active:duration-75 active:ease-press motion-reduce:transform-none ${
         compact ? 'min-h-11 px-5 py-2 text-sm' : 'min-h-12 w-full px-6 py-3 text-sm sm:w-auto'
       }`}
     >
       {children}
       <ArrowRightIcon className="h-4 w-4 transition-transform duration-100 group-hover:translate-x-1 motion-reduce:transform-none" />
-    </Link>
+    </EnterApp>
   )
 }
 

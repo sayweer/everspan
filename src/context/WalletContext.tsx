@@ -30,6 +30,16 @@ export interface WalletContextValue extends WalletState {
   /** True when connected but the wallet doesn't report its network (e.g. Albedo) — a
    *  soft warning, not a block, since the tx would fail at the wallet if truly wrong. */
   networkUnknown: boolean
+  /**
+   * False until a persisted session has had its chance to come back.
+   *
+   * The kit restores an address asynchronously, so `isConnected` is false for
+   * the first moments of every load whether or not a wallet is connected.
+   * Anything that *acts* on being disconnected — a route guard above all — has
+   * to wait for this, or it throws a returning reader out on every reload and
+   * reports it to them as a dropped connection.
+   */
+  hasRestored: boolean
   /** Open the multi-wallet picker. Resolves to an AppError on failure, or null on success. */
   connect: () => Promise<AppError | null>
   /** Clear the wallet connection (kit exposes no server-side disconnect). */
@@ -51,8 +61,10 @@ const WalletContext = createContext<WalletContextValue | null>(null)
 /** Provides wallet connection state and actions to the tree. */
 export function WalletProvider({ children }: { children: ReactNode }): ReactElement {
   const [state, setState] = useState<WalletState>(INITIAL_STATE)
-  // PASSKEY-ENTRY: a second source of address, merged below.
+  // PASSKEY-ENTRY: a second source of address, merged below. Read
+  // synchronously, so a passkey session needs no restore window at all.
   const [passkey, setPasskey] = useState<string | null>(() => passkeyAddress())
+  const [walletRestored, setWalletRestored] = useState(false)
   // Whether the network read has resolved for the current address (so the
   // "network unknown" warning doesn't flicker during the async fetch).
   const [networkChecked, setNetworkChecked] = useState(false)
@@ -67,8 +79,19 @@ export function WalletProvider({ children }: { children: ReactNode }): ReactElem
   // connect/disconnect/account switch — this is the single source of truth
   // for `address`.
   useEffect(() => {
+    /*
+     * The kit is expected to fire immediately with whatever it persisted, but
+     * a kit that stays silent would leave the guard waiting forever. The
+     * timeout is the floor: after it, "no address arrived" is taken as the
+     * answer rather than as a question still open.
+     */
+    const settled = window.setTimeout(() => {
+      setWalletRestored(true)
+    }, 1500)
+
     const unsubscribe = onWalletAddressChange((address) => {
       latestAddressRef.current = address
+      setWalletRestored(true)
       if (!address) {
         setState(INITIAL_STATE)
         setNetworkChecked(false)
@@ -95,7 +118,10 @@ export function WalletProvider({ children }: { children: ReactNode }): ReactElem
         if (latestAddressRef.current === address) setNetworkChecked(true)
       })
     })
-    return unsubscribe
+    return () => {
+      window.clearTimeout(settled)
+      unsubscribe()
+    }
   }, [])
 
   const connect = useCallback(async (): Promise<AppError | null> => {
@@ -145,6 +171,7 @@ export function WalletProvider({ children }: { children: ReactNode }): ReactElem
         disconnect,
         isPasskey: true,
         adoptPasskey,
+        hasRestored: true,
       }
     }
 
@@ -161,8 +188,9 @@ export function WalletProvider({ children }: { children: ReactNode }): ReactElem
       disconnect,
       isPasskey: false,
       adoptPasskey,
+      hasRestored: walletRestored,
     }
-  }, [state, networkChecked, connect, disconnect, passkey, adoptPasskey])
+  }, [state, networkChecked, connect, disconnect, passkey, adoptPasskey, walletRestored])
 
   return <WalletContext.Provider value={value}>{children}</WalletContext.Provider>
 }

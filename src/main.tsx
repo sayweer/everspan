@@ -16,6 +16,7 @@ import { TransactionSafetyProvider } from './context/TransactionSafetyContext.ts
 import { TransactionSafetyBanner } from './components/TransactionSafetyBanner.tsx'
 import { Toast } from './components/Toast.tsx'
 import { LanguageProvider } from './context/LanguageContext.tsx'
+import { RequireSession } from './routes/RequireSession.tsx'
 
 if (config.sentryDsn) {
   Sentry.init({ dsn: config.sentryDsn })
@@ -40,7 +41,17 @@ createRoot(rootElement).render(
                   <TransactionSafetyBanner />
                   <Routes>
                     <Route path="/" element={<LandingRoute />} />
-                    <Route path="/app" element={<App />} />
+                    {/* The app is for people who can act on it, and every
+                      action needs an account. Without one the reader goes back
+                      to the page that exists to give them one. */}
+                  <Route
+                    path="/app"
+                    element={
+                      <RequireSession>
+                        <App />
+                      </RequireSession>
+                    }
+                  />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                   <Toast />
