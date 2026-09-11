@@ -66,6 +66,9 @@ whenever the feature reaches into an existing file.
 | `package.json` | `passkey-kit`, `buffer`, and the `@stellar/stellar-sdk` floor at `^16.3.0` |
 | `tsconfig.node.json` | `api` added to `include` so the functions are typechecked |
 | `src/lib/contracts/base.ts` | one branch in `invokeWrite`, plus the session import |
+| `src/context/WalletContext.tsx` | the passkey address merged into the session, `isPasskey`/`adoptPasskey` |
+| `src/components/PasskeySignIn.tsx` | the entry control (delete the file) |
+| `src/components/ConnectPrompt.tsx` | renders `<PasskeySignIn />` above the wallet button |
 
 ## Known gaps, stated rather than hidden
 

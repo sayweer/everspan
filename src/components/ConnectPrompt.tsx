@@ -4,6 +4,8 @@ import { WalletIcon } from './icons'
 import { IconTile } from './IconTile'
 import { FIGURE_TONE } from '../lib/figures'
 import { WalletButton } from './WalletButton'
+// PASSKEY-ENTRY: renders nothing when the feature is off. See docs/passkey.md.
+import { PasskeySignIn } from './PasskeySignIn'
 
 interface ConnectPromptProps {
   message: string
@@ -40,6 +42,12 @@ export function ConnectPrompt({
         Connect to start
       </h2>
       <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-neutral-400">{message}</p>
+      {/* PASSKEY-ENTRY: the wallet-free path leads, because the reader who
+          needs this screen is the one without a wallet. Bringing your own
+          stays right underneath. */}
+      <div className="mt-6">
+        <PasskeySignIn />
+      </div>
       <div className="mt-5 flex justify-center">
         <WalletButton />
       </div>

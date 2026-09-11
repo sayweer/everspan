@@ -11,6 +11,8 @@ import {
   openWalletPicker,
 } from '../lib/wallet'
 import { isAppError, type AppError, type WalletState } from '../types'
+// PASSKEY-ENTRY: the wallet-free entry point. See docs/passkey.md.
+import { passkeyAddress } from '../lib/passkey/session'
 
 const INITIAL_STATE: WalletState = {
   status: 'disconnected',
@@ -32,6 +34,16 @@ export interface WalletContextValue extends WalletState {
   connect: () => Promise<AppError | null>
   /** Clear the wallet connection (kit exposes no server-side disconnect). */
   disconnect: () => void
+  /*
+   * PASSKEY-ENTRY. True when this session is a passkey smart wallet rather
+   * than a connected wallet. Components should not branch on this — the
+   * address behaves the same either way — but the header needs it to label
+   * the session honestly, and the network check below to skip a question a
+   * contract cannot answer.
+   */
+  isPasskey: boolean
+  /** PASSKEY-ENTRY. Adopt a passkey wallet as the session. */
+  adoptPasskey: (address: string) => void
 }
 
 const WalletContext = createContext<WalletContextValue | null>(null)
@@ -39,6 +51,8 @@ const WalletContext = createContext<WalletContextValue | null>(null)
 /** Provides wallet connection state and actions to the tree. */
 export function WalletProvider({ children }: { children: ReactNode }): ReactElement {
   const [state, setState] = useState<WalletState>(INITIAL_STATE)
+  // PASSKEY-ENTRY: a second source of address, merged below.
+  const [passkey, setPasskey] = useState<string | null>(() => passkeyAddress())
   // Whether the network read has resolved for the current address (so the
   // "network unknown" warning doesn't flicker during the async fetch).
   const [networkChecked, setNetworkChecked] = useState(false)
@@ -99,9 +113,41 @@ export function WalletProvider({ children }: { children: ReactNode }): ReactElem
   const disconnect = useCallback((): void => {
     disconnectWallet()
     setState(INITIAL_STATE)
+    // PASSKEY-ENTRY
+    if (passkeyAddress() !== null) {
+      setPasskey(null)
+      void import('../lib/passkey/connect').then((m) => m.disconnectPasskey())
+    }
+  }, [])
+
+  // PASSKEY-ENTRY
+  const adoptPasskey = useCallback((address: string): void => {
+    setPasskey(address)
   }, [])
 
   const value = useMemo<WalletContextValue>(() => {
+    /*
+     * PASSKEY-ENTRY. A passkey session wins when both exist: it is the one the
+     * reader chose in this tab, and it is deployed on Testnet by construction,
+     * so the network questions below have answers without asking a contract
+     * what network it is on — which it cannot tell us.
+     */
+    if (passkey !== null) {
+      return {
+        status: 'connected',
+        address: passkey,
+        network: 'TESTNET',
+        networkPassphrase: config.networkPassphrase,
+        isConnected: true,
+        isWrongNetwork: false,
+        networkUnknown: false,
+        connect,
+        disconnect,
+        isPasskey: true,
+        adoptPasskey,
+      }
+    }
+
     const isConnected = state.status === 'connected' && state.address !== null
     return {
       ...state,
@@ -113,8 +159,10 @@ export function WalletProvider({ children }: { children: ReactNode }): ReactElem
       networkUnknown: isConnected && networkChecked && state.networkPassphrase === null,
       connect,
       disconnect,
+      isPasskey: false,
+      adoptPasskey,
     }
-  }, [state, networkChecked, connect, disconnect])
+  }, [state, networkChecked, connect, disconnect, passkey, adoptPasskey])
 
   return <WalletContext.Provider value={value}>{children}</WalletContext.Provider>
 }
