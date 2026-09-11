@@ -23,8 +23,12 @@ import {
   type Transaction,
 } from '@stellar/stellar-sdk'
 import { Api, Durability, Server } from '@stellar/stellar-sdk/rpc'
-import { admits, parseList, type GuardConfig } from '../src/lib/passkey/guard'
-import { INCLUSION_FEE, paddedResourceFee } from '../src/lib/passkey/fees'
+/* Beside the function rather than in src/lib. The serverless bundler resolves
+   what sits under api/; an import reaching outside it fails while the module
+   is loading, which surfaces as a 500 before the handler ever runs — and looks
+   nothing like a missing file. */
+import { admits, parseList, type GuardConfig } from './_lib/guard'
+import { INCLUSION_FEE, paddedResourceFee } from './_lib/fees'
 
 const RPC_URL = process.env.RELAY_RPC_URL ?? 'https://soroban-testnet.stellar.org'
 /* Hardcoded rather than read from the environment. This endpoint sponsors

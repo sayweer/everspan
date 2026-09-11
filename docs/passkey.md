@@ -44,7 +44,9 @@ Everything the feature owns lives in two places and can be deleted whole:
 
 ```
 src/lib/passkey/     the client seam, capability probe, kill switch
-api/                 the relay and faucet functions
+api/                 the relay and faucet functions, plus _lib/ (admission
+                     gate, fee helpers) — kept beside them because the
+                     serverless bundler will not follow an import out of api/
 ```
 
 Everything it touches **outside** those folders is tagged. To see the entire
@@ -116,10 +118,14 @@ in the code can detect this; it is purely which link gets shared.
   stops the dispenser before it empties. Passkey creation is fully automatable
   — a scripted authenticator can mint wallets in a loop — so treat the reserve
   as the real limit and refill deliberately rather than on a schedule.
-- **`api/` imports from `src/lib/`.** If the functions ever get their own
-  tsconfig with `"moduleResolution": "node16"`, those relative imports will need
-  `.js` extensions or they fail at cold start with an opaque 500. They are
-  typechecked today through `tsconfig.node.json`.
+- ~~`api/` imports from `src/lib/`~~ — it did, and it failed exactly as
+  predicted: the serverless bundler resolves what sits under `api/`, and an
+  import reaching outside it threw while the module was loading. That surfaces
+  as a 500 with a platform error id *before* the handler runs, so even a
+  malformed body came back 500 instead of 400 — which is the tell. The
+  admission gate and the fee helpers now live in `api/_lib/`, still pure and
+  still covered (`vitest.config.ts` includes `api/**/*.test.ts`). **Do not add
+  an import from `api/` into `src/`.**
 
 ## What this feature is not
 
