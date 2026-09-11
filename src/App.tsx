@@ -330,7 +330,6 @@ function MarketContent({
                 error={dataError}
                 onRetry={refreshAll}
                 onEarn={openStrategy}
-                onConvert={goConvert}
                 onPortfolio={goPortfolio}
               />
             )}
@@ -347,6 +346,7 @@ function MarketContent({
                   pools={pools.pools}
                   poolsLoading={pools.loading || loading}
                   positions={portfolio.positions}
+                  underlyingBalance={portfolio.underlying}
                   syBalance={portfolio.sy}
                   liveRate={liveRate}
                   tradeMaturity={maturity}

@@ -72,7 +72,7 @@ export function Landing(): ReactElement {
       note: 'LIVE ON TESTNET',
     },
     {
-      value: chainKnown ? `${formatAmount(totalLiquidity, 0)} SY` : '—',
+      value: chainKnown ? formatAmount(totalLiquidity, 0) : '—',
       label: 'Pool liquidity',
       note: 'ON CHAIN',
     },
@@ -161,14 +161,14 @@ export function Landing(): ReactElement {
               <SceneBody className="grid items-center gap-14 lg:grid-cols-[0.92fr_1.08fr]">
                 <div>
                   <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-neutral-50/90">
-                    Principal Token · PT
+                    Principal
                   </p>
                   <h2 className="mt-7 max-w-3xl text-[clamp(3rem,6vw,6rem)] font-medium leading-[0.87] tracking-[-0.06em]">
                     Know what comes back.
                   </h2>
                   <p className="mt-8 max-w-xl text-lg leading-relaxed text-neutral-50/80">
-                    PT trades below its maturity value. The difference between what you pay and what
-                    you redeem defines the implied rate for your position.
+                    Principal trades below its maturity value. The difference between what you pay
+                    and what you redeem defines the implied rate for your position.
                   </p>
                 </div>
                 <SceneParallax>
@@ -184,14 +184,14 @@ export function Landing(): ReactElement {
                 </SceneParallax>
                 <div className="lg:order-2">
                   <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent-500">
-                    Yield Token · YT
+                    Yield
                   </p>
                   <h2 className="mt-7 max-w-3xl text-[clamp(3rem,6vw,6rem)] font-medium leading-[0.87] tracking-[-0.06em]">
                     Hold the rate itself.
                   </h2>
                   <p className="mt-8 max-w-xl text-lg leading-relaxed text-neutral-600">
-                    YT receives the yield released before maturity. When it moves, Everspan settles
-                    both holders first—accrued yield always follows the time it was earned.
+                    The yield side receives what is released before maturity. When it moves, Everspan
+                    settles both holders first—accrued yield always follows the time it was earned.
                   </p>
                 </div>
               </SceneBody>
@@ -201,14 +201,14 @@ export function Landing(): ReactElement {
               <SceneBody className="grid items-center gap-14 lg:grid-cols-2">
                 <div>
                   <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-neutral-600">
-                    PT / SY Market
+                    The market
                   </p>
                   <h2 className="mt-7 max-w-3xl text-[clamp(3rem,6vw,6rem)] font-medium leading-[0.87] tracking-[-0.06em]">
                     Make the market.
                   </h2>
                   <p className="mt-8 max-w-xl text-lg leading-relaxed text-neutral-600">
-                    Swap PT and SY or provide both sides as liquidity. Every pool is tied to one
-                    maturity, with a transparent 30 bps fee on each trade.
+                    Swap the principal against your deposit, or provide both sides as liquidity.
+                    Every pool is tied to one maturity, with a transparent 30 bps fee on each trade.
                   </p>
                 </div>
                 <SceneParallax>
@@ -240,7 +240,7 @@ export function Landing(): ReactElement {
                   <YieldSource
                     label="XLM · BLEND"
                     title="Live lending yield"
-                    body="A real Blend v2 lending position behind the same SY interface."
+                    body="A real Blend v2 lending position behind the same standard interface."
                   />
                 </div>
               </SceneBody>
@@ -399,13 +399,13 @@ function FixedRateVisual(): ReactElement {
     <div className="rounded-3xl bg-neutral-50 p-6 text-neutral-950 shadow-2xl shadow-neutral-950/15 sm:p-8">
       <div className="flex items-center justify-between gap-4 border-b border-neutral-950/10 pb-6">
         <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-600">
-          Illustrative PT position
+          Illustrative principal position
         </p>
         <LockIcon className={`h-5 w-5 ${figureText(FIGURE_TONE.fixed)}`} />
       </div>
       <div className="grid gap-8 py-10 sm:grid-cols-2">
-        <Metric label="Cost today" value="958 SY" />
-        <Metric label="Redeem at maturity" value="1,000 SY" />
+        <Metric label="Cost today" value="958" />
+        <Metric label="Redeem at maturity" value="1,000" />
       </div>
       <div className="relative h-px bg-neutral-950/15">
         <span className="absolute -top-1 left-0 h-2 w-2 rounded-full bg-accent-500" />
@@ -431,7 +431,7 @@ function YieldVisual(): ReactElement {
       </div>
       <div className="py-10">
         <p className="text-[clamp(4rem,9vw,7rem)] font-medium leading-none tracking-[-0.06em] text-accent-400">
-          YT
+          Yield
         </p>
         <p className="mt-5 max-w-md text-lg leading-relaxed text-neutral-300">
           Yield is measured against each holder’s settlement index and stops exactly at maturity.
@@ -456,9 +456,9 @@ function LiquidityVisual(): ReactElement {
         <DropletIcon className={`h-5 w-5 ${figureText(FIGURE_TONE.liquidity)}`} />
       </div>
       <div className="grid gap-3 py-8 sm:grid-cols-[1fr_auto_1fr] sm:items-center">
-        <TokenTile label="PT" value="Principal" />
+        <TokenTile label="Principal" value="Fixed at maturity" />
         <SwapIcon className="mx-auto h-6 w-6 rotate-90 text-neutral-600 sm:rotate-0" />
-        <TokenTile label="SY" value="Yield source" accent />
+        <TokenTile label="Deposit" value="Yield source" accent />
       </div>
       <div className="flex items-baseline justify-between gap-4 rounded-2xl bg-neutral-200 px-5 py-4">
         <span className="text-sm text-neutral-600">Fee per swap</span>

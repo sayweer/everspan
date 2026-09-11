@@ -16,6 +16,7 @@ interface EarnPanelProps {
   pools: MaturityPool[]
   poolsLoading: boolean
   positions: MaturityPosition[]
+  underlyingBalance: bigint
   syBalance: bigint
   liveRate: bigint | null
   tradeMaturity: bigint | null
@@ -29,21 +30,21 @@ const STRATEGIES = [
   {
     id: 'fixed',
     title: 'Fixed return',
-    detail: 'Buy PT below its maturity value.',
+    detail: 'Buy principal below its maturity value.',
     Icon: LockIcon,
     tone: FIGURE_TONE.fixed,
   },
   {
     id: 'yield',
     title: 'Yield exposure',
-    detail: 'Keep the variable yield with YT.',
+    detail: 'Keep the variable yield position.',
     Icon: ChartBarIcon,
     tone: FIGURE_TONE.yield,
   },
   {
     id: 'liquidity',
     title: 'Trading fees',
-    detail: 'Provide PT + SY and earn swap fees.',
+    detail: 'Provide liquidity and earn swap fees.',
     Icon: DropletIcon,
     tone: FIGURE_TONE.liquidity,
   },
@@ -58,6 +59,7 @@ export function EarnPanel({
   pools,
   poolsLoading,
   positions,
+  underlyingBalance,
   syBalance,
   liveRate,
   tradeMaturity,
@@ -149,21 +151,15 @@ export function EarnPanel({
 
       <details className="max-w-2xl rounded-xl border border-hairline bg-neutral-900 px-4 py-2 text-sm">
         <summary className="flex min-h-11 cursor-pointer items-center rounded font-medium text-neutral-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-300">
-          What do SY, PT, and YT mean?
+          What do Principal and Yield mean?
         </summary>
-        <dl className="grid gap-4 border-t border-hairline py-4 text-xs leading-relaxed text-neutral-400 sm:grid-cols-3">
+        <dl className="grid gap-4 border-t border-hairline py-4 text-xs leading-relaxed text-neutral-400 sm:grid-cols-2">
           <div>
-            <dt className="font-mono font-semibold text-neutral-200">SY</dt>
-            <dd className="mt-1">
-              The yield-bearing asset format used by every Everspan strategy.
-            </dd>
+            <dt className="font-medium text-neutral-200">Principal</dt>
+            <dd className="mt-1">Redeemable for its full maturity value, no matter what the yield did.</dd>
           </div>
           <div>
-            <dt className="font-mono font-semibold text-neutral-200">PT</dt>
-            <dd className="mt-1">Principal that can be redeemed for its maturity value.</dd>
-          </div>
-          <div>
-            <dt className="font-mono font-semibold text-neutral-200">YT</dt>
+            <dt className="font-medium text-neutral-200">Yield</dt>
             <dd className="mt-1">The yield released by the position before maturity.</dd>
           </div>
         </dl>
@@ -193,12 +189,12 @@ export function EarnPanel({
             pools={pools}
             positions={positions}
             loading={poolsLoading}
+            underlyingBalance={underlyingBalance}
             syBalance={syBalance}
             liveRate={liveRate}
             initialMaturity={tradeMaturity}
             onMaturityChange={onMaturityChange}
             onSuccess={onSuccess}
-            onGoAdvanced={onConvert}
           />
         )}
       </div>

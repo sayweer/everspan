@@ -12,7 +12,7 @@ import type { ReactElement } from 'react'
 import { stroopsToXlm } from '../lib/amounts'
 import { formatAmount } from '../lib/format'
 import { activeMarket } from '../lib/market'
-import { RATE_SCALE } from '../lib/yield'
+import { previewWrapOutput, requiredUnderlyingForSy } from '../lib/wrap'
 import { unwrapTokens, wrapTokens } from '../lib/contracts/syVault'
 import { isValidTokenAmount } from '../lib/validation'
 import { useTxRunner } from '../hooks/useTxRunner'
@@ -54,17 +54,11 @@ export function WrapCard({
   const balance = tab === 'wrap' ? underlyingBalance : syBalance
   const valid = isValidTokenAmount(amount, balance, { label: inputUnit })
 
-  // Shares are 1:1 with the underlying on the mock vault; on a Blend-backed
-  // vault they are bTokens, so the rate converts between the two.
   const preview = !valid.ok
     ? null
-    : market.source === 'mock'
-      ? valid.stroops
-      : liveRate === null || liveRate === 0n
-        ? null
-        : tab === 'wrap'
-          ? (valid.stroops * RATE_SCALE) / liveRate
-          : (valid.stroops * liveRate) / RATE_SCALE
+    : tab === 'wrap'
+      ? previewWrapOutput(valid.stroops, market, liveRate)
+      : requiredUnderlyingForSy(valid.stroops, market, liveRate)
 
   function submit(): void {
     if (!valid.ok || pending || blocked) return

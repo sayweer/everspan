@@ -26,7 +26,6 @@ interface OverviewPanelProps {
   error: AppError | null
   onRetry: () => void
   onEarn: (strategy: EarnStrategy, maturity?: bigint) => void
-  onConvert: () => void
   onPortfolio: () => void
 }
 
@@ -43,7 +42,6 @@ export function OverviewPanel({
   error,
   onRetry,
   onEarn,
-  onConvert,
   onPortfolio,
 }: OverviewPanelProps): ReactElement {
   const market = activeMarket()
@@ -80,28 +78,20 @@ export function OverviewPanel({
             action: null,
             actionLabel: null,
           }
-        : underlying > 0n && sy === 0n
+        : (underlying > 0n || sy > 0n) && !hasPosition
           ? {
               label: 'Recommended next',
-              title: 'Prepare your asset once.',
-              body: `Convert ${market.underlyingSymbol} into SY before choosing a fixed return or yield exposure.`,
-              action: onConvert,
-              actionLabel: 'Convert to SY',
+              title: 'Choose your return.',
+              body: 'Lock a maturity-based rate or keep exposure to the variable yield. If your asset needs preparing first, that step is shown before you approve.',
+              action: () => onEarn('fixed'),
+              actionLabel: 'Compare fixed returns',
             }
-          : sy > 0n && !hasPosition
-            ? {
-                label: 'Recommended next',
-                title: 'Choose your return.',
-                body: 'Use your SY to lock a maturity-based rate or keep exposure to the variable yield.',
-                action: () => onEarn('fixed'),
-                actionLabel: 'Compare fixed returns',
-              }
-            : {
-                label: 'Position ready',
-                title: 'Your position is working.',
-                body: 'Review what you hold, claim available yield, or manage an existing liquidity position.',
-                action: onPortfolio,
-                actionLabel: 'Open portfolio',
+          : {
+              label: 'Position ready',
+              title: 'Your position is working.',
+              body: 'Review what you hold, claim available yield, or manage an existing liquidity position.',
+              action: onPortfolio,
+              actionLabel: 'Open portfolio',
               }
 
   return (

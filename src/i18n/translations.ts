@@ -60,18 +60,16 @@ const EN_TO_TR: Record<string, string> = {
   'Three steps turn a yield-bearing deposit into two tradeable positions.':
     'Üç adım, getiri sağlayan bir mevduatı işlem yapılabilir iki pozisyona dönüştürür.',
   'How a position is built': 'Pozisyon nasıl oluşturulur',
-  'Principal Token · PT': 'Anapara Tokenı · PT',
   'Know what comes back.': 'Ne kadar geri alacağınızı bilin.',
-  'PT trades below its maturity value. The difference between what you pay and what you redeem defines the implied rate for your position.':
-    'PT, vade değerinin altında işlem görür. Ödediğiniz tutarla vade sonunda aldığınız tutar arasındaki fark, pozisyonunuzun örtük oranını belirler.',
-  'Yield Token · YT': 'Getiri Tokenı · YT',
+  'Principal trades below its maturity value. The difference between what you pay and what you redeem defines the implied rate for your position.':
+    'Anapara, vade değerinin altında işlem görür. Ödediğiniz tutarla vade sonunda aldığınız tutar arasındaki fark, pozisyonunuzun örtük oranını belirler.',
   'Hold the rate itself.': 'Getirinin kendisini tutun.',
-  'YT receives the yield released before maturity. When it moves, Everspan settles both holders first—accrued yield always follows the time it was earned.':
-    'YT, vadeden önce oluşan getiriyi alır. Transfer edildiğinde Everspan önce iki tarafın da hesabını kapatır; biriken getiri her zaman kazanıldığı döneme ait olur.',
-  'PT / SY Market': 'PT / SY Piyasası',
+  'The yield side receives what is released before maturity. When it moves, Everspan settles both holders first—accrued yield always follows the time it was earned.':
+    'Kazanç tarafı, vadeden önce oluşanı alır. Transfer edildiğinde Everspan önce iki tarafın da hesabını kapatır; biriken getiri her zaman kazanıldığı döneme ait olur.',
+  'The market': 'Piyasa',
   'Make the market.': 'Piyasayı oluşturun.',
-  'Swap PT and SY or provide both sides as liquidity. Every pool is tied to one maturity, with a transparent 30 bps fee on each trade.':
-    'PT ile SY arasında takas yapın veya iki tarafı da likidite olarak sağlayın. Her havuz tek bir vadeye bağlıdır ve her işlemde şeffaf 30 baz puan ücret alınır.',
+  'Swap the principal against your deposit, or provide both sides as liquidity. Every pool is tied to one maturity, with a transparent 30 bps fee on each trade.':
+    'Anaparayı yatırdığınız varlıkla takas edin veya iki tarafı da likidite olarak sağlayın. Her havuz tek bir vadeye bağlıdır ve her işlemde şeffaf 30 baz puan ücret alınır.',
   'Yield sources': 'Getiri kaynakları',
   'One standard interface.': 'Tek bir standart arayüz.',
   'Start with deterministic mUSDY or use a live Blend-backed XLM position. The same split, settlement and market mechanics run across both.':
@@ -80,8 +78,8 @@ const EN_TO_TR: Record<string, string> = {
   'A ledger-time exchange rate built for repeatable protocol testing.':
     'Tekrarlanabilir protokol testleri için defter zamanına dayalı döviz kuru.',
   'Live lending yield': 'Canlı borç verme getirisi',
-  'A real Blend v2 lending position behind the same SY interface.':
-    'Aynı SY arayüzünün arkasında gerçek bir Blend v2 borç verme pozisyonu.',
+  'A real Blend v2 lending position behind the same standard interface.':
+    'Aynı standart arayüzün arkasında gerçek bir Blend v2 borç verme pozisyonu.',
   'Protocol assurance': 'Protokol güvencesi',
   'Your wallet stays in control.': 'Kontrol cüzdanınızda kalır.',
   'Signing happens inside your wallet. Contracts are open source and deployed on Stellar Testnet. There is no admin path into user balances.':
@@ -100,7 +98,7 @@ const EN_TO_TR: Record<string, string> = {
   Protocol: 'Protokol',
   Markets: 'Piyasalar',
   Security: 'Güvenlik',
-  'Illustrative PT position': 'Örnek PT pozisyonu',
+  'Illustrative principal position': 'Örnek anapara pozisyonu',
   'Cost today': 'Bugünkü maliyet',
   'Redeem at maturity': 'Vadede itfa',
   Entry: 'Giriş',
@@ -130,11 +128,9 @@ const EN_TO_TR: Record<string, string> = {
   'Your next step': 'Sıradaki adımınız',
   'Fund your test wallet.': 'Test cüzdanınıza bakiye ekleyin.',
   'Recommended next': 'Önerilen sonraki adım',
-  'Prepare your asset once.': 'Varlığınızı bir kez hazırlayın.',
-  'Convert to SY': 'SY’ye dönüştür',
   'Choose your return.': 'Getirinizi seçin.',
-  'Use your SY to lock a maturity-based rate or keep exposure to the variable yield.':
-    'Vadeye dayalı bir oranı kilitlemek veya değişken getiriye maruz kalmak için SY’nizi kullanın.',
+  'Lock a maturity-based rate or keep exposure to the variable yield. If your asset needs preparing first, that step is shown before you approve.':
+    'Vadeye dayalı bir oranı kilitleyin veya değişken getiriye açık kalın. Varlığınızın önce hazırlanması gerekiyorsa, bu adım onaydan önce gösterilir.',
   'Compare fixed returns': 'Sabit getirileri karşılaştır',
   'Position ready': 'Pozisyon hazır',
   'Your position is working.': 'Pozisyonunuz çalışıyor.',
@@ -203,75 +199,75 @@ const EN_TO_TR: Record<string, string> = {
 
   // Earn, portfolio, conversion, and activity
   'Fixed return': 'Sabit getiri',
-  'Buy PT below its maturity value.': 'PT’yi vade değerinin altında satın alın.',
+  'Buy principal below its maturity value.': 'Anaparayı vade değerinin altında satın alın.',
   'Yield exposure': 'Getiri pozisyonu',
-  'Keep the variable yield with YT.': 'Değişken getiriyi YT ile tutun.',
+  'Keep the variable yield position.': 'Değişken getiri pozisyonunu tutun.',
   'Trading fees': 'İşlem ücretleri',
-  'Provide PT + SY and earn swap fees.': 'PT + SY sağlayın ve takas ücretlerinden kazanın.',
+  'Provide liquidity and earn swap fees.': 'Likidite sağlayın ve takas ücretlerinden kazanın.',
   'Earning strategy': 'Kazanç stratejisi',
-  'Principal that can be redeemed for its maturity value.':
-    'Vade değeri karşılığında itfa edilebilen anapara.',
+  Yield: 'Kazanç',
+  'Redeemable for its full maturity value, no matter what the yield did.':
+    'Getiri ne yaparsa yapsın, vade değerinin tamamı karşılığında itfa edilebilir.',
   'The yield released by the position before maturity.':
     'Pozisyonun vadeden önce oluşturduğu getiri.',
   'Choose the outcome.': 'Hedefinizi seçin.',
   'Start with what you want to achieve. The review shows exactly what moves before your wallet opens.':
     'Ulaşmak istediğiniz sonuçla başlayın. İnceleme ekranı, cüzdanınız açılmadan önce nelerin hareket edeceğini açıkça gösterir.',
-  'What do SY, PT, and YT mean?': 'SY, PT ve YT ne anlama gelir?',
-  'The yield-bearing asset format used by every Everspan strategy.':
-    'Her Everspan stratejisinin kullandığı getiri sağlayan varlık biçimi.',
+  'What do Principal and Yield mean?': 'Anapara ve Kazanç ne anlama gelir?',
   'Lock a fixed rate': 'Sabit oran kilitle',
-  'Buy PT at today’s price and redeem its maturity value later.':
-    'PT’yi bugünkü fiyattan alın, vade değerini daha sonra itfa edin.',
-  'Split SY, sell the principal side, and keep the variable yield side.':
-    'SY’yi ayırın, anapara tarafını satın ve değişken getiri tarafını tutun.',
+  'Buy principal at today’s price and redeem its maturity value later.':
+    'Anaparayı bugünkü fiyattan alın, vade değerini daha sonra itfa edin.',
+  'Separate your asset, sell the principal side, and keep the variable yield side.':
+    'Varlığınızı ayırın, anapara tarafını satın ve değişken getiri tarafını tutun.',
   'Review fixed return': 'Sabit getiriyi incele',
   'You pay': 'Ödeyeceğiniz',
   'You receive at least': 'En az alacağınız',
   'Fixed APY': 'Sabit APY',
-  'Quoted PT': 'Teklif edilen PT',
+  'Quoted principal': 'Teklif edilen anapara',
   'Price impact': 'Fiyat etkisi',
   'Maximum slippage': 'İzin verilen en yüksek kayma',
   'Max slippage': 'Maks. kayma',
   'This trade locks in a loss': 'Bu işlem zararı kesinleştirir',
   'Locking rate…': 'Oran kilitleniyor…',
-  'Existing PT needs a choice': 'Mevcut PT için seçim gerekiyor',
-  'Step 1 is already complete': '1. adım zaten tamamlandı',
+  'Preparing…': 'Hazırlanıyor…',
+  'Existing principal needs a choice': 'Mevcut anapara için seçim gerekiyor',
+  'Split is already complete': 'Ayırma zaten tamamlandı',
   'Review yield exposure': 'Getiri pozisyonunu incele',
   'You use': 'Kullandığınız',
-  'YT you keep': 'Tutacağınız YT',
-  'PT sold for': 'PT satış karşılığı',
+  'Yield you keep': 'Tutacağınız kazanç',
+  'Principal sold for': 'Anapara satış karşılığı',
   'Estimated net cost': 'Tahmini net maliyet',
   'Review remaining transaction': 'Kalan işlemi incele',
-  'PT sold': 'Satılan PT',
+  'Principal sold': 'Satılan anapara',
   Split: 'Ayır',
-  'Sell PT': 'PT sat',
+  Sell: 'Sat',
+  principal: 'anapara',
+  'Sell principal': 'Anapara sat',
   'Splitting…': 'Ayrılıyor…',
-  'Selling PT…': 'PT satılıyor…',
-  'PT (all maturities)': 'PT (tüm vadeler)',
+  'Selling…': 'Satılıyor…',
+  'Principal (all maturities)': 'Anapara (tüm vadeler)',
   'Open maturities': 'Açık vadeler',
   'Claimable yield': 'Talep edilebilir getiri',
-  'PT (principal)': 'PT (anapara)',
-  'YT (yield)': 'YT (getiri)',
   'Claimable now': 'Şimdi talep edilebilir',
   Claim: 'Talep et',
   Redeem: 'İtfa et',
   'Claiming…': 'Talep ediliyor…',
   'Redeeming…': 'İtfa ediliyor…',
   'Your positions': 'Pozisyonlarınız',
-  'Split SY at a maturity to open a position — your PT, YT and claimable yield will appear here.':
-    'Pozisyon açmak için SY’yi bir vadede ayırın; PT, YT ve talep edilebilir getiriniz burada görünecek.',
+  'Separate an asset at a maturity to open a position — your principal, yield and claimable yield will appear here.':
+    'Pozisyon açmak için bir varlığı vadede ayırın; anapara, kazanç ve talep edilebilir getiriniz burada görünecek.',
   Matured: 'Vadesi doldu',
   'Settled — principal redeemed and yield claimed.':
     'Uzlaşıldı — anapara itfa edildi ve getiri talep edildi.',
   'Claim yield': 'Getiriyi talep et',
-  'Redeem PT': 'PT’yi itfa et',
+  'Redeem principal': 'Anaparayı itfa et',
   'No yield to claim yet — it accrues over time.':
     'Henüz talep edilecek getiri yok — zamanla birikir.',
-  'PT redeems its fixed principal once matured.':
-    'PT, vadesi dolduğunda sabit anaparası karşılığında itfa edilir.',
+  'The principal redeems in full once matured.':
+    'Anapara, vadesi dolduğunda tamamı karşılığında itfa edilir.',
   'Switch your wallet to Testnet to act.': 'İşlem yapmak için cüzdanınızı Testnet’e geçirin.',
   Shares: 'Paylar',
-  'PT value': 'PT değeri',
+  'Principal value': 'Anapara değeri',
   'SY value': 'SY değeri',
   Manage: 'Yönet',
   'Tools and activity.': 'Araçlar ve etkinlik.',
@@ -438,10 +434,12 @@ const EN_TO_TR: Record<string, string> = {
   'This maturity has passed — split and merge are closed. Claim or redeem it under “Your positions”.':
     'Bu vade geçti — ayırma ve birleştirme kapalı. “Pozisyonlarınız” bölümünden talep veya itfa edin.',
   Source: 'Kaynak',
-  'Standardized Yield': 'Standartlaştırılmış Getiri',
+  Deposit: 'Yatırım',
+  'Yield-bearing asset': 'Getiri sağlayan varlık',
+  'Fixed at maturity': 'Vadede sabit',
   'Position architecture': 'Pozisyon mimarisi',
-  'PRINCIPAL TOKEN': 'ANAPARA TOKENI',
-  'YIELD TOKEN': 'GETİRİ TOKENI',
+  PRINCIPAL: 'ANAPARA',
+  YIELD: 'KAZANÇ',
   'Principal separated': 'Anapara ayrıldı',
   'Yield until maturity': 'Vadeye kadar getiri',
   'Yield separated': 'Getiri ayrıldı',
@@ -452,47 +450,46 @@ const EN_TO_TR: Record<string, string> = {
   'Open Convert': 'Dönüştürmeyi aç',
   'Check the outcome below before your wallet opens.':
     'Cüzdanınız açılmadan önce aşağıdaki sonucu kontrol edin.',
-  'Hold PT until maturity for its displayed redemption outcome. Selling earlier may return less.':
-    'Gösterilen itfa sonucunu almak için PT’yi vadeye kadar tutun. Daha erken satış daha az getirebilir.',
+  'Hold the principal until maturity for its displayed redemption outcome. Selling earlier may return less.':
+    'Gösterilen itfa sonucunu almak için anaparayı vadeye kadar tutun. Daha erken satış daha az getirebilir.',
+  'This needs two wallet approvals: preparing your asset, then locking the rate.':
+    'Bu işlem iki cüzdan onayı gerektirir: önce varlığınızın hazırlanması, sonra oranın kilitlenmesi.',
   'Price and slippage details': 'Fiyat ve kayma ayrıntıları',
   'I understand this locks a negative rate': 'Bunun negatif bir oranı kilitlediğini anlıyorum',
   'You would pay more for': 'Vade itfa değerinden daha fazla ödeyeceğiniz miktar:',
-  'PT than it redeems for at maturity — a fixed rate of': 'PT — sabit oran:',
+  'Principal than it redeems for at maturity — a fixed rate of': 'anapara — sabit oran:',
   ". The 0.30% swap fee and this order's price impact together outweigh the yield left until":
     '. %0,30 takas ücreti ve bu emrin fiyat etkisi, şu vadeye kadar kalan getiriyi aşıyor:',
   '. A later maturity, or a deeper pool, prices better.':
     '. Daha ileri bir vade veya daha derin bir havuz daha iyi fiyat sunar.',
   'Confirm fixed return in wallet': 'Sabit getiriyi cüzdanda onayla',
-  'PT redeems its full principal at maturity — the discount you buy at is your fixed return.':
-    'PT vade sonunda anaparanın tamamı karşılığında itfa edilir; satın aldığınız indirim sabit getirinizdir.',
+  'The principal redeems in full at maturity — the discount you buy at is your fixed return.':
+    'Anapara vade sonunda tamamı karşılığında itfa edilir; satın aldığınız indirim sabit getirinizdir.',
   'Dismiss status': 'Durumu kapat',
   'This strategy needs two wallet approvals. The progress stays visible below.':
     'Bu strateji iki cüzdan onayı gerektirir. İlerleme aşağıda görünür kalır.',
-  'YT captures realized yield until maturity. Its remaining opportunity falls as maturity approaches, and returns depend on the yield actually earned.':
-    'YT vadeye kadar gerçekleşen getiriyi yakalar. Vade yaklaştıkça kalan fırsat azalır ve sonuç, gerçekten kazanılan getiriye bağlıdır.',
-  'The pool cannot quote this PT amount right now. Keep the saved step and try again after liquidity is available.':
-    'Havuz şu anda bu PT tutarı için fiyat veremiyor. Kaydedilen adımı koruyun ve likidite oluştuğunda yeniden deneyin.',
-  'Approve 1 of 2 — Separate yield': '1/2 onay — Getiriyi ayır',
-  'Approve 2 of 2 — Sell': '2/2 onay — Sat',
-  'You have no SY yet — wrap': 'Henüz SY’niz yok — önce',
-  'into SY first.': 'varlığını SY’ye dönüştürün.',
-  'Split SY into PT + YT, then sell the PT — you keep the':
-    'SY’yi PT + YT olarak ayırın, ardından PT’yi satın — elinizde',
-  'for pure yield exposure. Two transactions.':
-    'saf getiri pozisyonu olarak kalır. İki işlem gerekir.',
+  'This strategy needs three wallet approvals: preparing your asset, then splitting, then selling. Progress stays visible below.':
+    'Bu strateji üç cüzdan onayı gerektirir: önce varlığınızın hazırlanması, sonra ayırma, sonra satış. İlerleme aşağıda görünür kalır.',
+  'The yield you keep is realized until maturity. Its remaining opportunity falls as maturity approaches, and returns depend on the yield actually earned.':
+    'Tuttuğunuz kazanç vadeye kadar gerçekleşir. Vade yaklaştıkça kalan fırsat azalır ve sonuç, gerçekten kazanılan getiriye bağlıdır.',
+  'The pool cannot quote this amount of principal right now. Keep the saved step and try again after liquidity is available.':
+    'Havuz şu anda bu anapara tutarı için fiyat veremiyor. Kaydedilen adımı koruyun ve likidite oluştuğunda yeniden deneyin.',
+  'This separates your asset into principal and yield, then sells the principal — you keep the':
+    'Bu işlem varlığınızı anapara ve kazanç olarak ayırır, ardından anaparayı satar — elinizde',
+  'for pure exposure.': 'saf pozisyon olarak kalır.',
   'Resume saved step — sell': 'Kaydedilen adıma devam et — sat',
   'Use all': 'Tüm',
-  'PT for step 2': 'PT’yi 2. adımda kullan',
-  'Keep PT and split more SY': 'PT’yi tut ve daha fazla SY ayır',
+  'principal to continue': 'anaparayı devam etmek için kullan',
+  'Keep it and start a new split': 'Mevcut olanı tut ve yeni bir ayırma başlat',
   'This wallet already holds': 'Bu cüzdanda zaten',
-  'PT for': 'vadesine ait PT var:',
+  'in principal for': 'vadesine ait anapara var:',
   '. It may be a fixed-return holding or the first half of an interrupted yield strategy. Everspan will not split or sell until you choose.':
     '. Bu, sabit getirili bir varlık veya yarım kalmış bir getiri stratejisinin ilk adımı olabilir. Siz seçim yapana kadar Everspan ayırma veya satış yapmaz.',
   'Continue by selling exactly': 'Tam olarak şu tutarı satarak devam edin:',
-  'PT. Everspan will not create another split for this flow.':
-    'PT. Everspan bu akış için başka bir ayırma işlemi oluşturmaz.',
-  'Keep this page open until step 2 finishes. Everspan could not save this continuation for a reload; existing PT detection will still prevent an automatic duplicate split.':
-    '2. adım bitene kadar bu sayfayı açık tutun. Everspan bu devam adımını sayfa yenilemesine karşı kaydedemedi; mevcut PT algılaması yine de otomatik yinelenen ayırmayı önler.',
+  'in principal. Everspan will not create another split for this flow.':
+    'anapara. Everspan bu akış için başka bir ayırma işlemi oluşturmaz.',
+  'Keep this page open until the sale finishes. Everspan could not save this continuation for a reload; existing principal detection will still prevent an automatic duplicate split.':
+    'Satış bitene kadar bu sayfayı açık tutun. Everspan bu devam adımını sayfa yenilemesine karşı kaydedemedi; mevcut anapara algılaması yine de otomatik yinelenen ayırmayı önler.',
   until: 'vadeye',
   'h left': 'sa kaldı',
   'matured (': 'vadesi doldu (',
@@ -607,10 +604,10 @@ const dynamicPairs: Array<[RegExp, string, RegExp, string]> = [
   ],
   [/^Get (.+)$/u, '$1 alın', /^(.+) alın$/u, 'Get $1'],
   [
-    /^Convert (.+) into the SY format used by every strategy\.$/u,
-    '$1 varlığını tüm stratejilerin kullandığı SY biçimine dönüştürün.',
-    /^(.+) varlığını tüm stratejilerin kullandığı SY biçimine dönüştürün\.$/u,
-    'Convert $1 into the SY format used by every strategy.',
+    /^Everspan prepares your (.+) the first time you choose an outcome\.$/u,
+    'Everspan, bir hedef seçtiğinizde $1 varlığınızı ilk seferde hazırlar.',
+    /^Everspan, bir hedef seçtiğinizde (.+) varlığınızı ilk seferde hazırlar\.$/u,
+    'Everspan prepares your $1 the first time you choose an outcome.',
   ],
   [
     /^Wallet connected to (.+)\. Account (.+)\.$/u,

@@ -1,4 +1,4 @@
-/** Position summary: total PT, open maturities, and live claimable yield. */
+/** Position summary: total principal, open maturities, and live claimable yield. */
 import type { ReactElement } from 'react'
 import type { Portfolio } from '../hooks/usePortfolio'
 import { formatAmount } from '../lib/format'
@@ -35,7 +35,7 @@ export function PortfolioPanel({
   const disconnected = address === null
   const totalPt = portfolio.positions.reduce((sum, p) => sum + p.position.pt, 0n)
   // Cap each position's claimable at its own maturity (mirrors the contract) so a
-  // matured position with residual YT doesn't inflate the headline figure.
+  // matured position with residual yield doesn't inflate the headline figure.
   const cp = portfolio.rateInfo
   const nowSec = BigInt(Math.floor(chainNowMs() / 1000))
   const totalClaimable =
@@ -47,7 +47,7 @@ export function PortfolioPanel({
         )
 
   const stats: Stat[] = [
-    { label: 'PT (all maturities)', value: disconnected ? '—' : formatAmount(totalPt) },
+    { label: 'Principal (all maturities)', value: disconnected ? '—' : formatAmount(totalPt) },
     { label: 'Open maturities', value: disconnected ? '—' : String(portfolio.positions.length) },
     {
       label: 'Claimable yield',

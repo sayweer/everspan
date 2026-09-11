@@ -24,8 +24,10 @@ import {
   quoteSwap,
   type Reserves,
 } from '../lib/amm'
+import { wrapTokens } from '../lib/contracts/syVault'
 import { splitSy } from '../lib/contracts/splitter'
 import { swapExactIn } from '../lib/contracts/amm'
+import { previewWrapOutput, requiredUnderlyingForSy, requiredUnderlyingForSyAtLeast } from '../lib/wrap'
 import { AmountField, ActionButton } from './forms'
 import { MaturitySelect } from './MaturitySelect'
 import { SlippageControl } from './SlippageControl'
@@ -40,14 +42,13 @@ interface TradePanelProps {
   pools: MaturityPool[]
   positions: MaturityPosition[]
   loading: boolean
+  underlyingBalance: bigint
   syBalance: bigint
   liveRate: bigint | null
   /** A maturity to preselect (e.g. clicked from Markets). */
   initialMaturity: bigint | null
   onMaturityChange: (maturity: bigint) => void
   onSuccess: () => void
-  /** Jump to the Advanced tab — the only place SY can be minted. */
-  onGoAdvanced: () => void
 }
 
 export function TradePanel({
@@ -57,12 +58,12 @@ export function TradePanel({
   pools,
   positions,
   loading,
+  underlyingBalance,
   syBalance,
   liveRate,
   initialMaturity,
   onMaturityChange,
   onSuccess,
-  onGoAdvanced,
 }: TradePanelProps): ReactElement {
   const now = useNow()
 
@@ -95,8 +96,8 @@ export function TradePanel({
         </h2>
         <p className="mt-1 text-sm text-neutral-400">
           {mode === 'lock'
-            ? 'Buy PT at today’s price and redeem its maturity value later.'
-            : 'Split SY, sell the principal side, and keep the variable yield side.'}
+            ? 'Buy principal at today’s price and redeem its maturity value later.'
+            : 'Separate your asset, sell the principal side, and keep the variable yield side.'}
         </p>
       </header>
 
@@ -133,11 +134,11 @@ export function TradePanel({
                   isWrongNetwork={isWrongNetwork}
                   maturity={selected}
                   pool={selectedPool}
+                  underlyingBalance={underlyingBalance}
                   syBalance={syBalance}
                   liveRate={liveRate}
                   nowMs={now}
                   onSuccess={onSuccess}
-                  onGoAdvanced={onGoAdvanced}
                 />
               ) : (
                 <LongYieldForm
@@ -146,6 +147,7 @@ export function TradePanel({
                   isWrongNetwork={isWrongNetwork}
                   maturity={selected}
                   pool={selectedPool}
+                  underlyingBalance={underlyingBalance}
                   syBalance={syBalance}
                   existingPtBalance={selectedPtBalance}
                   liveRate={liveRate}
@@ -192,45 +194,66 @@ interface LockFormProps {
   isWrongNetwork: boolean
   maturity: bigint
   pool: Reserves
+  underlyingBalance: bigint
   syBalance: bigint
   liveRate: bigint | null
   nowMs: number
   onSuccess: () => void
-  onGoAdvanced: () => void
 }
 
-/** Lock a fixed rate: swap SY → PT at a discount, redeem 1:1 at maturity. */
+/**
+ * Lock a fixed rate: swap SY → PT at a discount, redeem 1:1 at maturity.
+ *
+ * The reader spends in their own asset, never in SY — if the wallet doesn't
+ * already hold enough, an explicit "Prepare" step wraps the shortfall first.
+ * Once that confirms, `onSuccess` refreshes `syBalance` and the same button
+ * turns into the lock itself; there is no second, hidden transaction.
+ */
 function LockRateForm({
   address,
   isWrongNetwork,
   maturity,
   pool,
+  underlyingBalance,
   syBalance,
   liveRate,
   nowMs,
   onSuccess,
-  onGoAdvanced,
 }: LockFormProps): ReactElement {
+  const market = activeMarket()
+  const underlyingSymbol = market.underlyingSymbol
   const [amount, setAmount] = useState('')
   const [slippageBps, setSlippageBps] = useState(50)
   const [acceptsLoss, setAcceptsLoss] = useState(false)
   const { outcome, pending, blocked, run, reset } = useTxRunner()
+  const prepare = useTxRunner()
 
   // A new amount is a new trade — never carry an acknowledgement across it.
   function changeAmount(next: string): void {
     setAmount(next)
     setAcceptsLoss(false)
     reset()
+    prepare.reset()
   }
 
-  const valid = isValidTokenAmount(amount, syBalance, { label: 'SY' })
-  const syIn = valid.ok ? valid.stroops : 0n
-  const ptOut = syIn > 0n ? quoteSwap(pool, 'SyToPt', syIn) : 0n
+  const syAsUnderlying = requiredUnderlyingForSy(syBalance, market, liveRate) ?? 0n
+  const maxSpendable = underlyingBalance + syAsUnderlying
+  const valid = isValidTokenAmount(amount, maxSpendable, { label: underlyingSymbol })
+  const underlyingIn = valid.ok ? valid.stroops : 0n
+  const syNeeded = underlyingIn > 0n ? (previewWrapOutput(underlyingIn, market, liveRate) ?? 0n) : 0n
+  // How much more SY this trade needs than the wallet already holds — the
+  // part that has to be prepared before the lock itself can go through.
+  const syShort = syNeeded > syBalance ? syNeeded - syBalance : 0n
+  const underlyingToWrap =
+    syShort > 0n ? (requiredUnderlyingForSyAtLeast(syShort, market, liveRate) ?? 0n) : 0n
+  const needsPrepare = syShort > 0n
+
+  const ptOut = syNeeded > 0n ? quoteSwap(pool, 'SyToPt', syNeeded) : 0n
   const minOut = minOutFromSlippage(ptOut, slippageBps)
   const dtSeconds = Number(maturity) - Math.floor(nowMs / 1000)
   const lockedApy =
-    liveRate !== null && ptOut > 0n ? effectiveApy(syIn, ptOut, liveRate, dtSeconds) : null
-  const impact = syIn > 0n ? priceImpact(pool.syReserve, pool.ptReserve, syIn) : 0
+    liveRate !== null && ptOut > 0n ? effectiveApy(syNeeded, ptOut, liveRate, dtSeconds) : null
+  const impact = syNeeded > 0n ? priceImpact(pool.syReserve, pool.ptReserve, syNeeded) : 0
   const countdown = maturityCountdown(maturity, nowMs)
   // Paying above par for PT locks in a loss: PT only ever redeems its
   // principal, so a negative rate here is the trade's actual outcome, not a
@@ -238,16 +261,27 @@ function LockRateForm({
   // with a modest order, so it has to be acknowledged rather than just shown.
   const locksLoss = lockedApy !== null && lockedApy < 0
 
+  function submitPrepare(): void {
+    if (!needsPrepare || prepare.pending || prepare.blocked || underlyingToWrap <= 0n) return
+    void prepare.run(
+      'Prepare',
+      (onPhase) => wrapTokens(address, underlyingToWrap, onPhase),
+      onSuccess,
+      `${formatAmount(underlyingToWrap)} ${underlyingSymbol} · step 1 of 2`,
+    )
+  }
+
   function submit(): void {
-    if (!valid.ok || pending || blocked || ptOut <= 0n || (locksLoss && !acceptsLoss)) return
+    if (!valid.ok || needsPrepare || pending || blocked || ptOut <= 0n || (locksLoss && !acceptsLoss))
+      return
     void run(
       'Lock rate',
-      (onPhase) => swapExactIn(address, maturity, 'SyToPt', syIn, minOut, onPhase),
+      (onPhase) => swapExactIn(address, maturity, 'SyToPt', syNeeded, minOut, onPhase),
       () => {
         setAmount('')
         onSuccess()
       },
-      `${formatAmount(syIn)} SY → at least ${formatAmount(minOut)} PT · ${formatMaturity(maturity)}`,
+      `${formatAmount(underlyingIn)} ${underlyingSymbol} → at least ${formatAmount(minOut)} Principal · ${formatMaturity(maturity)}`,
     )
   }
 
@@ -269,57 +303,48 @@ function LockRateForm({
         id="lock-amount"
         value={amount}
         onChange={changeAmount}
-        unit="SY"
-        hint={`Available: ${formatAmount(syBalance)} SY`}
+        unit={underlyingSymbol}
+        hint={`Available: ${formatAmount(maxSpendable)} ${underlyingSymbol}`}
         error={amount.trim() !== '' && !valid.ok ? valid.reason : null}
-        onEnter={submit}
-        disabled={blocked}
+        onEnter={needsPrepare ? submitPrepare : submit}
+        disabled={blocked || prepare.blocked}
         onMax={
-          syBalance > 0n && !blocked
+          maxSpendable > 0n && !blocked
             ? () => {
-                changeAmount(stroopsToXlm(syBalance))
+                changeAmount(stroopsToXlm(maxSpendable))
               }
             : undefined
         }
       />
 
-      {syBalance === 0n && (
-        <p className="text-xs text-neutral-400">
-          You have no SY yet — wrap {activeMarket().underlyingSymbol} into SY first.{' '}
-          <button
-            type="button"
-            onClick={onGoAdvanced}
-            className="ml-1 inline-flex min-h-11 items-center rounded-full border border-boundary px-3 font-medium text-neutral-100 transition-colors hover:bg-raised hover:text-accent-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-300"
-          >
-            Open Convert
-          </button>
-        </p>
-      )}
-
       {ptOut > 0n && (
         <div className="rounded-xl border border-hairline bg-neutral-950/40 p-4">
           <p className="text-sm font-semibold text-neutral-100">Review fixed return</p>
           <p className="mt-1 text-xs leading-relaxed text-neutral-400">
-            Check the outcome below before your wallet opens.
+            {needsPrepare
+              ? 'This needs two wallet approvals: preparing your asset, then locking the rate.'
+              : 'Check the outcome below before your wallet opens.'}
           </p>
           <div className="mt-4 space-y-2.5">
-            <SummaryRow label="You pay">{formatAmount(syIn)} SY</SummaryRow>
+            <SummaryRow label="You pay">
+              {formatAmount(underlyingIn)} {underlyingSymbol}
+            </SummaryRow>
             <SummaryRow label="You receive at least" accent>
-              {formatAmount(minOut)} PT
+              {formatAmount(minOut)} Principal
             </SummaryRow>
             <SummaryRow label="Fixed APY">{formatPercent(lockedApy)}</SummaryRow>
             <SummaryRow label="Maturity">{formatMaturity(maturity)}</SummaryRow>
           </div>
           <p className="mt-4 border-t border-hairline pt-3 text-xs leading-relaxed text-neutral-400">
-            Hold PT until maturity for its displayed redemption outcome. Selling earlier may return
-            less.
+            Hold the principal until maturity for its displayed redemption outcome. Selling earlier
+            may return less.
           </p>
           <details className="mt-3 border-t border-hairline pt-3 text-xs">
             <summary className="flex min-h-11 cursor-pointer items-center rounded py-2 font-medium text-neutral-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-300">
               Price and slippage details
             </summary>
             <div className="mt-2 space-y-2.5 pb-1">
-              <SummaryRow label="Quoted PT">{formatAmount(ptOut)} PT</SummaryRow>
+              <SummaryRow label="Quoted principal">{formatAmount(ptOut)}</SummaryRow>
               <SummaryRow label="Price impact">{formatPercent(impact)}</SummaryRow>
               <SummaryRow label="Maximum slippage">{(slippageBps / 100).toFixed(2)}%</SummaryRow>
               <SlippageControl bps={slippageBps} onChange={setSlippageBps} />
@@ -341,10 +366,10 @@ function LockRateForm({
             <div className="space-y-1">
               <p className="text-sm font-medium">This trade locks in a loss</p>
               <p className="text-xs leading-relaxed text-warning-100/80">
-                You would pay more for {formatAmount(ptOut)} PT than it redeems for at maturity — a
-                fixed rate of {formatPercent(lockedApy)}. The 0.30% swap fee and this order&apos;s
-                price impact together outweigh the yield left until {formatMaturity(maturity)}. A
-                later maturity, or a deeper pool, prices better.
+                You would pay more for {formatAmount(ptOut)} Principal than it redeems for at
+                maturity — a fixed rate of {formatPercent(lockedApy)}. The 0.30% swap fee and this
+                order&apos;s price impact together outweigh the yield left until{' '}
+                {formatMaturity(maturity)}. A later maturity, or a deeper pool, prices better.
               </p>
             </div>
           </div>
@@ -362,25 +387,44 @@ function LockRateForm({
         </div>
       )}
 
-      <ActionButton
-        onClick={submit}
-        disabled={
-          isWrongNetwork || blocked || !valid.ok || ptOut <= 0n || (locksLoss && !acceptsLoss)
-        }
-        pending={pending}
-        pendingLabel="Locking rate…"
-      >
-        Confirm fixed return in wallet
-      </ActionButton>
+      {needsPrepare ? (
+        <ActionButton
+          onClick={submitPrepare}
+          disabled={isWrongNetwork || prepare.blocked || underlyingToWrap <= 0n}
+          pending={prepare.pending}
+          pendingLabel="Preparing…"
+        >
+          Prepare {formatAmount(underlyingToWrap)} {underlyingSymbol} — step 1 of 2
+        </ActionButton>
+      ) : (
+        <ActionButton
+          onClick={submit}
+          disabled={
+            isWrongNetwork || blocked || !valid.ok || ptOut <= 0n || (locksLoss && !acceptsLoss)
+          }
+          pending={pending}
+          pendingLabel="Locking rate…"
+        >
+          Confirm fixed return in wallet
+        </ActionButton>
+      )}
 
       <p className="text-center text-[11px] text-neutral-500">
-        PT redeems its full principal at maturity — the discount you buy at is your fixed return.
+        The principal redeems in full at maturity — the discount you buy at is your fixed return.
       </p>
 
       {isWrongNetwork && (
         <p className="text-center text-xs text-warning-300">
           Switch your wallet to Testnet to continue.
         </p>
+      )}
+      {prepare.outcome && (
+        <div>
+          <button type="button" onClick={prepare.reset} className="sr-only">
+            Dismiss status
+          </button>
+          <TxStatus outcome={prepare.outcome} onRetry={submitPrepare} />
+        </div>
       )}
       {outcome && (
         <div>
@@ -399,6 +443,7 @@ interface LongFormProps {
   isWrongNetwork: boolean
   maturity: bigint
   pool: Reserves
+  underlyingBalance: bigint
   syBalance: bigint
   existingPtBalance: bigint
   liveRate: bigint | null
@@ -406,20 +451,26 @@ interface LongFormProps {
 }
 
 /**
- * Long yield in two clearly-staged transactions: split SY into PT+YT, then sell
- * the PT back to the pool — you keep the YT for pure, leveraged yield exposure.
+ * Long yield: separate principal and yield, then sell the principal back to
+ * the pool — you keep the yield for pure, leveraged exposure. Spent in the
+ * reader's own asset, never in SY; when the wallet doesn't already hold
+ * enough, an explicit "Prepare" stage wraps the shortfall ahead of the
+ * existing split→sell dance, which is otherwise unchanged.
  */
 function LongYieldForm({
   address,
   isWrongNetwork,
   maturity,
   pool,
+  underlyingBalance,
   syBalance,
   existingPtBalance,
   liveRate,
   onSuccess,
 }: LongFormProps): ReactElement {
-  const marketKey = activeMarket().key
+  const market = activeMarket()
+  const underlyingSymbol = market.underlyingSymbol
+  const marketKey = market.key
   const [savedProgress, setSavedProgress] = useState(() =>
     readLongYieldProgress(address, marketKey, maturity),
   )
@@ -429,23 +480,35 @@ function LongYieldForm({
     recovery.kind === 'resume_saved' && recovery.syIn > 0n ? stroopsToXlm(recovery.syIn) : '',
   )
   const [slippageBps, setSlippageBps] = useState(50)
-  /** PT minted by step 1, awaiting sale in step 2 (null until split confirms). */
+  /** PT minted by the split, awaiting sale (null until the split confirms). */
   const [ptToSell, setPtToSell] = useState<bigint | null>(null)
   const [allowNewSplit, setAllowNewSplit] = useState(existingPtBalance === 0n && !canResumeSaved)
   const [progressStorageWarning, setProgressStorageWarning] = useState(false)
+  const prepare = useTxRunner()
   const split = useTxRunner()
   const sell = useTxRunner()
 
-  const valid = isValidTokenAmount(amount, syBalance, { label: 'SY' })
-  const syIn = valid.ok ? valid.stroops : 0n
-  // Split output preview (floor(sy·rate/SCALE)); PT == YT.
+  const syAsUnderlying = requiredUnderlyingForSy(syBalance, market, liveRate) ?? 0n
+  const maxSpendable = underlyingBalance + syAsUnderlying
+  const valid = isValidTokenAmount(amount, maxSpendable, { label: underlyingSymbol })
+  const underlyingIn = valid.ok ? valid.stroops : 0n
+  // Split target (floor(underlying→SY)·rate/SCALE, same as the split preview
+  // ever was); PT == YT.
+  const syIn = underlyingIn > 0n ? (previewWrapOutput(underlyingIn, market, liveRate) ?? 0n) : 0n
   const projected = liveRate !== null && syIn > 0n ? (syIn * liveRate) / RATE_SCALE : 0n
   const sellBack = projected > 0n ? quoteSwap(pool, 'PtToSy', projected) : 0n
-  const netCost = syIn > sellBack ? syIn - sellBack : 0n
+  const sellBackUnderlying = requiredUnderlyingForSy(sellBack, market, liveRate) ?? 0n
+  const netCost = underlyingIn > sellBackUnderlying ? underlyingIn - sellBackUnderlying : 0n
   const step2 = ptToSell !== null
   const step2Quote = step2 && ptToSell > 0n ? quoteSwap(pool, 'PtToSy', ptToSell) : 0n
   const step2MinOut = minOutFromSlippage(step2Quote, slippageBps)
+  const step2MinOutUnderlying = requiredUnderlyingForSy(step2MinOut, market, liveRate) ?? 0n
   const needsRecoveryChoice = !step2 && existingPtBalance > 0n && !allowNewSplit
+  // How much more SY the split needs than the wallet already holds.
+  const syShort = !step2 && syIn > syBalance ? syIn - syBalance : 0n
+  const underlyingToWrap =
+    syShort > 0n ? (requiredUnderlyingForSyAtLeast(syShort, market, liveRate) ?? 0n) : 0n
+  const needsPrepare = syShort > 0n
 
   // A completed late sale can leave a continuation behind. Once verified
   // holdings show no PT, discard it so it can never target future PT.
@@ -458,8 +521,19 @@ function LongYieldForm({
     setSavedProgress(null)
   }, [address, existingPtBalance, marketKey, maturity, savedProgress])
 
+  function doPrepare(): void {
+    if (!needsPrepare || prepare.pending || prepare.blocked || underlyingToWrap <= 0n) return
+    void prepare.run(
+      'Prepare',
+      (onPhase) => wrapTokens(address, underlyingToWrap, onPhase),
+      onSuccess,
+      `${formatAmount(underlyingToWrap)} ${underlyingSymbol}`,
+    )
+  }
+
   function doSplit(): void {
-    if (!allowNewSplit || !valid.ok || split.pending || split.blocked || projected <= 0n) return
+    if (!allowNewSplit || needsPrepare || !valid.ok || split.pending || split.blocked || projected <= 0n)
+      return
     let captured: bigint | null = null
     void split.run(
       'Split',
@@ -482,7 +556,7 @@ function LongYieldForm({
         setPtToSell(captured)
         onSuccess()
       },
-      `${formatAmount(syIn)} SY · ${formatMaturity(maturity)} · step 1 of 2`,
+      `${formatAmount(underlyingIn)} ${underlyingSymbol} · ${formatMaturity(maturity)}`,
     )
   }
 
@@ -491,7 +565,7 @@ function LongYieldForm({
       return
     const minOut = minOutFromSlippage(quoteSwap(pool, 'PtToSy', ptToSell), slippageBps)
     void sell.run(
-      'Sell PT',
+      'Sell principal',
       (onPhase) => swapExactIn(address, maturity, 'PtToSy', ptToSell, minOut, onPhase),
       () => {
         clearLongYieldProgress(address, marketKey, maturity)
@@ -500,7 +574,7 @@ function LongYieldForm({
         setAllowNewSplit(existingPtBalance === ptToSell)
         onSuccess()
       },
-      `${formatAmount(ptToSell)} PT · ${formatMaturity(maturity)} · step 2 of 2`,
+      `${formatAmount(ptToSell)} principal · ${formatMaturity(maturity)}`,
     )
   }
 
@@ -536,30 +610,30 @@ function LongYieldForm({
   return (
     <div className="space-y-4">
       <p className="text-sm text-neutral-400">
-        Split SY into PT + YT, then sell the PT — you keep the{' '}
-        <span className="text-neutral-200">YT</span> for pure yield exposure. Two transactions.
+        This separates your asset into principal and yield, then sells the principal — you keep the{' '}
+        <span className="text-neutral-200">yield</span> for pure exposure.
       </p>
 
       {needsRecoveryChoice ? (
         <div role="status" className="rounded-xl border border-warning-300 bg-warning-500/10 p-4">
-          <p className="text-sm font-semibold text-warning-100">Existing PT needs a choice</p>
+          <p className="text-sm font-semibold text-warning-100">Existing principal needs a choice</p>
           <p className="mt-1 text-xs leading-relaxed text-warning-200/80">
-            This wallet already holds {formatAmount(existingPtBalance)} PT for{' '}
+            This wallet already holds {formatAmount(existingPtBalance)} in principal for{' '}
             {formatMaturity(maturity)}. It may be a fixed-return holding or the first half of an
             interrupted yield strategy. Everspan will not split or sell until you choose.
           </p>
           <div className="mt-3 grid gap-2 sm:grid-cols-2">
             {canResumeSaved && recovery.kind === 'resume_saved' ? (
               <ActionButton variant="secondary" onClick={continueWithSavedPt}>
-                Resume saved step — sell {formatAmount(recovery.ptOut)} PT
+                Resume saved step — sell {formatAmount(recovery.ptOut)} principal
               </ActionButton>
             ) : (
               <ActionButton variant="secondary" onClick={continueWithExistingPt}>
-                Use all {formatAmount(existingPtBalance)} PT for step 2
+                Use all {formatAmount(existingPtBalance)} principal to continue
               </ActionButton>
             )}
             <ActionButton variant="secondary" onClick={startNewSplit}>
-              Keep PT and split more SY
+              Keep it and start a new split
             </ActionButton>
           </div>
         </div>
@@ -567,10 +641,10 @@ function LongYieldForm({
 
       {step2 ? (
         <div role="status" className="rounded-xl border border-positive-300 bg-positive-500/10 p-4">
-          <p className="text-sm font-semibold text-positive-100">Step 1 is already complete</p>
+          <p className="text-sm font-semibold text-positive-100">Split is already complete</p>
           <p className="mt-1 text-xs leading-relaxed text-positive-200/80">
-            Continue by selling exactly {formatAmount(ptToSell)} PT. Everspan will not create
-            another split for this flow.
+            Continue by selling exactly {formatAmount(ptToSell)} in principal. Everspan will not
+            create another split for this flow.
           </p>
         </div>
       ) : null}
@@ -581,16 +655,17 @@ function LongYieldForm({
         onChange={(v) => {
           setAmount(v)
           setPtToSell(null)
+          prepare.reset()
           sell.reset()
         }}
-        unit="SY"
-        hint={`Available: ${formatAmount(syBalance)} SY`}
+        unit={underlyingSymbol}
+        hint={`Available: ${formatAmount(maxSpendable)} ${underlyingSymbol}`}
         error={amount.trim() !== '' && !valid.ok ? valid.reason : null}
         disabled={step2 || needsRecoveryChoice || split.blocked || sell.blocked}
         onMax={
-          syBalance > 0n && !step2 && !needsRecoveryChoice
+          maxSpendable > 0n && !step2 && !needsRecoveryChoice
             ? () => {
-                setAmount(stroopsToXlm(syBalance))
+                setAmount(stroopsToXlm(maxSpendable))
               }
             : undefined
         }
@@ -600,19 +675,27 @@ function LongYieldForm({
         <div className="rounded-xl border border-hairline bg-neutral-950/40 p-4">
           <p className="text-sm font-semibold text-neutral-100">Review yield exposure</p>
           <p className="mt-1 text-xs leading-relaxed text-neutral-400">
-            This strategy needs two wallet approvals. The progress stays visible below.
+            {needsPrepare
+              ? 'This strategy needs three wallet approvals: preparing your asset, then splitting, then selling. Progress stays visible below.'
+              : 'This strategy needs two wallet approvals. The progress stays visible below.'}
           </p>
           <div className="mt-4 space-y-2.5">
-            <SummaryRow label="You use">{formatAmount(syIn)} SY</SummaryRow>
-            <SummaryRow label="YT you keep" accent>
-              {formatAmount(projected)} YT
+            <SummaryRow label="You use">
+              {formatAmount(underlyingIn)} {underlyingSymbol}
             </SummaryRow>
-            <SummaryRow label="PT sold for">≈ {formatAmount(sellBack)} SY</SummaryRow>
-            <SummaryRow label="Estimated net cost">≈ {formatAmount(netCost)} SY</SummaryRow>
+            <SummaryRow label="Yield you keep" accent>
+              {formatAmount(projected)}
+            </SummaryRow>
+            <SummaryRow label="Principal sold for">
+              ≈ {formatAmount(sellBackUnderlying)} {underlyingSymbol}
+            </SummaryRow>
+            <SummaryRow label="Estimated net cost">
+              ≈ {formatAmount(netCost)} {underlyingSymbol}
+            </SummaryRow>
           </div>
           <p className="mt-4 border-t border-hairline pt-3 text-xs leading-relaxed text-neutral-400">
-            YT captures realized yield until maturity. Its remaining opportunity falls as maturity
-            approaches, and returns depend on the yield actually earned.
+            The yield you keep is realized until maturity. Its remaining opportunity falls as
+            maturity approaches, and returns depend on the yield actually earned.
           </p>
           <details className="mt-3 border-t border-hairline pt-3 text-xs">
             <summary className="flex min-h-11 cursor-pointer items-center rounded py-2 font-medium text-neutral-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-300">
@@ -633,9 +716,9 @@ function LongYieldForm({
         <div className="rounded-xl border border-hairline bg-neutral-950/40 p-4">
           <p className="text-sm font-semibold text-neutral-100">Review remaining transaction</p>
           <div className="mt-4 space-y-2.5">
-            <SummaryRow label="PT sold">{formatAmount(ptToSell)} PT</SummaryRow>
+            <SummaryRow label="Principal sold">{formatAmount(ptToSell)}</SummaryRow>
             <SummaryRow label="You receive at least" accent>
-              {formatAmount(step2MinOut)} SY
+              {formatAmount(step2MinOutUnderlying)} {underlyingSymbol}
             </SummaryRow>
             <SummaryRow label="Maximum slippage">{(slippageBps / 100).toFixed(2)}%</SummaryRow>
           </div>
@@ -647,26 +730,41 @@ function LongYieldForm({
 
       {step2 && step2Quote <= 0n ? (
         <p role="alert" className="text-xs leading-relaxed text-warning-300">
-          The pool cannot quote this PT amount right now. Keep the saved step and try again after
-          liquidity is available.
+          The pool cannot quote this amount of principal right now. Keep the saved step and try
+          again after liquidity is available.
         </p>
       ) : null}
 
       {progressStorageWarning ? (
         <p role="alert" className="text-xs leading-relaxed text-warning-300">
-          Keep this page open until step 2 finishes. Everspan could not save this continuation for a
-          reload; existing PT detection will still prevent an automatic duplicate split.
+          Keep this page open until the sale finishes. Everspan could not save this continuation for
+          a reload; existing principal detection will still prevent an automatic duplicate split.
         </p>
       ) : null}
 
       {/* Stage indicators */}
       <ol className="flex items-center gap-2 text-xs">
-        <StageChip n={1} label="Split" done={step2} active={!step2} />
+        {needsPrepare && (
+          <>
+            <StageChip n={1} label="Prepare" done={false} active />
+            <span className="h-px flex-1 bg-raised" />
+          </>
+        )}
+        <StageChip n={needsPrepare ? 2 : 1} label="Split" done={step2} active={!step2 && !needsPrepare} />
         <span className="h-px flex-1 bg-raised" />
-        <StageChip n={2} label="Sell PT" done={false} active={step2} />
+        <StageChip n={needsPrepare ? 3 : 2} label="Sell" done={false} active={step2} />
       </ol>
 
-      {!step2 ? (
+      {needsPrepare ? (
+        <ActionButton
+          onClick={doPrepare}
+          disabled={isWrongNetwork || prepare.blocked || underlyingToWrap <= 0n}
+          pending={prepare.pending}
+          pendingLabel="Preparing…"
+        >
+          Prepare {formatAmount(underlyingToWrap)} {underlyingSymbol}
+        </ActionButton>
+      ) : !step2 ? (
         <ActionButton
           onClick={doSplit}
           disabled={
@@ -680,7 +778,7 @@ function LongYieldForm({
           pending={split.pending}
           pendingLabel="Splitting…"
         >
-          Approve 1 of 2 — Separate yield
+          Separate principal and yield
         </ActionButton>
       ) : (
         <ActionButton
@@ -693,9 +791,9 @@ function LongYieldForm({
             step2Quote <= 0n
           }
           pending={sell.pending}
-          pendingLabel="Selling PT…"
+          pendingLabel="Selling…"
         >
-          Approve 2 of 2 — Sell {formatAmount(ptToSell ?? 0n)} PT
+          Sell {formatAmount(ptToSell ?? 0n)} principal
         </ActionButton>
       )}
 
@@ -704,6 +802,7 @@ function LongYieldForm({
           Switch your wallet to Testnet to continue.
         </p>
       )}
+      {prepare.outcome && <TxStatus outcome={prepare.outcome} onRetry={doPrepare} />}
       {split.outcome && <TxStatus outcome={split.outcome} onRetry={doSplit} />}
       {sell.outcome && <TxStatus outcome={sell.outcome} onRetry={doSell} />}
     </div>

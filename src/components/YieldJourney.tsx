@@ -13,13 +13,13 @@ const JOURNEY_STEPS = [
   {
     eyebrow: '02 · SEPARATE',
     title: 'Split one position into two.',
-    body: 'Every SY creates equal amounts of PT and YT. Principal and yield become independent, transferable positions.',
+    body: 'Every deposit creates equal amounts of principal and yield. Principal and yield become independent, transferable positions.',
     icon: <SplitIcon className={`h-5 w-5 ${figureText(FIGURE_TONE.split)}`} />,
   },
   {
     eyebrow: '03 · CHOOSE',
     title: 'Hold the exposure you want.',
-    body: 'Buy discounted PT for a maturity-based rate. Hold YT for the yield released before maturity. Trade or provide liquidity at any time.',
+    body: 'Buy discounted principal for a maturity-based rate. Hold the yield side for what is released before maturity. Trade or provide liquidity at any time.',
     icon: <LockIcon className={`h-5 w-5 ${figureText(FIGURE_TONE.fixed)}`} />,
   },
 ] as const
@@ -104,8 +104,8 @@ function JourneyVisual({ activeStep }: { activeStep: number }): ReactElement {
           </p>
           <div className="mt-auto flex items-end justify-between gap-4">
             <div>
-              <p className="text-xl font-medium">SY</p>
-              <p className="mt-1 text-xs text-neutral-400">Standardized Yield</p>
+              <p className="text-xl font-medium">Deposit</p>
+              <p className="mt-1 text-xs text-neutral-400">Yield-bearing asset</p>
             </div>
             <ChartBarIcon className={`h-8 w-8 ${figureText(FIGURE_TONE.yield)}`} />
           </div>
@@ -114,14 +114,14 @@ function JourneyVisual({ activeStep }: { activeStep: number }): ReactElement {
         <div className={`journey-positions ${activeStep >= 1 ? 'is-visible' : ''}`}>
           <PositionCard
             className="bg-neutral-50 text-neutral-950"
-            label="PRINCIPAL TOKEN"
-            amount="1,000 PT"
+            label="PRINCIPAL"
+            amount="1,000"
             note={activeStep >= 2 ? 'Redeem at maturity' : 'Principal separated'}
           />
           <PositionCard
             className="bg-accent-500 text-onAccent"
-            label="YIELD TOKEN"
-            amount="1,000 YT"
+            label="YIELD"
+            amount="1,000"
             note={activeStep >= 2 ? 'Yield until maturity' : 'Yield separated'}
           />
         </div>

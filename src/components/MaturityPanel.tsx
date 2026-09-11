@@ -51,8 +51,8 @@ export function MaturityPanel({
       </h2>
       {active.length === 0 && (
         <p className="mt-4 text-sm text-neutral-400">
-          Split SY at a maturity to open a position — your PT, YT and claimable yield will appear
-          here.
+          Separate an asset at a maturity to open a position — your principal, yield and claimable
+          yield will appear here.
         </p>
       )}
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -108,7 +108,7 @@ function MaturityCard({
       'Claim',
       (onPhase) => claimYield(address, maturity, onPhase),
       onSuccess,
-      `${claimable === null ? 'Available yield' : `${formatAmount(claimable, 6)} SY`} · ${formatMaturity(maturity)}`,
+      `${claimable === null ? 'Available yield' : formatAmount(claimable, 6)} · ${formatMaturity(maturity)}`,
     )
   }
   function redeem(): void {
@@ -117,7 +117,7 @@ function MaturityCard({
       'Redeem',
       (onPhase) => redeemPt(address, maturity, position.pt, onPhase),
       onSuccess,
-      `${formatAmount(position.pt)} PT · ${formatMaturity(maturity)}`,
+      `${formatAmount(position.pt)} principal · ${formatMaturity(maturity)}`,
     )
   }
 
@@ -143,7 +143,7 @@ function MaturityCard({
 
       <dl className="mt-3 grid grid-cols-2 gap-2 text-sm">
         <div className="min-w-0">
-          <dt className="text-[11px] uppercase tracking-wide text-neutral-400">PT (principal)</dt>
+          <dt className="text-[11px] uppercase tracking-wide text-neutral-400">Principal</dt>
           <dd
             title={formatAmount(position.pt)}
             className="truncate font-mono tabular-nums text-neutral-100"
@@ -152,7 +152,7 @@ function MaturityCard({
           </dd>
         </div>
         <div className="min-w-0">
-          <dt className="text-[11px] uppercase tracking-wide text-neutral-400">YT (yield)</dt>
+          <dt className="text-[11px] uppercase tracking-wide text-neutral-400">Yield</dt>
           <dd
             title={formatAmount(position.yt)}
             className="truncate font-mono tabular-nums text-neutral-100"
@@ -166,10 +166,10 @@ function MaturityCard({
         <CoinsIcon className={`h-4 w-4 ${figureText(FIGURE_TONE.value)}`} />
         <span className="text-xs text-neutral-300">Claimable now</span>
         <span
-          title={claimable === null ? undefined : `${formatAmount(claimable, 6)} SY`}
+          title={claimable === null ? undefined : formatAmount(claimable, 6)}
           className="ml-auto min-w-0 truncate text-right font-mono text-sm font-semibold tabular-nums text-accent-300"
         >
-          {claimable === null ? '—' : `${formatAmount(claimable, 6)} SY`}
+          {claimable === null ? '—' : formatAmount(claimable, 6)}
         </span>
       </div>
 
@@ -199,7 +199,7 @@ function MaturityCard({
               pending={pending && outcome?.status === 'pending' && outcome.label === 'Redeem'}
               pendingLabel="Redeeming…"
             >
-              Redeem PT
+              Redeem principal
             </ActionButton>
           </div>
 
@@ -210,7 +210,7 @@ function MaturityCard({
           )}
           {!countdown.matured && (
             <p className="mt-2 text-center text-[11px] text-neutral-400">
-              PT redeems its fixed principal once matured.
+              The principal redeems in full once matured.
             </p>
           )}
           {isWrongNetwork && (

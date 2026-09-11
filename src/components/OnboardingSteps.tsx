@@ -31,7 +31,7 @@ export function OnboardingSteps({ gotTokens, wrapped, split }: OnboardingStepsPr
     {
       n: 2,
       title: 'Prepare for Everspan',
-      detail: `Convert ${market.underlyingSymbol} into the SY format used by every strategy.`,
+      detail: `Everspan prepares your ${market.underlyingSymbol} the first time you choose an outcome.`,
       done: wrapped,
     },
     {

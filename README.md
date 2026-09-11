@@ -1,11 +1,12 @@
-# Everspan — PT/YT Yield Splitting on Stellar
+# Everspan — Principal/Yield Splitting on Stellar
 
 [![Everspan CI](https://github.com/sayweer/everspan/actions/workflows/ci.yml/badge.svg)](https://github.com/sayweer/everspan/actions/workflows/ci.yml)
 
 **The missing fixed-income primitive for Stellar's RWA boom.** Everspan splits a
-yield-bearing token into two tradable parts — a **Principal Token (PT)**, redeemable 1:1 for the
-underlying at maturity (a zero-coupon bond / fixed rate), and a **Yield Token (YT)**, which
-receives all the yield until maturity (pure yield exposure). On Ethereum, Pendle turned this into
+yield-bearing token into two tradable parts — a **Principal** position, redeemable 1:1 for the
+underlying at maturity (a zero-coupon bond / fixed rate), and a **Yield** position, which
+receives all the yield until maturity (pure yield exposure). The UI calls them exactly that;
+on chain they are the `pt-token` and `yt-token` contracts (Pendle's PT/YT). On Ethereum, Pendle turned this into
 the backbone of on-chain fixed income; Stellar has no equivalent. This is that primitive, on
 **Testnet**, as the **Green Belt (Level 4)** submission for the Stellar *Journey to Mastery*
 (Orange Belt, Level 3, was approved on the same codebase).
@@ -190,23 +191,26 @@ Distinct, visibly-handled error types include:
 
 ## How to use
 
-`/` is the marketing page; **Launch App** opens the console at `/app`. It lands on **Markets** —
-one row per maturity with its implied **fixed APY**, the underlying yield APY, and pool depth
-(matured maturities are collapsed out of the way). To lock a rate:
+`/` is the marketing page; **Launch App** opens the console at `/app`. It lands on **Overview** —
+your wallet balance first, then one row per maturity with its implied **fixed APY**, the underlying
+yield APY, and pool depth (matured maturities are collapsed out of the way). To lock a rate:
 
-1. **Connect** a Testnet wallet (Freighter, xBull, LOBSTR, or Albedo).
-2. On **Advanced**, **Faucet** 1,000 mUSDY and **Wrap** it into SY (SY is the standardized,
-   yield-bearing unit everything trades against).
-3. **Trade → Lock fixed rate**: buy PT with SY. The panel shows the locked APY, price impact, and
-   minimum received; PT redeems 1:1 in principal at maturity, so the discount you buy at *is* your
-   fixed return.
-4. Or **Trade → Long yield**: split SY and sell the PT (a clearly-staged two-step flow), keeping the
-   YT for pure, leveraged yield exposure.
-5. **Portfolio**: watch **claimable yield tick up live**, **Claim** it as SY, and after maturity
-   **Redeem PT** for its fixed principal. Manage **liquidity positions** here too.
-6. **Pool**: provide PT + SY liquidity and earn the 30 bps swap fee.
-7. **Activity**: streams every protocol *and* AMM event across all contracts in real time, polled
-   from `getEvents`.
+1. **Connect** a Testnet wallet (Freighter, xBull, LOBSTR, or Albedo), or use the passkey entry.
+2. **Faucet** 1,000 mUSDY from the balance strip under the wallet balance.
+3. **Earn → Fixed return**: enter an amount in your own asset — mUSDY or XLM, never an internal
+   unit. If the wallet doesn't already hold a prepared balance, Everspan shows an explicit
+   **Prepare** step first, then the lock itself; each is its own wallet approval. The panel shows
+   the locked APY, price impact, and minimum received. The principal redeems 1:1 at maturity, so
+   the discount you buy at *is* your fixed return.
+4. Or **Earn → Yield exposure**: Everspan separates principal and yield, then sells the principal
+   back to the pool, leaving you the yield side for pure, leveraged exposure — a clearly-staged
+   flow, one approval per step.
+5. **Portfolio**: watch **claimable yield tick up live**, **Claim** it, and after maturity
+   **Redeem principal**. Manage **liquidity positions** here too.
+6. **Earn → Trading fees**: provide liquidity and earn the 30 bps swap fee.
+7. **More → Activity**: streams every protocol *and* AMM event across all contracts in real time,
+   polled from `getEvents`. **More → Convert** keeps the manual wrap/split controls for anyone who
+   wants to drive the underlying SY mechanics directly.
 
 ## Screenshots
 
@@ -221,8 +225,9 @@ The traffic and error panels the checklist asks for are in
 
 ![GitHub Actions run with both jobs green and the Vitest summary](screenshots/ci-run.png)
 
-The [demo video](https://youtu.be/G_06mT7pscw) walks the full flow end to end: locking a fixed rate, splitting SY, watching
-yield accrue, and claiming it — every step a signed Testnet transaction.
+The [demo video](https://youtu.be/G_06mT7pscw) walks the full flow end to end: locking a fixed rate,
+separating principal and yield, watching yield accrue, and claiming it — every step a signed Testnet
+transaction.
 
 ## Security & notes
 

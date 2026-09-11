@@ -65,7 +65,9 @@ export function LpPositions({ pools, onManage }: LpPositionsProps): ReactElement
                   </dd>
                 </div>
                 <div className="min-w-0">
-                  <dt className="text-[11px] uppercase tracking-wide text-neutral-500">PT value</dt>
+                  <dt className="text-[11px] uppercase tracking-wide text-neutral-500">
+                    Principal value
+                  </dt>
                   <dd
                     title={formatAmount(ptOut)}
                     className="truncate font-mono tabular-nums text-neutral-100"
