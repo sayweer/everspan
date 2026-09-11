@@ -9,6 +9,24 @@ server-funded wallet is the wrong shape.
 
 This document is the removal procedure. Keep it current as the feature grows.
 
+## Where the values go
+
+The hosting dashboard and a local `.env` are independent; the deploy never
+reads the local file. What each one is for:
+
+| | Dashboard | Local `.env` |
+| --- | --- | --- |
+| The deployed site | **required** | ignored |
+| `npm run dev` | ignored | the control appears, but `api/` does not run |
+| `vercel dev` | ignored | **required** |
+
+`npm run dev` is Vite alone. It does not serve `api/`, so `/api/relay` is a 404
+locally whatever the environment says — which reads as a broken relay rather
+than a missing server. Use `vercel dev` to exercise the whole path.
+
+`.env.example` names every variable the feature needs, with the two public
+values filled in and the secrets left blank.
+
 ## The kill switch
 
 Clearing `VITE_PASSKEY_WALLET_WASM_HASH` turns the entry point off everywhere,
