@@ -64,6 +64,21 @@ whenever the feature reaches into an existing file.
 | `src/config.ts` | `passkeyWalletWasmHash` field and its env read |
 | `vercel.json` | `/api/*` excluded from the SPA rewrite (see below) |
 | `package.json` | `passkey-kit`, `buffer`, and the `@stellar/stellar-sdk` floor at `^16.3.0` |
+| `tsconfig.node.json` | `api` added to `include` so the functions are typechecked |
+| `src/lib/contracts/base.ts` | one branch in `invokeWrite`, plus the session import |
+
+## Known gaps, stated rather than hidden
+
+- **The faucet is bounded, not rate-limited.** A serverless function has no
+  shared state, so there is no per-hour cap. What bounds it instead: one
+  dispense per wallet, a deliberately small amount, and a reserve floor that
+  stops the dispenser before it empties. Passkey creation is fully automatable
+  — a scripted authenticator can mint wallets in a loop — so treat the reserve
+  as the real limit and refill deliberately rather than on a schedule.
+- **`api/` imports from `src/lib/`.** If the functions ever get their own
+  tsconfig with `"moduleResolution": "node16"`, those relative imports will need
+  `.js` extensions or they fail at cold start with an opaque 500. They are
+  typechecked today through `tsconfig.node.json`.
 
 ## What this feature is not
 
