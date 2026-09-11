@@ -70,6 +70,18 @@ whenever the feature reaches into an existing file.
 | `src/components/PasskeySignIn.tsx` | the entry control (delete the file) |
 | `src/components/ConnectPrompt.tsx` | renders `<PasskeySignIn />` above the wallet button |
 
+## Share one URL with testers
+
+A passkey is bound to the hostname it was created on, and the kit takes that
+from the current origin. Vercel gives a project two kinds of address: a stable
+production alias, and a per-deployment one carrying a build hash
+(`everspan-nf9gwnhqs-…`). They are not interchangeable here.
+
+Hand testers the **stable alias**. A passkey created on a per-deployment URL
+stops resolving the next time anything is pushed, taking the reader's funded
+wallet with it — not at some future migration, but at the next deploy. Nothing
+in the code can detect this; it is purely which link gets shared.
+
 ## Known gaps, stated rather than hidden
 
 - **The faucet is bounded, not rate-limited.** A serverless function has no
