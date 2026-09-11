@@ -24,6 +24,14 @@ export interface PasskeyIdentity {
 /** A created wallet, still undeployed: `signedTx` has to be relayed first. */
 export interface CreatedWallet extends PasskeyIdentity {
   signedTx: string
+  /*
+   * The kit's own result, carried back verbatim rather than rebuilt from the
+   * fields above. It holds the raw credential and public-key bytes, and
+   * `confirmWalletCreation` needs them to write the passkey record — handing it
+   * a narrowed copy fails inside the storage adapter, where the missing bytes
+   * surface as `Array.from(undefined)` and say nothing about what was dropped.
+   */
+  readonly kitResult: unknown
 }
 
 const CANCELLED: AppError = {
@@ -73,13 +81,14 @@ let kitPromise: Promise<PasskeyKitLike> | null = null
 
 interface PasskeyKitLike {
   createWallet(app: string, user: string): Promise<CreateResult>
-  confirmWalletCreation(created: CreateResult, hash: string): Promise<unknown>
+  confirmWalletCreation(created: unknown, hash: string): Promise<unknown>
   connectWallet(options?: { keyId?: string }): Promise<ConnectResult>
   sign<T>(tx: T): Promise<T>
   disconnect(): void
   readonly contractId: string | undefined
 }
 
+/** Only the fields this module reads. The rest travels in `kitResult`. */
 interface CreateResult {
   contractId: string
   keyIdBase64: string
@@ -135,6 +144,7 @@ export async function createWallet(userLabel: string): Promise<CreatedWallet | A
       contractId: created.contractId,
       credentialId: created.keyIdBase64,
       signedTx: created.signedTx,
+      kitResult: created,
     }
   } catch (e) {
     return humanise('create wallet', e)
@@ -154,14 +164,7 @@ export async function adoptWallet(
 ): Promise<PasskeyIdentity | AppError> {
   try {
     const instance = await kit()
-    await instance.confirmWalletCreation(
-      {
-        contractId: created.contractId,
-        keyIdBase64: created.credentialId,
-        signedTx: created.signedTx,
-      },
-      deployHash,
-    )
+    await instance.confirmWalletCreation(created.kitResult, deployHash)
     const connected = await instance.connectWallet({ keyId: created.credentialId })
     return { contractId: connected.contractId, credentialId: connected.keyIdBase64 }
   } catch (e) {
