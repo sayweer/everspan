@@ -183,9 +183,24 @@ async function submitEnvelope(
   deps: RelayDeps,
 ): Promise<{ hash: string; status: string }> {
   const inner = TransactionBuilder.fromXDR(envelopeXdr, NETWORK_PASSPHRASE) as Transaction
+
+  /*
+   * A fee bump names what it will pay *per operation of the inner
+   * transaction*, and the network refuses a bid below what the inner
+   * transaction already offers. A Soroban deployment carries its resource fee
+   * inside that number, which puts it orders of magnitude above any flat
+   * inclusion fee — so the bid has to be read off the transaction being
+   * bumped, not chosen in advance. Bidding a constant here is what makes a
+   * wallet deployment fail while every ordinary call succeeds.
+   */
+  const operations = BigInt(Math.max(inner.operations.length, 1))
+  const perOperation = (BigInt(inner.fee) + operations - 1n) / operations
+  const floor = BigInt(deps.INCLUSION_FEE)
+  const bid = (perOperation > floor ? perOperation : floor) + floor
+
   const bumped = TransactionBuilder.buildFeeBumpTransaction(
     keypair,
-    deps.INCLUSION_FEE,
+    bid.toString(),
     inner,
     NETWORK_PASSPHRASE,
   )
@@ -235,7 +250,11 @@ export async function POST(request: Request): Promise<Response> {
       : await submitEnvelope(server, keypair, envelope as string, deps)
     return json(result, 200)
   } catch (error) {
+    /* The detail rides along for the same reason the loader's does: the
+       platform gives no way to read a function's own exception from outside,
+       and a relay that fails silently costs a deploy cycle per guess. */
+    const detail = error instanceof Error ? error.message : String(error)
     console.error('[relay] submit failed:', error)
-    return json({ error: 'Relay failed.' }, 502)
+    return json({ error: 'Relay failed.', detail }, 502)
   }
 }
