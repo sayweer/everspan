@@ -40,9 +40,15 @@ Removal, in order:
 
 1. `rm -rf src/lib/passkey api`
 2. Delete every block tagged `PASSKEY-ENTRY` (the grep above lists them).
-3. `npm uninstall passkey-kit buffer` and drop the Buffer polyfill from
-   `vite.config.ts`.
-4. Drop the `/api` exception from `vercel.json`'s rewrite.
+3. `npm uninstall passkey-kit buffer`. There is no bundler change to undo —
+   the Buffer global is installed inside the kit seam immediately before
+   `passkey-kit` is dynamically imported, so it never reaches the main bundle
+   or `vite.config.ts`. The `@stellar/stellar-sdk` floor can drop back to
+   `^16.2.0`, though leaving it is harmless.
+4. Restore `vercel.json`'s rewrite to `"source": "/(.*)"`. It currently reads
+   `"/((?!api/).*)"` — the negative lookahead is what keeps `/api/*` from being
+   answered with `index.html`. That failure does not look like a missing route:
+   the function never runs and the client fails parsing HTML as JSON.
 5. Remove `SPONSOR_SECRET` / `DISPENSER_SECRET` and the `RELAY_*` variables from
    the hosting dashboard, and **merge the two testnet keypairs back out** so no
    funded key is left sitting unused.
@@ -56,6 +62,8 @@ whenever the feature reaches into an existing file.
 | File | What was added |
 | --- | --- |
 | `src/config.ts` | `passkeyWalletWasmHash` field and its env read |
+| `vercel.json` | `/api/*` excluded from the SPA rewrite (see below) |
+| `package.json` | `passkey-kit`, `buffer`, and the `@stellar/stellar-sdk` floor at `^16.3.0` |
 
 ## What this feature is not
 
