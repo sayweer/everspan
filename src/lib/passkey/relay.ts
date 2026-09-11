@@ -15,14 +15,24 @@
  */
 import type { AppError } from '../../types'
 
-/** The shape of an assembled transaction this module needs to read. */
+/**
+ * The shape of an assembled transaction this module needs to read.
+ *
+ * `operations` is deliberately `unknown[]`: the SDK types it as a union of
+ * every operation kind, and only `invokeHostFunction` carries the two fields
+ * we want. Narrowing at runtime is honest about that — asserting the union
+ * member in the type would be a claim we cannot check.
+ */
 export interface AssembledLike {
-  built?: {
-    operations?: ReadonlyArray<{
-      func?: { toXDR(format: 'base64'): string }
-      auth?: ReadonlyArray<{ toXDR(format: 'base64'): string }>
-    }>
-  }
+  built?: { operations?: readonly unknown[] }
+}
+
+type ToXdr = (format: 'base64') => string
+
+function xdrEncoder(value: unknown): ToXdr | null {
+  if (value === null || typeof value !== 'object') return null
+  const encode = (value as { toXDR?: unknown }).toXDR
+  return typeof encode === 'function' ? (encode as ToXdr).bind(value) : null
 }
 
 export interface RelayPayload {
@@ -42,11 +52,18 @@ const NOT_PREPARED: AppError = {
  */
 export function decodeAssembled(tx: AssembledLike): RelayPayload | AppError {
   const operation = tx.built?.operations?.[0]
-  if (!operation?.func) return NOT_PREPARED
-  return {
-    func: operation.func.toXDR('base64'),
-    auth: (operation.auth ?? []).map((entry) => entry.toXDR('base64')),
-  }
+  if (operation === null || typeof operation !== 'object') return NOT_PREPARED
+
+  const func = xdrEncoder((operation as { func?: unknown }).func)
+  if (!func) return NOT_PREPARED
+
+  const entries = (operation as { auth?: unknown }).auth
+  const auth = (Array.isArray(entries) ? entries : [])
+    .map(xdrEncoder)
+    .filter((encode): encode is ToXdr => encode !== null)
+    .map((encode) => encode('base64'))
+
+  return { func: func('base64'), auth }
 }
 
 function relayFailure(status: number): AppError {

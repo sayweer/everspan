@@ -23,6 +23,8 @@ import {
 } from '@stellar/stellar-sdk/contract'
 import { config } from '../../config'
 import { signXdr } from '../wallet'
+// PASSKEY-ENTRY
+import { isPasskeySession } from '../passkey/session'
 import { isAppError, type AppError } from '../../types'
 import { classifyContractError, type ErrorTable } from './errors'
 
@@ -124,11 +126,33 @@ export async function invokeWrite<T>(
 ): Promise<{ hash: string; result: T } | AppError> {
   try {
     if (onPhase('building') === false) return SAFETY_GUARD_ERROR
+
+    /*
+     * PASSKEY-ENTRY: a passkey session acts as a smart *contract*, which
+     * cannot be a transaction's source and holds no XLM to pay with. The
+     * contract argument stays the wallet — that is what produces the
+     * authorization entry it signs — while the envelope is simulated against
+     * the SDK's null account, which simulation never checks the existence or
+     * sequence of. The relay then rebuilds the transaction on a funded account
+     * carrying those exact signatures. Removing this feature means deleting
+     * this branch and restoring `publicKey: address`.
+     */
+    const relayed = isPasskeySession()
     const tx = await build({
-      publicKey: address,
+      publicKey: relayed ? NULL_ACCOUNT : address,
       signTransaction: makeSignTransactionAdapter(address),
     })
     if (onPhase('signing') === false) return SAFETY_GUARD_ERROR
+
+    // PASSKEY-ENTRY: dynamically imported so the kit stays out of the bundle
+    // a wallet-connecting reader downloads.
+    if (relayed) {
+      const { submitThroughRelay } = await import('../passkey/submit')
+      const sent = await submitThroughRelay(tx, address, onPhase)
+      if (isAppError(sent)) return sent
+      return { hash: sent.hash, result: unwrapSpecResult<T>(tx.result) }
+    }
+
     const sent = await tx.signAndSend({
       watcher: {
         onSubmitted: (response) => {
