@@ -27,8 +27,8 @@ import { Api, Durability, Server } from '@stellar/stellar-sdk/rpc'
    what sits under api/; an import reaching outside it fails while the module
    is loading, which surfaces as a 500 before the handler ever runs — and looks
    nothing like a missing file. */
-import { admits, parseList, type GuardConfig } from './_lib/guard'
-import { INCLUSION_FEE, paddedResourceFee } from './_lib/fees'
+import { admits, parseList, type GuardConfig } from './_lib/guard.ts'
+import { INCLUSION_FEE, paddedResourceFee } from './_lib/fees.ts'
 
 const RPC_URL = process.env.RELAY_RPC_URL ?? 'https://soroban-testnet.stellar.org'
 /* Hardcoded rather than read from the environment. This endpoint sponsors

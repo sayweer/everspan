@@ -125,7 +125,11 @@ in the code can detect this; it is purely which link gets shared.
   malformed body came back 500 instead of 400 — which is the tell. The
   admission gate and the fee helpers now live in `api/_lib/`, still pure and
   still covered (`vitest.config.ts` includes `api/**/*.test.ts`). **Do not add
-  an import from `api/` into `src/`.**
+  an import from `api/` into `src/`, and give every relative import inside
+  `api/` an explicit `.ts` extension** — typechecking accepts an extensionless
+  one because the tsconfig uses bundler resolution, and the runtime then fails
+  to resolve it at load. `node --experimental-strip-types -e "await
+  import('./api/relay.ts')"` reproduces that in a second, without a deploy.
 
 ## What this feature is not
 
