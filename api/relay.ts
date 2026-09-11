@@ -106,15 +106,31 @@ function guardConfig(server: Server, deps: RelayDeps): GuardConfig {
   }
 }
 
-/** Read the host function out of a fully signed envelope so it can be gated too. */
-function hostFunctionOf(envelopeXdr: string): string | null {
+/**
+ * Pull the host function and its signed authorization out of an envelope.
+ *
+ * A wallet deployment arrives this way, and it must not simply be fee-bumped.
+ * The kit signs it with a *shared, sign-only* deployer that never pays, so the
+ * signature that matters lives in the authorization entries rather than on the
+ * envelope — and the envelope's source account is a deployer whose sequence
+ * number every other user of the library is also consuming. Bumping it makes
+ * the deployment race strangers.
+ *
+ * Taken apart and resubmitted on our own account, it becomes an ordinary
+ * sponsored call: same gate, same fee path, no shared sequence. Returns null
+ * for anything that is not exactly one host-function operation, which is the
+ * case the envelope path still has to handle.
+ */
+function decomposeEnvelope(
+  envelopeXdr: string,
+): { func: xdr.HostFunction; auth: xdr.SorobanAuthorizationEntry[] } | null {
   try {
     const tx = TransactionBuilder.fromXDR(envelopeXdr, NETWORK_PASSPHRASE)
     const operations = 'operations' in tx ? tx.operations : []
-    for (const operation of operations) {
-      if (operation.type === 'invokeHostFunction') return operation.func.toXDR('base64')
-    }
-    return null
+    if (operations.length !== 1) return null
+    const operation = operations[0]
+    if (operation.type !== 'invokeHostFunction') return null
+    return { func: operation.func, auth: operation.auth ?? [] }
   } catch {
     return null
   }
@@ -231,23 +247,31 @@ export async function POST(request: Request): Promise<Response> {
   if (!isCall && !isEnvelope) return json({ error: 'Malformed request.' }, 400)
 
   const server = new Server(RPC_URL)
-  const gated = isCall ? func : hostFunctionOf(envelope as string)
+
+  /* An envelope carrying exactly one host function is taken apart and treated
+     as an ordinary call — see `decomposeEnvelope`. Only what cannot be taken
+     apart goes down the fee-bump path. */
+  const decomposed = isCall ? null : decomposeEnvelope(envelope as string)
+  const gated = isCall ? func : (decomposed?.func.toXDR('base64') ?? null)
   if (gated === null || !(await deps.admits(gated, guardConfig(server, deps)))) {
     return json({ error: 'Not allowed.' }, 403)
   }
 
   try {
-    const result = isCall
-      ? await submitHostFunction(
-          server,
-          keypair,
-          xdr.HostFunction.fromXDR(func, 'base64'),
-          (auth as string[]).map((entry) =>
-            xdr.SorobanAuthorizationEntry.fromXDR(entry, 'base64'),
-          ),
-          deps,
-        )
-      : await submitEnvelope(server, keypair, envelope as string, deps)
+    let result
+    if (isCall) {
+      result = await submitHostFunction(
+        server,
+        keypair,
+        xdr.HostFunction.fromXDR(func, 'base64'),
+        (auth as string[]).map((entry) => xdr.SorobanAuthorizationEntry.fromXDR(entry, 'base64')),
+        deps,
+      )
+    } else if (decomposed) {
+      result = await submitHostFunction(server, keypair, decomposed.func, decomposed.auth, deps)
+    } else {
+      result = await submitEnvelope(server, keypair, envelope as string, deps)
+    }
     return json(result, 200)
   } catch (error) {
     /* The detail rides along for the same reason the loader's does: the
