@@ -1,4 +1,4 @@
-/** Persistent balances strip: underlying / SY at a glance, plus the faucet. */
+/** Persistent balance strip: the underlying asset at a glance, plus the faucet. */
 import type { ReactElement } from 'react'
 import { formatAmount } from '../lib/format'
 import { activeMarket } from '../lib/market'
@@ -13,7 +13,6 @@ import { StellarMark } from './StellarMark'
 interface WalletBarProps {
   address: string
   underlying: bigint
-  sy: bigint
   loading: boolean
   isWrongNetwork: boolean
   onRefresh: () => void
@@ -27,7 +26,6 @@ interface WalletBarProps {
 export function WalletBar({
   address,
   underlying,
-  sy,
   loading,
   isWrongNetwork,
   onRefresh,
@@ -55,7 +53,6 @@ export function WalletBar({
             loading={loading}
             network={market.underlyingSymbol === 'XLM'}
           />
-          <Balance label="SY" value={sy} loading={loading} />
         </div>
         <div className="ml-auto flex items-center gap-2">
           {market.source === 'mock' ? (

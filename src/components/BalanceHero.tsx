@@ -49,6 +49,7 @@ export function BalanceHero({
   onLiquidity,
 }: BalanceHeroProps): ReactElement {
   const [hidden, setHidden] = useState(initialHidden)
+  const [expanded, setExpanded] = useState(false)
 
   useEffect(() => {
     try {
@@ -68,14 +69,14 @@ export function BalanceHero({
   const segments = [
     {
       label: 'Liquid',
-      hint: `${symbol} and SY you can act with now`,
+      hint: `${symbol} you can act with now`,
       value: holdings.liquid,
       icon: <CoinsIcon className="h-5 w-5" />,
       onSelect: onConvert,
     },
     {
       label: 'Principal',
-      hint: 'PT held, marked at the pool',
+      hint: 'Principal held, marked at the pool',
       value: holdings.principal,
       icon: <LockIcon className="h-5 w-5" />,
       onSelect: onPortfolio,
@@ -98,44 +99,58 @@ export function BalanceHero({
 
   return (
     <section aria-label="Total value" className="pb-2">
-      <h2 className="font-mono text-[11px] uppercase tracking-[0.16em] text-neutral-500">
-        Total value
-      </h2>
-
-      <p
-        className={`mt-2 flex items-baseline gap-2 tabular-nums text-neutral-50 ${
-          loading ? 'opacity-60' : ''
-        }`}
-      >
-        {/* The whole units carry the reading and the fraction rides underneath
-            it: at this size a run of eight equal-weight digits is a number the
-            reader has to parse rather than one they can take in. */}
-        <span className="text-[2.75rem] font-medium leading-none tracking-[-0.05em]">
-          {hidden ? MASK : parts.whole}
-        </span>
-        {!hidden && parts.fraction && (
-          <span className="text-xl font-medium leading-none tracking-[-0.03em] text-neutral-400">
-            .{parts.fraction}
+      {/* A compact strip by default — the wallet's real balance above this is
+          the number that dominates the screen. This one stays a single line
+          until a reader asks for the breakdown. */}
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          aria-expanded={expanded}
+          onClick={() => {
+            setExpanded((current) => !current)
+          }}
+          className={`flex min-w-0 flex-1 items-center justify-between gap-3 rounded-lg py-1 text-left [touch-action:manipulation] [-webkit-tap-highlight-color:transparent] ${focusRing} hover:opacity-80`}
+        >
+          <span className="min-w-0">
+            <span className="font-mono text-[11px] uppercase tracking-[0.16em] text-neutral-500">
+              Total value
+            </span>
+            <span
+              className={`mt-0.5 flex items-baseline gap-1.5 tabular-nums text-neutral-50 ${
+                loading ? 'opacity-60' : ''
+              }`}
+            >
+              <span className="text-xl font-medium leading-none tracking-[-0.03em]">
+                {hidden ? MASK : parts.whole}
+              </span>
+              {!hidden && parts.fraction && (
+                <span className="text-xs font-medium leading-none text-neutral-400">
+                  .{parts.fraction}
+                </span>
+              )}
+              <span className="text-xs font-medium text-neutral-400">{symbol}</span>
+            </span>
           </span>
-        )}
-        <span className="text-sm font-medium text-neutral-400">{symbol}</span>
-      </p>
+          <ChevronDownIcon
+            aria-hidden="true"
+            className={`h-4 w-4 shrink-0 text-neutral-500 transition-transform duration-100 ${expanded ? '' : '-rotate-90'}`}
+          />
+        </button>
 
-      <div className="mt-3">
         <button
           type="button"
           aria-pressed={hidden}
           onClick={() => {
             setHidden((current) => !current)
           }}
-          className={`inline-flex min-h-9 items-center gap-2 rounded-full border border-boundary px-3 text-xs text-neutral-300 transition-colors duration-100 hover:bg-raised hover:text-neutral-100 [touch-action:manipulation] [-webkit-tap-highlight-color:transparent] ${focusRing}`}
+          className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-boundary text-neutral-300 transition-colors duration-100 hover:bg-raised hover:text-neutral-100 [touch-action:manipulation] [-webkit-tap-highlight-color:transparent] ${focusRing}`}
+          aria-label={hidden ? 'Show amounts' : 'Hide amounts'}
         >
           {hidden ? <EyeIcon className="h-4 w-4" /> : <EyeOffIcon className="h-4 w-4" />}
-          {hidden ? 'Show amounts' : 'Hide amounts'}
         </button>
       </div>
 
-      {segments.length > 0 && (
+      {expanded && segments.length > 0 && (
         <ul className="mt-4 divide-y divide-hairline border-y border-hairline">
           {segments.map((segment) => (
             <li key={segment.label}>
@@ -168,17 +183,18 @@ export function BalanceHero({
         </ul>
       )}
 
-      {holdings.yt > 0n && !hidden && (
+      {expanded && holdings.yt > 0n && !hidden && (
         <p className="mt-3 text-xs leading-relaxed text-neutral-500">
-          Plus {formatAmount(holdings.yt, 2)} YT. Yield tokens are not counted above — nothing in
-          the protocol prices the yield they still have to release.
+          Plus {formatAmount(holdings.yt, 2)} in yield exposure. It is not counted above — nothing
+          in the protocol prices the yield still to come.
         </p>
       )}
 
-      {holdings.unmarked.length > 0 && (
+      {expanded && holdings.unmarked.length > 0 && (
         <p className="mt-2 text-xs leading-relaxed text-warning-300">
           {holdings.unmarked.length === 1 ? 'One maturity is' : `${holdings.unmarked.length} maturities are`}{' '}
-          missing a pool, so the PT held there has no price yet and is left out of this total.
+          missing a pool, so the principal held there has no price yet and is left out of this
+          total.
         </p>
       )}
     </section>

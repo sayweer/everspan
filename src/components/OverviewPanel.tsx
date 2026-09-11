@@ -4,8 +4,6 @@ import type { MaturityPosition } from '../hooks/usePortfolio'
 import type { RateInfo } from '../lib/contracts/underlying'
 import type { AppError } from '../types'
 import { activeMarket } from '../lib/market'
-import type { Holdings } from '../lib/holdings'
-import { BalanceHero } from './BalanceHero'
 // PASSKEY-ENTRY: renders nothing when the feature is off. See docs/passkey.md.
 import { PasskeySignIn } from './PasskeySignIn'
 import { MarketsList } from './MarketsList'
@@ -21,7 +19,6 @@ interface OverviewPanelProps {
   underlying: bigint
   sy: bigint
   positions: MaturityPosition[]
-  holdings: Holdings
   loading: boolean
   pools: MaturityPool[]
   rateInfo: RateInfo | null
@@ -39,7 +36,6 @@ export function OverviewPanel({
   underlying,
   sy,
   positions,
-  holdings,
   loading,
   pools,
   rateInfo,
@@ -110,23 +106,6 @@ export function OverviewPanel({
 
   return (
     <section id="panel-overview" role="tabpanel" aria-label="Overview" className="space-y-10">
-      {/* Only once there is an account to total. A disconnected reader shown a
-          zero learns nothing about the protocol and quite a lot about how
-          little the screen knows them; the heading below is the better first
-          thing for them to meet. */}
-      {connected && (
-        <BalanceHero
-          holdings={holdings}
-          symbol={market.underlyingSymbol}
-          loading={loading}
-          onConvert={onConvert}
-          onPortfolio={onPortfolio}
-          onLiquidity={() => {
-            onEarn('liquidity')
-          }}
-        />
-      )}
-
       <header className="max-w-2xl">
         <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-accent-300">
           Overview

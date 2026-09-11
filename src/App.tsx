@@ -12,9 +12,10 @@ import { useHoldings } from './hooks/useHoldings'
 import { useLiveRate } from './hooks/useLiveRate'
 import { useProtocolEvents } from './hooks/useProtocolEvents'
 import { config, isContractsConfigured, markets, type MarketKey } from './config'
-import { setActiveMarket } from './lib/market'
+import { activeMarket, setActiveMarket } from './lib/market'
 import { NetworkBanner } from './components/NetworkBanner'
 import { BalanceCard } from './components/BalanceCard'
+import { BalanceHero } from './components/BalanceHero'
 import { RateTicker } from './components/RateTicker'
 import { WalletBar } from './components/WalletBar'
 import { BrandMark } from './components/BrandMark'
@@ -280,27 +281,40 @@ function MarketContent({
             tabIndex={-1}
             className="flex-1 space-y-6 py-6 motion-safe:animate-rise-in sm:py-8"
           >
+            {/* /app is only reachable once connected (RequireSession redirects
+                otherwise), so this is the first thing a reader sees on every
+                visit — the real wallet balance, big, ahead of everything
+                token-mechanics-shaped below it. */}
             {connected && (
-              <WalletBar
-                address={address}
-                underlying={portfolio.underlying}
-                sy={portfolio.sy}
-                loading={loading}
-                isWrongNetwork={isWrongNetwork}
-                onRefresh={refreshAll}
-              />
-            )}
+              <>
+                <BalanceCard
+                  address={address}
+                  balance={balance.balance}
+                  funded={balance.funded}
+                  loading={balance.loading}
+                  error={balance.error}
+                  onRefresh={balance.refresh}
+                />
 
-            {/* An unfunded account can't pay tx fees — surface funding prominently. */}
-            {connected && !balance.funded && !balance.loading && (
-              <BalanceCard
-                address={address}
-                balance={balance.balance}
-                funded={balance.funded}
-                loading={balance.loading}
-                error={balance.error}
-                onRefresh={balance.refresh}
-              />
+                <BalanceHero
+                  holdings={holdings}
+                  symbol={activeMarket().underlyingSymbol}
+                  loading={loading}
+                  onConvert={goConvert}
+                  onPortfolio={goPortfolio}
+                  onLiquidity={() => {
+                    openStrategy('liquidity')
+                  }}
+                />
+
+                <WalletBar
+                  address={address}
+                  underlying={portfolio.underlying}
+                  loading={loading}
+                  isWrongNetwork={isWrongNetwork}
+                  onRefresh={refreshAll}
+                />
+              </>
             )}
 
             {tab === 'overview' && (
@@ -309,7 +323,6 @@ function MarketContent({
                 underlying={portfolio.underlying}
                 sy={portfolio.sy}
                 positions={portfolio.positions}
-                holdings={holdings}
                 loading={pools.loading || loading}
                 pools={pools.pools}
                 rateInfo={portfolio.rateInfo}
