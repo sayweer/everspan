@@ -16,9 +16,10 @@
     "@creit.tech/stellar-wallets-kit": "^2.5.0",
     "@fontsource-variable/space-grotesk": "^5.3.0",
     "@sentry/react": "^10.68.0",
-    "@stellar/stellar-sdk": "^16.2.0",
+    "@stellar/stellar-sdk": "^16.3.0",
     "@vercel/analytics": "^2.0.1",
     "gsap": "^3.15.0",
+    "passkey-kit": "^0.18.3",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "react-router-dom": "^7.18.1"
