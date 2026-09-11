@@ -22,6 +22,13 @@ export interface AppConfig {
   readonly sentryDsn: string
   /** External feedback form. Empty hides the feedback link. */
   readonly feedbackFormUrl: string
+  /*
+   * PASSKEY-ENTRY: the Testnet-only, wallet-free entry point. Hash of the
+   * smart-wallet wasm deployed for each passkey user. Empty is the kill
+   * switch — it takes the whole entry point out without a rebuild. See
+   * `src/lib/passkey/enabled.ts` and `docs/passkey.md`.
+   */
+  readonly passkeyWalletWasmHash: string
 }
 
 /**
@@ -45,6 +52,8 @@ export const config: AppConfig = {
   walletConnectProjectId: import.meta.env.VITE_WALLETCONNECT_PROJECT_ID ?? '',
   sentryDsn: import.meta.env.VITE_SENTRY_DSN || '',
   feedbackFormUrl: import.meta.env.VITE_FEEDBACK_FORM_URL || '',
+  // PASSKEY-ENTRY
+  passkeyWalletWasmHash: import.meta.env.VITE_PASSKEY_WALLET_WASM_HASH || '',
 }
 
 /** Identifier of a deployed market (one SY vault + its Market + its AMM). */

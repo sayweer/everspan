@@ -59,3 +59,6 @@ docs/plan/*
 !docs/TESTING.md
 !docs/USERS_AND_FEEDBACK.md
 !docs/DEPLOYMENT.md
+# The passkey entry point's removal procedure — tracked because the point of it
+# is that whoever takes the feature out later can find it.
+!docs/passkey.md

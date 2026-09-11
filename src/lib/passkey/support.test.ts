@@ -4,7 +4,7 @@ import {
   passkeyLabel,
   passkeyOffered,
   type WebAuthnWindow,
-} from './passkeySupport'
+} from './support'
 
 function win(probe?: (() => Promise<boolean>) | 'absent'): WebAuthnWindow {
   if (probe === 'absent') return { PublicKeyCredential: {} }
