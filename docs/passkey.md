@@ -69,6 +69,8 @@ whenever the feature reaches into an existing file.
 | `src/context/WalletContext.tsx` | the passkey address merged into the session, `isPasskey`/`adoptPasskey` |
 | `src/components/PasskeySignIn.tsx` | the entry control (delete the file) |
 | `src/components/ConnectPrompt.tsx` | renders `<PasskeySignIn />` above the wallet button |
+| `src/components/OverviewPanel.tsx` | renders `<PasskeySignIn />` under the next-step card while disconnected |
+| `src/components/AccountDrawer.tsx` | renders `<PasskeySignIn />` above the connect-a-wallet row |
 
 ## Share one URL with testers
 
@@ -77,7 +79,7 @@ from the current origin. Vercel gives a project two kinds of address: a stable
 production alias, and a per-deployment one carrying a build hash
 (`everspan-nf9gwnhqs-…`). They are not interchangeable here.
 
-Hand testers the **stable alias**. A passkey created on a per-deployment URL
+The live one is `https://everspanfi.vercel.app`. Hand testers that. A passkey created on a per-deployment URL
 stops resolving the next time anything is pushed, taking the reader's funded
 wallet with it — not at some future migration, but at the next deploy. Nothing
 in the code can detect this; it is purely which link gets shared.

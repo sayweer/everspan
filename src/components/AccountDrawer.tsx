@@ -8,6 +8,8 @@ import { activeMarket } from '../lib/market'
 import { config, explorerContractUrl } from '../config'
 import { focusRing } from '../lib/buttonStyles'
 import { SideDrawer } from './SideDrawer'
+// PASSKEY-ENTRY: see docs/passkey.md.
+import { PasskeySignIn } from './PasskeySignIn'
 import {
   CheckIcon,
   ChevronDownIcon,
@@ -96,6 +98,10 @@ export function AccountDrawer({ open, onClose }: AccountDrawerProps): ReactEleme
         </Group>
       ) : (
         <Group label="Wallet">
+          {/* PASSKEY-ENTRY: renders nothing when the feature is off. */}
+          <div className="px-5 pb-4 pt-1">
+            <PasskeySignIn />
+          </div>
           <RowButton
             icon={<WalletIcon className="h-5 w-5" />}
             title="Connect a wallet"

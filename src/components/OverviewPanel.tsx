@@ -6,6 +6,8 @@ import type { AppError } from '../types'
 import { activeMarket } from '../lib/market'
 import type { Holdings } from '../lib/holdings'
 import { BalanceHero } from './BalanceHero'
+// PASSKEY-ENTRY: renders nothing when the feature is off. See docs/passkey.md.
+import { PasskeySignIn } from './PasskeySignIn'
 import { MarketsList } from './MarketsList'
 import { ArrowRightIcon, ChartBarIcon, DropletIcon, LayersIcon, LockIcon } from './icons'
 import { IconTile } from './IconTile'
@@ -175,6 +177,16 @@ export function OverviewPanel({
                   {recommendation.actionLabel}
                   <ArrowRightIcon className="h-4 w-4" />
                 </Button>
+              )}
+
+              {/* PASSKEY-ENTRY. This is where a reader without a wallet
+                  actually lands: the gated tabs offer the same control, but
+                  only after a tap that assumes they already have a way in.
+                  Connected readers never see it. */}
+              {!connected && (
+                <div className="mt-8 border-t border-hairline pt-6">
+                  <PasskeySignIn />
+                </div>
               )}
             </>
           )}
