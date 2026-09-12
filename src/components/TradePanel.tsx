@@ -1,6 +1,6 @@
 /** Trade tab: lock a fixed rate (SY→PT) or go long yield (split, sell PT). */
 import { useEffect, useState } from 'react'
-import type { ReactElement, ReactNode } from 'react'
+import type { ReactElement } from 'react'
 import type { MaturityPool } from '../hooks/usePools'
 import type { MaturityPosition } from '../hooks/usePortfolio'
 import { useNow } from '../hooks/useNow'
@@ -31,6 +31,7 @@ import { previewWrapOutput, requiredUnderlyingForSy, requiredUnderlyingForSyAtLe
 import { AmountField, ActionButton } from './forms'
 import { MaturitySelect } from './MaturitySelect'
 import { SlippageControl } from './SlippageControl'
+import { SummaryRow } from './SummaryRow'
 import { TxStatus } from './TxStatus'
 import { AlertTriangleIcon, LockIcon } from './icons'
 import { FIGURE_TONE, figureText } from '../lib/figures'
@@ -158,33 +159,6 @@ export function TradePanel({
           )}
         </>
       )}
-    </div>
-  )
-}
-
-/** A labelled figure line in the quote breakdown. */
-function SummaryRow({
-  label,
-  children,
-  accent,
-}: {
-  label: string
-  children: ReactNode
-  accent?: boolean
-}): ReactElement {
-  /*
-   * `accent` is emphasis, not status. The success tone means "this transaction
-   * worked"; spending it on an ordinary output figure both mislabels the figure
-   * and dilutes the one colour that has to mean confirmation.
-   */
-  return (
-    <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)] items-start gap-3 text-sm">
-      <span className="text-neutral-400">{label}</span>
-      <span
-        className={`min-w-0 break-all text-right font-mono tabular-nums ${accent ? 'font-medium text-accent-300' : 'text-neutral-200'}`}
-      >
-        {children}
-      </span>
     </div>
   )
 }

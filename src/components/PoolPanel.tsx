@@ -1,6 +1,6 @@
 /** Pool tab: provide or withdraw PT/SY liquidity and earn swap fees. */
 import { useState } from 'react'
-import type { ReactElement, ReactNode } from 'react'
+import type { ReactElement } from 'react'
 import type { MaturityPool } from '../hooks/usePools'
 import type { MaturityPosition } from '../hooks/usePortfolio'
 import { useNow } from '../hooks/useNow'
@@ -13,6 +13,7 @@ import { addLiquidity, removeLiquidity } from '../lib/contracts/amm'
 import { AmountField, ActionButton, TabToggle } from './forms'
 import { MaturitySelect } from './MaturitySelect'
 import { SlippageControl } from './SlippageControl'
+import { SummaryRow } from './SummaryRow'
 import { TxStatus } from './TxStatus'
 
 interface PoolPanelProps {
@@ -144,17 +145,6 @@ export function PoolPanel({
   )
 }
 
-function Row({ label, children }: { label: string; children: ReactNode }): ReactElement {
-  return (
-    <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)] items-start gap-3 text-sm">
-      <span className="text-neutral-400">{label}</span>
-      <span className="min-w-0 break-all text-right font-mono tabular-nums text-neutral-200">
-        {children}
-      </span>
-    </div>
-  )
-}
-
 interface AddFormProps {
   address: string
   isWrongNetwork: boolean
@@ -239,10 +229,10 @@ function AddForm({
             Both assets enter the same maturity pool in one transaction.
           </p>
           <div className="mt-4 space-y-2.5">
-            <Row label="You provide">{formatAmount(quote.syIn)} SY</Row>
-            <Row label="PT paired">{formatAmount(ptNeeded)} PT</Row>
-            <Row label="LP shares received">{formatAmount(quote.lpMinted)} LP</Row>
-            <Row label="Pool swap fee rate">0.30%</Row>
+            <SummaryRow label="You provide">{formatAmount(quote.syIn)} SY</SummaryRow>
+            <SummaryRow label="PT paired">{formatAmount(ptNeeded)} PT</SummaryRow>
+            <SummaryRow label="LP shares received">{formatAmount(quote.lpMinted)} LP</SummaryRow>
+            <SummaryRow label="Pool swap fee rate">0.30%</SummaryRow>
           </div>
           <p className="mt-4 border-t border-hairline pt-3 text-xs leading-relaxed text-neutral-400">
             Future swaps pay a 0.30% fee shared pro-rata among liquidity providers. The value and
@@ -253,7 +243,7 @@ function AddForm({
               Slippage and fee details
             </summary>
             <div className="mt-2 space-y-2.5 pb-1">
-              <Row label="Maximum slippage">{(slippageBps / 100).toFixed(2)}%</Row>
+              <SummaryRow label="Maximum slippage">{(slippageBps / 100).toFixed(2)}%</SummaryRow>
               <SlippageControl bps={slippageBps} onChange={setSlippageBps} />
               <p className="text-neutral-500">
                 Your wallet shows the final Stellar network fee before approval.
@@ -364,16 +354,16 @@ function RemoveForm({
         <div className="rounded-xl border border-hairline bg-neutral-950/40 p-4">
           <p className="text-sm font-semibold text-neutral-100">Review withdrawal</p>
           <div className="mt-4 space-y-2.5">
-            <Row label="LP shares burned">{formatAmount(lp)} LP</Row>
-            <Row label="PT returned">{formatAmount(quote.ptOut)} PT</Row>
-            <Row label="SY returned">{formatAmount(quote.syOut)} SY</Row>
+            <SummaryRow label="LP shares burned">{formatAmount(lp)} LP</SummaryRow>
+            <SummaryRow label="PT returned">{formatAmount(quote.ptOut)} PT</SummaryRow>
+            <SummaryRow label="SY returned">{formatAmount(quote.syOut)} SY</SummaryRow>
           </div>
           <details className="mt-3 border-t border-hairline pt-3 text-xs">
             <summary className="flex min-h-11 cursor-pointer items-center rounded py-2 font-medium text-neutral-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-300">
               Slippage and fee details
             </summary>
             <div className="mt-2 space-y-2.5 pb-1">
-              <Row label="Maximum slippage">{(slippageBps / 100).toFixed(2)}%</Row>
+              <SummaryRow label="Maximum slippage">{(slippageBps / 100).toFixed(2)}%</SummaryRow>
               <SlippageControl bps={slippageBps} onChange={setSlippageBps} />
               <p className="text-neutral-500">
                 Your wallet shows the final Stellar network fee before approval.
