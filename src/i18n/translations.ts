@@ -28,6 +28,15 @@ const EN_TO_TR: Record<string, string> = {
   'Use dark theme': 'Koyu temayı kullan',
   'Switch to Turkish': 'Türkçeye geç',
   'Switch to English': 'İngilizceye geç',
+  Transactions: 'İşlemler',
+  Notifications: 'Bildirimler',
+  'No notifications yet': 'Henüz bildirim yok',
+  'Updates about your transactions and account will appear here.':
+    'Hesabınız ve işlemlerinizle ilgili güncellemeler burada görünecek.',
+  'Preparing the transaction…': 'İşlem hazırlanıyor…',
+  'Waiting for your wallet…': 'Cüzdanınız bekleniyor…',
+  'Waiting for Stellar confirmation…': 'Stellar onayı bekleniyor…',
+  'Outcome could not be verified yet.': 'Sonuç henüz doğrulanamadı.',
   'Contract IDs are not configured. Set the': 'Sözleşme kimlikleri yapılandırılmamış.',
   'variables to point at a deployment.': 'değişkenlerini bir dağıtıma yönlendirin.',
   'Connect a Testnet wallet to lock a fixed return, hold yield exposure, or earn trading fees.':

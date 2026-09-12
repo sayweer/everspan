@@ -266,10 +266,16 @@ function MarketContent({
         </aside>
 
         <div className="flex min-w-0 flex-1 flex-col">
-          {/* Wraps rather than shrinks: the market switcher and the wallet control
-              are both fixed-width, and on a phone they overlapped when forced
-              onto one line. Below sm the switcher drops to its own row. */}
-          <AppHeader marketKey={marketKey} onSwitchMarket={onSwitchMarket} />
+          {/* Wraps rather than shrinks: the market switcher and the header's
+              controls are both fixed-width, and on a phone they overlapped
+              when forced onto one line. Below sm the switcher drops to its
+              own row. */}
+          <AppHeader
+            marketKey={marketKey}
+            onSwitchMarket={onSwitchMarket}
+            address={address}
+            personalActivity={personalActivity}
+          />
 
           {/* Keyed by the tab so the panel plays its entrance when the reader
               changes destination — and only then. Keying it on mount instead

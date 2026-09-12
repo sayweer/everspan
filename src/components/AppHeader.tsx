@@ -1,19 +1,23 @@
 /** The app's top bar: one row at every width. */
 import { useState, type ReactElement } from 'react'
 import { markets, type MarketKey } from '../config'
-import { buttonClasses } from '../lib/buttonStyles'
+import { buttonClasses, iconButtonClasses } from '../lib/buttonStyles'
+import type { UseProtocolEventsResult } from '../hooks/useProtocolEvents'
 import { AccountDrawer } from './AccountDrawer'
 import { BottomSheet } from './BottomSheet'
 import { MenuButton } from './MenuButton'
-import { ChevronDownIcon } from './icons'
+import { BellIcon, ChevronDownIcon, ClockIcon } from './icons'
 import { MarketSwitcher } from './MarketSwitcher'
+import { NotificationsSheet } from './NotificationsSheet'
 import { ThemeToggle } from './ThemeToggle'
-import { WalletButton } from './WalletButton'
+import { TransactionsSheet } from './TransactionsSheet'
 import { LanguageToggle } from './LanguageToggle'
 
 interface AppHeaderProps {
   marketKey: MarketKey
   onSwitchMarket: (key: MarketKey) => void
+  address: string | null
+  personalActivity: UseProtocolEventsResult
 }
 
 /**
@@ -27,9 +31,16 @@ interface AppHeaderProps {
  * moving the market switcher behind a chip: it is a control a reader touches
  * once a session, and it was claiming a full-width row permanently.
  */
-export function AppHeader({ marketKey, onSwitchMarket }: AppHeaderProps): ReactElement {
+export function AppHeader({
+  marketKey,
+  onSwitchMarket,
+  address,
+  personalActivity,
+}: AppHeaderProps): ReactElement {
   const [marketSheetOpen, setMarketSheetOpen] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [transactionsSheetOpen, setTransactionsSheetOpen] = useState(false)
+  const [notificationsSheetOpen, setNotificationsSheetOpen] = useState(false)
   const switchable = markets.length > 1
   const current = markets.find((market) => market.key === marketKey) ?? markets[0]
 
@@ -72,17 +83,58 @@ export function AppHeader({ marketKey, onSwitchMarket }: AppHeaderProps): ReactE
       <div className="ml-auto flex shrink-0 items-center gap-2">
         <LanguageToggle />
         {/* A preference, not a task: on a phone it lives in the More panel so
-            the row can spend its width on the market and the wallet. */}
+            the row can spend its width on the market and these controls. */}
         <span className="hidden sm:inline-flex">
           <ThemeToggle />
         </span>
-        <WalletButton />
+        <button
+          type="button"
+          aria-haspopup="dialog"
+          aria-expanded={transactionsSheetOpen}
+          aria-label="Transactions"
+          title="Transactions"
+          onClick={() => {
+            setTransactionsSheetOpen(true)
+          }}
+          className={iconButtonClasses({ variant: 'ghost' })}
+        >
+          <ClockIcon className="h-5 w-5" />
+        </button>
+        <button
+          type="button"
+          aria-haspopup="dialog"
+          aria-expanded={notificationsSheetOpen}
+          aria-label="Notifications"
+          title="Notifications"
+          onClick={() => {
+            setNotificationsSheetOpen(true)
+          }}
+          className={iconButtonClasses({ variant: 'ghost' })}
+        >
+          <BellIcon className="h-5 w-5" />
+        </button>
       </div>
 
       <AccountDrawer
         open={drawerOpen}
         onClose={() => {
           setDrawerOpen(false)
+        }}
+      />
+
+      <TransactionsSheet
+        open={transactionsSheetOpen}
+        onClose={() => {
+          setTransactionsSheetOpen(false)
+        }}
+        address={address}
+        personalActivity={personalActivity}
+      />
+
+      <NotificationsSheet
+        open={notificationsSheetOpen}
+        onClose={() => {
+          setNotificationsSheetOpen(false)
         }}
       />
 
