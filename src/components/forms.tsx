@@ -114,7 +114,7 @@ export function TabToggle({
     <div
       role="group"
       aria-label={label}
-      className={`grid w-full rounded-2xl bg-neutral-950 sm:inline-flex sm:w-auto sm:rounded-full ${segmentTrackClass} ${className}`}
+      className={`grid w-full rounded-[20px] sm:inline-flex sm:w-auto ${segmentTrackClass} ${className}`}
     >
       {options.map((opt) => (
         <button

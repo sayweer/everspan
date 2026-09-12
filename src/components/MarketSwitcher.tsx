@@ -72,7 +72,7 @@ export function MarketSwitcher({
         className={
           stacked
             ? 'flex flex-col gap-1'
-            : `inline-flex max-w-full shrink-0 overflow-x-auto rounded-full bg-neutral-900 ${segmentTrackClass}`
+            : `inline-flex max-w-full shrink-0 overflow-x-auto rounded-[20px] ${segmentTrackClass}`
         }
       >
         {markets.map((market, index) => {

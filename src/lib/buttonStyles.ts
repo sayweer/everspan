@@ -14,6 +14,14 @@
  * entirely, so a phone never sees it and a mouse gets a small, deliberate
  * zoom instead of a tap flash it can't produce anyway.
  *
+ * ── Why most variants are glass and `ghost` is not ────────────────────────
+ * Every variant but `ghost` is a squircle of translucent, blurred fill —
+ * `backdrop-blur` plus a low-alpha tint of the variant's own colour, with a
+ * hairline top highlight standing in for a light catching the edge. `ghost`
+ * is the one control that sits directly on bare canvas (header icons, a
+ * sheet's dismiss) rather than inside a card, and stays exactly what it was:
+ * no fill, no border, just the icon dimming or brightening.
+ *
  * ── Why `outline` and not `ring` ──────────────────────────────────────────
  * `ring-offset` paints an opaque band that has to be told the colour of
  * whatever sits behind the control — which is why the app had four different
@@ -40,7 +48,7 @@ export const focusRing =
   'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-300'
 
 const base = [
-  'relative inline-flex select-none items-center justify-center gap-2 rounded-full',
+  'relative inline-flex select-none items-center justify-center gap-2',
   'font-semibold no-underline',
   // Kills the 300ms tap delay and the grey flash iOS paints over a tapped
   // control — both are tells that nobody styled this for a finger.
@@ -83,30 +91,28 @@ const ICON_SIZES: Record<ButtonSize, string> = {
  * `danger` alone; a "Continue" that borrowed green would spend the signal on
  * a step that carries no consequence.
  */
+const GLASS =
+  'shadow-[inset_0_1px_0_rgba(255,255,255,0.14)] backdrop-blur-xl backdrop-saturate-150 disabled:shadow-none disabled:backdrop-blur-none disabled:backdrop-saturate-100'
+
 const VARIANTS: Record<ButtonVariant, string> = {
-  primary:
-    'bg-accent-500 text-onAccent hover:bg-accent-400 disabled:bg-raised disabled:text-neutral-600',
+  primary: `rounded-[18px] border border-accent-500/40 bg-accent-500/85 text-onAccent shadow-[inset_0_1px_0_rgba(255,255,255,0.35)] backdrop-blur-xl backdrop-saturate-150 hover:bg-accent-500/95 disabled:border-transparent disabled:bg-raised disabled:text-neutral-600 disabled:shadow-none disabled:backdrop-blur-none disabled:backdrop-saturate-100`,
   /* The commit: signing a deposit, buying a position, adding liquidity. */
-  positive:
-    'bg-positive-500 text-onPositive hover:bg-positive-400 disabled:bg-raised disabled:text-neutral-600',
-  secondary:
-    'border border-boundary bg-neutral-900 text-neutral-200 hover:bg-raised hover:text-neutral-100 disabled:border-hairline disabled:bg-transparent disabled:text-neutral-600',
+  positive: `rounded-[18px] border border-positive-500/40 bg-positive-500/80 text-onPositive shadow-[inset_0_1px_0_rgba(255,255,255,0.3)] backdrop-blur-xl backdrop-saturate-150 hover:bg-positive-500/95 disabled:border-transparent disabled:bg-raised disabled:text-neutral-600 disabled:shadow-none disabled:backdrop-blur-none disabled:backdrop-saturate-100`,
+  secondary: `rounded-[18px] border border-boundary/50 bg-raised/55 text-neutral-200 hover:bg-raised/80 hover:text-neutral-100 disabled:border-hairline disabled:bg-transparent disabled:text-neutral-600 ${GLASS}`,
   /*
-   * No hover fill on purpose — this is the chrome-level control (header
+   * No fill, no border, no blur — this is the chrome-level control (header
    * icons, sheet/toast dismiss), sitting directly on the canvas rather than
-   * inside a card. A hover ring there reads as a patch of a different colour
+   * inside a card. A glass tint there reads as a patch of a different colour
    * next to true black; the shared `hover:scale` in `base` is feedback enough.
    */
-  ghost: 'text-neutral-400 hover:text-neutral-100 disabled:text-neutral-600',
-  danger:
-    'border border-negative-300 text-negative-100 hover:bg-negative-500/10 disabled:border-hairline disabled:text-neutral-600',
+  ghost: 'rounded-full text-neutral-400 hover:text-neutral-100 disabled:text-neutral-600',
+  danger: `rounded-[18px] border border-negative-300/50 bg-negative-500/10 text-negative-100 hover:bg-negative-500/20 disabled:border-hairline disabled:bg-transparent disabled:text-neutral-600 ${GLASS}`,
   /*
    * The transaction-safety banner's three controls. `danger` is red because
    * it reverses something; `warning` is grey because "this may still be
    * running" is a caution, not a destructive act.
    */
-  warning:
-    'border border-warning-300 text-warning-100 hover:bg-warning-500/10 disabled:border-hairline disabled:text-neutral-600',
+  warning: `rounded-[18px] border border-warning-300/50 bg-warning-500/10 text-warning-100 hover:bg-warning-500/20 disabled:border-hairline disabled:bg-transparent disabled:text-neutral-600 ${GLASS}`,
 }
 
 /**
@@ -138,12 +144,13 @@ export function iconButtonClasses({
  * radiogroup. They share the paint from here and keep their own semantics.
  */
 /**
- * The track carries no radius of its own: a control that stays on one line
- * wants a pill, and one that stacks its options on a narrow screen wants a
- * rounded box — a pill there leaves the corner of the top option sitting
- * outside the curve. The caller knows which it is.
+ * The track carries no radius of its own — the caller's own corners have to
+ * stay a few pixels wider than the track's so the nested shape reads as
+ * concentric rather than fighting its container. It does carry the glass
+ * fill, so every segmented control gets the same tinted-blur track regardless
+ * of what radius the caller wraps it in.
  */
-export const segmentTrackClass = 'border border-boundary p-1'
+export const segmentTrackClass = 'border border-boundary/50 bg-raised/35 backdrop-blur-xl p-1'
 
 /**
  * `size` is a parameter rather than something a caller appends, because
@@ -153,13 +160,15 @@ export const segmentTrackClass = 'border border-boundary p-1'
  */
 export function segmentClasses(selected: boolean, size: 'sm' | 'md' = 'md'): string {
   return [
-    'relative min-h-11 rounded-full font-medium leading-snug',
+    'relative min-h-11 rounded-[14px] font-medium leading-snug',
     size === 'sm' ? 'px-3 py-2 text-xs' : 'px-4 py-2 text-sm',
     'select-none whitespace-normal [touch-action:manipulation] [-webkit-tap-highlight-color:transparent]',
     'transition-[background-color,color] duration-100 ease-spring',
     // A tighter offset than a standalone button: the track's 4px padding is
     // the only room the ring has to sit in.
     'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent-300',
-    selected ? 'bg-raised text-neutral-100' : 'text-neutral-400 hover:text-neutral-200',
+    selected
+      ? 'bg-accent-500/15 text-neutral-50 shadow-[inset_0_1px_0_rgba(255,255,255,0.15)]'
+      : 'text-neutral-400 hover:text-neutral-200',
   ].join(' ')
 }
