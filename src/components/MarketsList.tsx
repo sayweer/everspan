@@ -3,7 +3,7 @@ import { useState } from 'react'
 import type { ReactElement } from 'react'
 import type { MaturityPool } from '../hooks/usePools'
 import { useNow } from '../hooks/useNow'
-import { formatAmount, formatMaturity } from '../lib/format'
+import { formatCompact, formatMaturity } from '../lib/format'
 import { maturityCountdown } from '../lib/yield'
 import { formatPercent, impliedFixedApy, underlyingApy } from '../lib/amm'
 import type { RateInfo } from '../lib/contracts/underlying'
@@ -174,7 +174,7 @@ function MarketRow({ mp, nowMs, rateInfo, liveRate, onTrade }: MarketRowProps): 
   const liquidity =
     pool !== null ? (
       underlyingLiquidity !== null ? (
-        `${formatAmount(underlyingLiquidity)} ${market.underlyingSymbol}`
+        `${formatCompact(underlyingLiquidity)} ${market.underlyingSymbol}`
       ) : (
         '—'
       )
