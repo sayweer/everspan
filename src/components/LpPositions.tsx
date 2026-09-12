@@ -3,6 +3,7 @@ import type { ReactElement } from 'react'
 import type { MaturityPool } from '../hooks/usePools'
 import { formatAmount, formatMaturity } from '../lib/format'
 import { quoteRemoveLiquidity } from '../lib/amm'
+import { cardClasses } from '../lib/cardClasses'
 import { ArrowRightIcon, LayersIcon } from './icons'
 import { FIGURE_TONE, figureText } from '../lib/figures'
 import { Button } from './Button'
@@ -19,7 +20,7 @@ export function LpPositions({ pools, onManage }: LpPositionsProps): ReactElement
   return (
     <section
       aria-labelledby="lp-heading"
-      className="rounded-2xl border border-hairline bg-neutral-900 p-5 sm:p-6"
+      className={cardClasses()}
     >
       <div className="flex items-center gap-2">
         <LayersIcon className={`h-4 w-4 ${figureText(FIGURE_TONE.markets)}`} />

@@ -1,6 +1,7 @@
 /** Three-step getting-started guide shown until the user opens their first position. */
 import type { ReactElement } from 'react'
 import { activeMarket } from '../lib/market'
+import { cardClasses } from '../lib/cardClasses'
 import { CheckIcon } from './icons'
 
 interface OnboardingStepsProps {
@@ -45,7 +46,7 @@ export function OnboardingSteps({ gotTokens, wrapped, split }: OnboardingStepsPr
   return (
     <section
       aria-label="Getting started"
-      className="rounded-2xl border border-hairline bg-neutral-900 p-5 sm:p-6"
+      className={cardClasses()}
     >
       <h2 className="text-sm font-medium text-neutral-300">Your setup progress</h2>
       <ol className="mt-4 grid gap-3 sm:grid-cols-3">

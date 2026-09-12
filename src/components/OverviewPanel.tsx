@@ -4,6 +4,7 @@ import type { MaturityPosition } from '../hooks/usePortfolio'
 import type { RateInfo } from '../lib/contracts/underlying'
 import type { AppError } from '../types'
 import { activeMarket } from '../lib/market'
+import { cardClasses } from '../lib/cardClasses'
 // PASSKEY-ENTRY: renders nothing when the feature is off. See docs/passkey.md.
 import { PasskeySignIn } from './PasskeySignIn'
 import { MarketsList } from './MarketsList'
@@ -112,7 +113,9 @@ export function OverviewPanel({
         </p>
       </header>
 
-      <div className="grid overflow-hidden rounded-2xl border border-hairline bg-neutral-900 lg:grid-cols-[1.15fr_0.85fr]">
+      <div
+        className={`grid overflow-hidden lg:grid-cols-[1.15fr_0.85fr] ${cardClasses({ padding: 'none' })}`}
+      >
         <div className="p-6 sm:p-8">
           <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-accent-300">
             {recommendation.label}

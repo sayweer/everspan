@@ -7,6 +7,7 @@ import type { EarnStrategy } from './OverviewPanel'
 import { ChartBarIcon, DropletIcon, LockIcon } from './icons'
 import { IconTile } from './IconTile'
 import { FIGURE_TONE } from '../lib/figures'
+import { cardClasses } from '../lib/cardClasses'
 
 interface EarnPanelProps {
   strategy: EarnStrategy
@@ -165,7 +166,7 @@ export function EarnPanel({
         </dl>
       </details>
 
-      <div className="max-w-2xl rounded-2xl border border-hairline bg-neutral-900 p-5 sm:p-6">
+      <div className={`max-w-2xl ${cardClasses()}`}>
         {strategy === 'liquidity' ? (
           <PoolPanel
             key="liquidity"

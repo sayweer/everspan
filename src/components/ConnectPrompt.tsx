@@ -3,6 +3,7 @@ import type { ReactElement } from 'react'
 import { WalletIcon } from './icons'
 import { IconTile } from './IconTile'
 import { FIGURE_TONE } from '../lib/figures'
+import { cardClasses } from '../lib/cardClasses'
 import { WalletButton } from './WalletButton'
 // PASSKEY-ENTRY: renders nothing when the feature is off. See docs/passkey.md.
 import { PasskeySignIn } from './PasskeySignIn'
@@ -29,7 +30,7 @@ export function ConnectPrompt({
       id={embedded ? undefined : `panel-${tab}`}
       role={embedded ? undefined : 'tabpanel'}
       aria-labelledby={embedded ? undefined : `tab-${tab}`}
-      className="rounded-2xl border border-hairline bg-neutral-900 p-10 text-center"
+      className={`${cardClasses({ padding: 'none' })} p-10 text-center`}
     >
       <IconTile tone={FIGURE_TONE.balance} size="lg" className="mx-auto">
         <WalletIcon className="h-6 w-6" />

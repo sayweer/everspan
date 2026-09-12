@@ -4,6 +4,7 @@ import { formatAmount } from '../lib/format'
 import { activeMarket } from '../lib/market'
 import { requestFaucet } from '../lib/contracts/underlying'
 import { useTxRunner } from '../hooks/useTxRunner'
+import { cardClasses } from '../lib/cardClasses'
 import { FaucetButton, FAUCET_AMOUNT } from './FaucetButton'
 import { TxStatus } from './TxStatus'
 import { IconButton } from './Button'
@@ -45,7 +46,9 @@ export function WalletBar({
 
   return (
     <div>
-      <div className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-2xl border border-hairline bg-neutral-900 px-4 py-3">
+      <div
+        className={`flex flex-wrap items-center gap-x-6 gap-y-3 px-4 py-3 ${cardClasses({ padding: 'none' })}`}
+      >
         <div className="flex items-center gap-6">
           <Balance
             label={market.underlyingSymbol}

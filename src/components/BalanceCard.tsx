@@ -6,6 +6,7 @@ import { isAppError, type AppError } from '../types'
 import { useToast } from '../hooks/useToast'
 import { useTransactionSafety } from '../context/TransactionSafetyContext'
 import { AMOUNT_MASK as MASK } from '../hooks/useHiddenAmounts'
+import { cardClasses } from '../lib/cardClasses'
 import { Button, IconButton } from './Button'
 import { EyeIcon, EyeOffIcon, RefreshIcon } from './icons'
 
@@ -63,7 +64,7 @@ export function BalanceCard({
   return (
     <section
       aria-labelledby="balance-heading"
-      className="rounded-2xl border border-hairline bg-neutral-900 p-5 sm:p-6"
+      className={cardClasses()}
     >
       <div className="flex items-center justify-between">
         <h2 id="balance-heading" className="text-sm font-medium text-neutral-400">

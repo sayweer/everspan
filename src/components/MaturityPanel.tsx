@@ -7,6 +7,7 @@ import { formatAmount } from '../lib/format'
 import { maturityCountdown, claimableAt, type RateCheckpoint } from '../lib/yield'
 import { formatMaturity } from '../lib/format'
 import { chainNowMs } from '../lib/chainTime'
+import { cardClasses } from '../lib/cardClasses'
 import { useTxRunner } from '../hooks/useTxRunner'
 import { ClockIcon, CoinsIcon } from './icons'
 import { FIGURE_TONE, figureText } from '../lib/figures'
@@ -44,7 +45,7 @@ export function MaturityPanel({
   return (
     <section
       aria-labelledby="positions-heading"
-      className="rounded-2xl border border-hairline bg-neutral-900 p-5 sm:p-6"
+      className={cardClasses()}
     >
       <h2 id="positions-heading" className="text-sm font-medium text-neutral-400">
         Your positions

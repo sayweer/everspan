@@ -8,6 +8,7 @@ import type { MaturityPosition } from '../hooks/usePortfolio'
 import { isValidTokenAmount } from '../lib/validation'
 import { chainNowMs } from '../lib/chainTime'
 import { RATE_SCALE } from '../lib/yield'
+import { cardClasses } from '../lib/cardClasses'
 import { useTxRunner } from '../hooks/useTxRunner'
 import { SplitIcon } from './icons'
 import { FIGURE_TONE, figureText } from '../lib/figures'
@@ -115,7 +116,7 @@ export function SplitCard({
   }
 
   return (
-    <section className="rounded-2xl border border-hairline bg-neutral-900 p-5 sm:p-6">
+    <section className={cardClasses()}>
       <div className="flex items-center gap-2">
         <SplitIcon className={`h-4 w-4 ${figureText(FIGURE_TONE.split)}`} />
         <h2 className="text-sm font-medium text-neutral-100">Separate principal and yield</h2>
