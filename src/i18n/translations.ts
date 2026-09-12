@@ -589,6 +589,8 @@ const EN_TO_TR: Record<string, string> = {
   'This account is already funded on Testnet.': 'Bu hesap Testnet’te zaten fonlanmış.',
   'Could not load your balance from the network. Check your connection and try again.':
     'Bakiyeniz ağdan yüklenemedi. Bağlantınızı kontrol edip tekrar deneyin.',
+  'Could not reach the Stellar network. Check your internet connection, or disable a VPN or ad blocker that might be blocking the request, and try again.':
+    'Stellar ağına ulaşılamadı. İnternet bağlantınızı kontrol edin, ya da isteği engelliyor olabilecek bir VPN veya reklam engelleyiciyi kapatıp tekrar deneyin.',
   'Could not load recent activity.': 'Son etkinlikler yüklenemedi.',
   'Stellar returned an unknown transaction status. Wait a moment and check again.':
     'Stellar bilinmeyen bir işlem durumu döndürdü. Biraz bekleyip tekrar kontrol edin.',
