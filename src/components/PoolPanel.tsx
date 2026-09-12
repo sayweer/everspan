@@ -5,9 +5,13 @@ import type { MaturityPool } from '../hooks/usePools'
 import type { MaturityPosition } from '../hooks/usePortfolio'
 import { useNow } from '../hooks/useNow'
 import { useTxRunner } from '../hooks/useTxRunner'
+import { useSyPreparation } from '../hooks/useSyPreparation'
 import { stroopsToXlm } from '../lib/amounts'
 import { formatAmount, formatMaturity } from '../lib/format'
 import { isValidTokenAmount } from '../lib/validation'
+import { activeMarket } from '../lib/market'
+import { requiredUnderlyingForSy } from '../lib/wrap'
+import { wrapTokens } from '../lib/contracts/syVault'
 import { minOutFromSlippage, quoteAddLiquidity, quoteRemoveLiquidity } from '../lib/amm'
 import { addLiquidity, removeLiquidity } from '../lib/contracts/amm'
 import { AmountField, ActionButton, TabToggle } from './forms'
@@ -22,7 +26,9 @@ interface PoolPanelProps {
   pools: MaturityPool[]
   loading: boolean
   positions: MaturityPosition[]
+  underlyingBalance: bigint
   syBalance: bigint
+  liveRate: bigint | null
   /** A maturity to preselect (e.g. "Manage" clicked from Portfolio). */
   initialMaturity: bigint | null
   onMaturityChange: (maturity: bigint) => void
@@ -39,7 +45,9 @@ export function PoolPanel({
   pools,
   loading,
   positions,
+  underlyingBalance,
   syBalance,
+  liveRate,
   initialMaturity,
   onMaturityChange,
   onSuccess,
@@ -123,7 +131,9 @@ export function PoolPanel({
                 maturity={selected}
                 mp={mp}
                 ptBalance={ptBalance}
+                underlyingBalance={underlyingBalance}
                 syBalance={syBalance}
+                liveRate={liveRate}
                 matured={matured}
                 onSuccess={onSuccess}
                 onGoAdvanced={onGoAdvanced}
@@ -135,6 +145,7 @@ export function PoolPanel({
                 isWrongNetwork={isWrongNetwork}
                 maturity={selected}
                 mp={mp}
+                liveRate={liveRate}
                 onSuccess={onSuccess}
               />
             )}
@@ -151,41 +162,63 @@ interface AddFormProps {
   maturity: bigint
   mp: MaturityPool
   ptBalance: bigint
+  underlyingBalance: bigint
   syBalance: bigint
+  liveRate: bigint | null
   matured: boolean
   onSuccess: () => void
   onGoAdvanced: () => void
 }
 
-/** Deposit SY + the matching PT at the pool ratio. */
+/**
+ * Deposit the matching PT + underlying at the pool ratio. Spent in the
+ * reader's own asset, never in SY — same "Prepare" shortfall pattern as
+ * TradePanel's forms, via the shared `useSyPreparation` hook.
+ */
 function AddForm({
   address,
   isWrongNetwork,
   maturity,
   mp,
   ptBalance,
+  underlyingBalance,
   syBalance,
+  liveRate,
   matured,
   onSuccess,
   onGoAdvanced,
 }: AddFormProps): ReactElement {
+  const market = activeMarket()
+  const underlyingSymbol = market.underlyingSymbol
   const [amount, setAmount] = useState('')
   const [slippageBps, setSlippageBps] = useState(50)
   const { outcome, pending, blocked, run } = useTxRunner()
+  const prepare = useTxRunner()
+  const { maxSpendable, valid, underlyingIn, syNeeded, underlyingToWrap, needsPrepare } =
+    useSyPreparation(amount, underlyingBalance, syBalance, market, liveRate)
   const pool = mp.pool
   if (pool === null) return <></>
 
-  const valid = isValidTokenAmount(amount, syBalance, { label: 'SY' })
-  const syIn = valid.ok ? valid.stroops : 0n
-  // PT needed to pair with syIn at the current ratio.
-  const ptNeeded = syIn > 0n ? (syIn * pool.ptReserve) / pool.syReserve : 0n
+  // PT needed to pair with syNeeded at the current ratio.
+  const ptNeeded = syNeeded > 0n ? (syNeeded * pool.ptReserve) / pool.syReserve : 0n
   const quote = quoteAddLiquidity(
     { ptReserve: pool.ptReserve, syReserve: pool.syReserve, lpTotal: pool.lpTotal },
     ptNeeded,
-    syIn,
+    syNeeded,
   )
   const enoughPt = ptNeeded <= ptBalance
-  const canSubmit = valid.ok && syIn > 0n && quote.lpMinted > 0n && enoughPt && !matured
+  const canSubmit =
+    valid.ok && !needsPrepare && syNeeded > 0n && quote.lpMinted > 0n && enoughPt && !matured
+
+  function submitPrepare(): void {
+    if (!needsPrepare || prepare.pending || prepare.blocked || underlyingToWrap <= 0n) return
+    void prepare.run(
+      'Prepare',
+      (onPhase) => wrapTokens(address, underlyingToWrap, onPhase),
+      onSuccess,
+      `${formatAmount(underlyingToWrap)} ${underlyingSymbol} · step 1 of 2`,
+    )
+  }
 
   function submit(): void {
     if (!canSubmit || pending || blocked) return
@@ -193,50 +226,55 @@ function AddForm({
     const syMin = minOutFromSlippage(quote.syIn, slippageBps)
     void run(
       'Add liquidity',
-      (onPhase) => addLiquidity(address, maturity, ptNeeded, syIn, ptMin, syMin, onPhase),
+      (onPhase) => addLiquidity(address, maturity, ptNeeded, syNeeded, ptMin, syMin, onPhase),
       () => {
         setAmount('')
         onSuccess()
       },
-      `${formatAmount(ptNeeded)} PT + ${formatAmount(syIn)} SY · ${formatMaturity(maturity)}`,
+      `${formatAmount(ptNeeded)} PT + ${formatAmount(underlyingIn)} ${underlyingSymbol} · ${formatMaturity(maturity)}`,
     )
   }
 
   return (
     <div className="space-y-4">
       <AmountField
-        id="add-sy"
+        id="add-underlying"
         value={amount}
         onChange={setAmount}
-        unit="SY"
-        hint={`Available: ${formatAmount(syBalance)} SY · your PT: ${formatAmount(ptBalance)}`}
+        unit={underlyingSymbol}
+        hint={`Available: ${formatAmount(maxSpendable)} ${underlyingSymbol} · your PT: ${formatAmount(ptBalance)}`}
         error={amount.trim() !== '' && !valid.ok ? valid.reason : null}
-        onEnter={submit}
-        disabled={matured || blocked}
+        onEnter={needsPrepare ? submitPrepare : submit}
+        disabled={matured || blocked || prepare.blocked}
         onMax={
-          syBalance > 0n && !matured && !blocked
+          maxSpendable > 0n && !matured && !blocked
             ? () => {
-                setAmount(stroopsToXlm(syBalance))
+                setAmount(stroopsToXlm(maxSpendable))
               }
             : undefined
         }
       />
 
-      {syIn > 0n && (
+      {syNeeded > 0n && (
         <div className="rounded-xl border border-hairline bg-neutral-950/40 p-4">
           <p className="text-sm font-semibold text-neutral-100">Review liquidity deposit</p>
           <p className="mt-1 text-xs leading-relaxed text-neutral-400">
-            Both assets enter the same maturity pool in one transaction.
+            {needsPrepare
+              ? 'This needs two wallet approvals: preparing your asset, then adding liquidity.'
+              : 'Both assets enter the same maturity pool in one transaction.'}
           </p>
           <div className="mt-4 space-y-2.5">
-            <SummaryRow label="You provide">{formatAmount(quote.syIn)} SY</SummaryRow>
+            <SummaryRow label="You provide">
+              {formatAmount(requiredUnderlyingForSy(quote.syIn, market, liveRate) ?? 0n)}{' '}
+              {underlyingSymbol}
+            </SummaryRow>
             <SummaryRow label="PT paired">{formatAmount(ptNeeded)} PT</SummaryRow>
             <SummaryRow label="LP shares received">{formatAmount(quote.lpMinted)} LP</SummaryRow>
             <SummaryRow label="Pool swap fee rate">0.30%</SummaryRow>
           </div>
           <p className="mt-4 border-t border-hairline pt-3 text-xs leading-relaxed text-neutral-400">
             Future swaps pay a 0.30% fee shared pro-rata among liquidity providers. The value and
-            PT/SY mix of your position can change before you withdraw.
+            PT mix of your position can change before you withdraw.
           </p>
           <details className="mt-3 border-t border-hairline pt-3 text-xs">
             <summary className="flex min-h-11 cursor-pointer items-center rounded py-2 font-medium text-neutral-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-300">
@@ -253,9 +291,9 @@ function AddForm({
         </div>
       )}
 
-      {syIn > 0n && !enoughPt && (
+      {syNeeded > 0n && !enoughPt && (
         <p className="text-xs text-warning-300">
-          You need {formatAmount(ptNeeded)} PT to pair with that SY — reduce the amount, or{' '}
+          You need {formatAmount(ptNeeded)} PT to pair with that amount — reduce the amount, or{' '}
           <button
             type="button"
             onClick={onGoAdvanced}
@@ -267,20 +305,32 @@ function AddForm({
         </p>
       )}
 
-      <ActionButton
-        onClick={submit}
-        disabled={isWrongNetwork || blocked || !canSubmit}
-        pending={pending}
-        pendingLabel="Adding…"
-      >
-        {matured ? 'Pool matured — adds closed' : 'Confirm liquidity deposit'}
-      </ActionButton>
+      {needsPrepare ? (
+        <ActionButton
+          onClick={submitPrepare}
+          disabled={isWrongNetwork || prepare.blocked || underlyingToWrap <= 0n}
+          pending={prepare.pending}
+          pendingLabel="Preparing…"
+        >
+          Prepare {formatAmount(underlyingToWrap)} {underlyingSymbol} — step 1 of 2
+        </ActionButton>
+      ) : (
+        <ActionButton
+          onClick={submit}
+          disabled={isWrongNetwork || blocked || !canSubmit}
+          pending={pending}
+          pendingLabel="Adding…"
+        >
+          {matured ? 'Pool matured — adds closed' : 'Confirm liquidity deposit'}
+        </ActionButton>
+      )}
 
       {isWrongNetwork && (
         <p className="text-center text-xs text-warning-300">
           Switch your wallet to Testnet to continue.
         </p>
       )}
+      {prepare.outcome && <TxStatus outcome={prepare.outcome} onRetry={submitPrepare} />}
       {outcome && <TxStatus outcome={outcome} onRetry={submit} />}
     </div>
   )
@@ -291,17 +341,20 @@ interface RemoveFormProps {
   isWrongNetwork: boolean
   maturity: bigint
   mp: MaturityPool
+  liveRate: bigint | null
   onSuccess: () => void
 }
 
-/** Burn LP shares for the pro-rata PT + SY (allowed even after maturity). */
+/** Burn LP shares for the pro-rata PT + underlying (allowed even after maturity). */
 function RemoveForm({
   address,
   isWrongNetwork,
   maturity,
   mp,
+  liveRate,
   onSuccess,
 }: RemoveFormProps): ReactElement {
+  const market = activeMarket()
   const [amount, setAmount] = useState('')
   const [slippageBps, setSlippageBps] = useState(50)
   const { outcome, pending, blocked, run } = useTxRunner()
@@ -356,7 +409,10 @@ function RemoveForm({
           <div className="mt-4 space-y-2.5">
             <SummaryRow label="LP shares burned">{formatAmount(lp)} LP</SummaryRow>
             <SummaryRow label="PT returned">{formatAmount(quote.ptOut)} PT</SummaryRow>
-            <SummaryRow label="SY returned">{formatAmount(quote.syOut)} SY</SummaryRow>
+            <SummaryRow label={`${market.underlyingSymbol} returned`}>
+              {formatAmount(requiredUnderlyingForSy(quote.syOut, market, liveRate) ?? 0n)}{' '}
+              {market.underlyingSymbol}
+            </SummaryRow>
           </div>
           <details className="mt-3 border-t border-hairline pt-3 text-xs">
             <summary className="flex min-h-11 cursor-pointer items-center rounded py-2 font-medium text-neutral-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-300">

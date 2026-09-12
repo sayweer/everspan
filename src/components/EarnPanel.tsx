@@ -175,7 +175,9 @@ export function EarnPanel({
             pools={pools}
             positions={positions}
             loading={poolsLoading}
+            underlyingBalance={underlyingBalance}
             syBalance={syBalance}
+            liveRate={liveRate}
             initialMaturity={poolMaturity}
             onMaturityChange={onMaturityChange}
             onSuccess={onSuccess}
