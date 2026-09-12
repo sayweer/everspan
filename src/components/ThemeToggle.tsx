@@ -10,6 +10,7 @@ export function ThemeToggle(): ReactElement {
 
   return (
     <IconButton
+      variant="ghost"
       onClick={toggleTheme}
       label={`Use ${nextTheme} theme`}
       icon={

@@ -91,8 +91,13 @@ const VARIANTS: Record<ButtonVariant, string> = {
     'bg-positive-500 text-onPositive hover:bg-positive-400 disabled:bg-raised disabled:text-neutral-600',
   secondary:
     'border border-boundary bg-neutral-900 text-neutral-200 hover:bg-raised hover:text-neutral-100 disabled:border-hairline disabled:bg-transparent disabled:text-neutral-600',
-  ghost:
-    'text-neutral-400 hover:bg-raised hover:text-neutral-100 disabled:text-neutral-600',
+  /*
+   * No hover fill on purpose — this is the chrome-level control (header
+   * icons, sheet/toast dismiss), sitting directly on the canvas rather than
+   * inside a card. A hover ring there reads as a patch of a different colour
+   * next to true black; the shared `hover:scale` in `base` is feedback enough.
+   */
+  ghost: 'text-neutral-400 hover:text-neutral-100 disabled:text-neutral-600',
   danger:
     'border border-negative-300 text-negative-100 hover:bg-negative-500/10 disabled:border-hairline disabled:text-neutral-600',
   /*
