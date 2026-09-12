@@ -304,7 +304,7 @@ const EN_TO_TR: Record<string, string> = {
   'Separate principal and yield': 'Anapara ile getiriyi ayır',
   'Split or merge mode': 'Ayırma veya birleştirme modu',
   'Separate into PT + YT': 'PT + YT olarak ayır',
-  'Recombine into SY': 'SY olarak yeniden birleştir',
+  'Recombine into your balance': 'Bakiyenize yeniden birleştir',
   'Review separation': 'Ayırmayı incele',
   'Review recombination': 'Birleştirmeyi incele',
   'Confirm separation': 'Ayırmayı onayla',
@@ -379,8 +379,8 @@ const EN_TO_TR: Record<string, string> = {
     'Tüm vadelerin süresi doldu. İşlemler yeniden açılmadan önce yeni bir vade oluşturulmalıdır.',
   'Lock rate': 'Oranı kilitle',
   'Provide liquidity': 'Likidite sağla',
-  "Deposit PT and SY into a maturity's pool to earn the 0.30% swap fee.":
-    'PT ve SY’yi bir vade havuzuna yatırarak %0,30 takas ücretini kazanın.',
+  "Deposit PT and your prepared balance into a maturity's pool to earn the 0.30% swap fee.":
+    'PT ve hazırlanmış bakiyenizi bir vade havuzuna yatırarak %0,30 takas ücretini kazanın.',
   'Both assets enter the same maturity pool in one transaction.':
     'İki varlık da tek işlemde aynı vade havuzuna girer.',
   'Future swaps pay a 0.30% fee shared pro-rata among liquidity providers. The value and PT/SY mix of your position can change before you withdraw.':
@@ -465,6 +465,10 @@ const EN_TO_TR: Record<string, string> = {
     'Gösterilen itfa sonucunu almak için anaparayı vadeye kadar tutun. Daha erken satış daha az getirebilir.',
   'This needs two wallet approvals: preparing your asset, then locking the rate.':
     'Bu işlem iki cüzdan onayı gerektirir: önce varlığınızın hazırlanması, sonra oranın kilitlenmesi.',
+  'This needs two wallet approvals: preparing your asset, then separating it.':
+    'Bu işlem iki cüzdan onayı gerektirir: önce varlığınızın hazırlanması, sonra ayrılması.',
+  'This needs two wallet approvals: preparing your asset, then adding liquidity.':
+    'Bu işlem iki cüzdan onayı gerektirir: önce varlığınızın hazırlanması, sonra likidite eklenmesi.',
   'Price and slippage details': 'Fiyat ve kayma ayrıntıları',
   'I understand this locks a negative rate': 'Bunun negatif bir oranı kilitlediğini anlıyorum',
   'You would pay more for': 'Vade itfa değerinden daha fazla ödeyeceğiniz miktar:',

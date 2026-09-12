@@ -80,7 +80,7 @@ export function PoolPanel({
           Provide liquidity
         </h2>
         <p className="mt-1 text-sm text-neutral-400">
-          Deposit PT and SY into a maturity's pool to earn the 0.30% swap fee.
+          Deposit PT and your prepared balance into a maturity's pool to earn the 0.30% swap fee.
         </p>
       </header>
 

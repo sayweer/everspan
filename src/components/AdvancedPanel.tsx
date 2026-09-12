@@ -61,6 +61,7 @@ export function AdvancedPanel({
         />
         <SplitCard
           address={address}
+          underlyingBalance={portfolio.underlying}
           syBalance={portfolio.sy}
           positions={portfolio.positions}
           liveRate={liveRate}

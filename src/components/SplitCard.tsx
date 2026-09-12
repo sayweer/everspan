@@ -1,15 +1,25 @@
-/** Split SY into PT+YT (and merge back), for a selected maturity. */
+/**
+ * Split into PT+YT (and merge back), for a selected maturity. The split leg
+ * is entered in the underlying, never in SY — the same "spend in your own
+ * asset, prepare any shortfall first" pattern as everywhere else, via
+ * `useSyPreparation`. Merge still takes PT+YT directly (those names stay),
+ * but its SY output previews as its underlying equivalent.
+ */
 import { useEffect, useState } from 'react'
 import type { ReactElement } from 'react'
 import { stroopsToXlm } from '../lib/amounts'
 import { formatAmount, formatMaturity } from '../lib/format'
 import { mergePtYt, splitSy, type AccountView } from '../lib/contracts/splitter'
+import { wrapTokens } from '../lib/contracts/syVault'
 import type { MaturityPosition } from '../hooks/usePortfolio'
 import { isValidTokenAmount } from '../lib/validation'
 import { chainNowMs } from '../lib/chainTime'
+import { activeMarket } from '../lib/market'
+import { requiredUnderlyingForSy } from '../lib/wrap'
 import { RATE_SCALE } from '../lib/yield'
 import { cardClasses } from '../lib/cardClasses'
 import { useTxRunner } from '../hooks/useTxRunner'
+import { useSyPreparation } from '../hooks/useSyPreparation'
 import { SplitIcon } from './icons'
 import { FIGURE_TONE, figureText } from '../lib/figures'
 import { TxStatus } from './TxStatus'
@@ -18,6 +28,7 @@ import { MaturitySelect, type MaturityOption } from './MaturitySelect'
 
 interface SplitCardProps {
   address: string
+  underlyingBalance: bigint
   syBalance: bigint
   positions: MaturityPosition[]
   liveRate: bigint | null
@@ -36,6 +47,7 @@ function isMatured(maturity: bigint, nowMs: number): boolean {
 
 export function SplitCard({
   address,
+  underlyingBalance,
   syBalance,
   positions,
   liveRate,
@@ -43,11 +55,15 @@ export function SplitCard({
   isWrongNetwork,
   onSuccess,
 }: SplitCardProps): ReactElement {
+  const market = activeMarket()
+  const underlyingSymbol = market.underlyingSymbol
   const [tab, setTab] = useState<Tab>('split')
   const [amount, setAmount] = useState('')
   const [maturity, setMaturity] = useState<bigint | null>(null)
   const [nowMs, setNowMs] = useState(() => chainNowMs())
   const { outcome, pending, blocked, run, reset } = useTxRunner()
+  const prepare = useTxRunner()
+  const splitPrep = useSyPreparation(amount, underlyingBalance, syBalance, market, liveRate)
 
   useEffect(() => {
     const t = window.setInterval(() => {
@@ -76,42 +92,61 @@ export function SplitCard({
   // transferred their YT submit a merge that could only fail on chain
   // (SplitterError::InsufficientYt), paying the fee to find out.
   const mergeable = position.pt < position.yt ? position.pt : position.yt
-  const balance = tab === 'split' ? syBalance : mergeable
-  const valid = isValidTokenAmount(amount, balance, {
-    label: tab === 'split' ? 'SY' : 'PT + YT',
-  })
+  const mergeValid = isValidTokenAmount(amount, mergeable, { label: 'PT + YT' })
+  const valid = tab === 'split' ? splitPrep.valid : mergeValid
+  const balance = tab === 'split' ? splitPrep.maxSpendable : mergeable
+  const needsPrepare = tab === 'split' && splitPrep.needsPrepare
 
   // Client-side floor preview of what the action produces: PT/YT from a split
-  // (sy·rate/SCALE), or SY from a merge (pt·SCALE/rate) — merge isn't 1:1 as the
-  // rate grows, so the estimate is genuinely useful before signing.
-  const preview =
-    !selectedMatured && liveRate !== null && valid.ok
-      ? tab === 'split'
-        ? (valid.stroops * liveRate) / RATE_SCALE
-        : (valid.stroops * RATE_SCALE) / liveRate
+  // (sy·rate/SCALE), or the merge's SY output converted back to its
+  // underlying equivalent — merge isn't 1:1 as the rate grows, so the
+  // estimate is genuinely useful before signing.
+  const ptYtOut =
+    !selectedMatured && liveRate !== null && tab === 'split' && splitPrep.syNeeded > 0n
+      ? (splitPrep.syNeeded * liveRate) / RATE_SCALE
       : null
+  const mergeSyOut =
+    !selectedMatured && liveRate !== null && tab === 'merge' && mergeValid.ok
+      ? (mergeValid.stroops * RATE_SCALE) / liveRate
+      : null
+  const mergeUnderlyingOut =
+    mergeSyOut !== null ? requiredUnderlyingForSy(mergeSyOut, market, liveRate) : null
 
   function switchTab(id: Tab): void {
     setTab(id)
     setAmount('')
     reset()
+    prepare.reset()
+  }
+
+  function submitPrepare(): void {
+    if (!needsPrepare || prepare.pending || prepare.blocked || splitPrep.underlyingToWrap <= 0n)
+      return
+    void prepare.run(
+      'Prepare',
+      (onPhase) => wrapTokens(address, splitPrep.underlyingToWrap, onPhase),
+      onSuccess,
+      `${formatAmount(splitPrep.underlyingToWrap)} ${underlyingSymbol} · step 1 of 2`,
+    )
   }
 
   function submit(): void {
-    if (!valid.ok || pending || blocked || selected === null || selectedMatured) return
-    const stroops = valid.stroops
+    if (!valid.ok || needsPrepare || pending || blocked || selected === null || selectedMatured)
+      return
     const label = tab === 'split' ? 'Split' : 'Merge'
     void run(
       label,
       (onPhase) =>
         tab === 'split'
-          ? splitSy(address, selected, stroops, onPhase)
-          : mergePtYt(address, selected, stroops, onPhase),
+          ? splitSy(address, selected, splitPrep.syNeeded, onPhase)
+          : mergePtYt(address, selected, mergeValid.ok ? mergeValid.stroops : 0n, onPhase),
       () => {
         setAmount('')
         onSuccess()
       },
-      `${formatAmount(stroops)} ${tab === 'split' ? 'SY' : 'PT + YT'} · ${formatMaturity(selected)}`,
+      tab === 'split'
+        ? `${formatAmount(splitPrep.underlyingIn)} ${underlyingSymbol} · ${formatMaturity(selected)}`
+        : `${formatAmount(mergeValid.ok ? mergeValid.stroops : 0n)} PT + YT · ${formatMaturity(selected)}`,
     )
   }
 
@@ -135,6 +170,7 @@ export function SplitCard({
               onChange={(m) => {
                 setMaturity(m)
                 reset()
+                prepare.reset()
               }}
             />
           </div>
@@ -144,7 +180,7 @@ export function SplitCard({
             label="Split or merge mode"
             options={[
               { id: 'split', label: 'Separate into PT + YT' },
-              { id: 'merge', label: 'Recombine into SY' },
+              { id: 'merge', label: 'Recombine into your balance' },
             ]}
             active={tab}
             onChange={(id) => {
@@ -156,18 +192,21 @@ export function SplitCard({
             <AmountField
               id="split-amount"
               value={amount}
-              onChange={setAmount}
-              unit={tab === 'split' ? 'SY' : 'PT'}
+              onChange={(next) => {
+                setAmount(next)
+                prepare.reset()
+              }}
+              unit={tab === 'split' ? underlyingSymbol : 'PT'}
               hint={
                 loading
                   ? 'Loading balances…'
                   : tab === 'split'
-                    ? `Available: ${formatAmount(syBalance)} SY`
+                    ? `Available: ${formatAmount(splitPrep.maxSpendable)} ${underlyingSymbol}`
                     : `Your PT: ${formatAmount(position.pt)} · YT: ${formatAmount(position.yt)}`
               }
               error={amount.trim() !== '' && !valid.ok ? valid.reason : null}
-              onEnter={submit}
-              disabled={selectedMatured || blocked}
+              onEnter={needsPrepare ? submitPrepare : submit}
+              disabled={selectedMatured || blocked || prepare.blocked}
               onMax={
                 !selectedMatured && !blocked && balance > 0n
                   ? () => {
@@ -178,44 +217,63 @@ export function SplitCard({
             />
           </div>
 
-          {preview !== null && valid.ok && (
+          {((tab === 'split' && ptYtOut !== null) || (tab === 'merge' && mergeUnderlyingOut !== null)) && (
             <div className="mt-4 rounded-xl border border-hairline bg-neutral-950/40 p-4">
               <p className="text-sm font-semibold text-neutral-100">
                 {tab === 'split' ? 'Review separation' : 'Review recombination'}
               </p>
+              {tab === 'split' && needsPrepare && (
+                <p className="mt-1 text-xs leading-relaxed text-neutral-400">
+                  This needs two wallet approvals: preparing your asset, then separating it.
+                </p>
+              )}
               <div className="mt-3 space-y-2 text-sm">
                 <p className="flex items-center justify-between gap-4">
                   <span className="text-neutral-400">You use</span>
                   <span className="font-mono tabular-nums text-neutral-200">
-                    {formatAmount(valid.stroops)} {tab === 'split' ? 'SY' : 'PT + YT'}
+                    {tab === 'split'
+                      ? `${formatAmount(splitPrep.underlyingIn)} ${underlyingSymbol}`
+                      : `${formatAmount(mergeValid.ok ? mergeValid.stroops : 0n)} PT + YT`}
                   </span>
                 </p>
                 <p className="flex items-center justify-between gap-4">
                   <span className="text-neutral-400">You receive</span>
                   <span className="text-right font-mono font-medium tabular-nums text-neutral-100">
                     {tab === 'split'
-                      ? `≈ ${formatAmount(preview)} PT + ${formatAmount(preview)} YT`
-                      : `≈ ${formatAmount(preview)} SY`}
+                      ? `≈ ${formatAmount(ptYtOut ?? 0n)} PT + ${formatAmount(ptYtOut ?? 0n)} YT`
+                      : `≈ ${formatAmount(mergeUnderlyingOut ?? 0n)} ${underlyingSymbol}`}
                   </span>
                 </p>
               </div>
               <p className="mt-3 border-t border-hairline pt-3 text-xs leading-relaxed text-neutral-400">
                 {tab === 'split'
-                  ? 'One SY position becomes matching principal and yield positions with the same maturity. Separating alone does not create extra value.'
-                  : 'Matching PT and YT are burned together and returned as SY. Your wallet shows the final network fee before approval.'}
+                  ? 'This becomes matching principal and yield positions with the same maturity. Separating alone does not create extra value.'
+                  : 'Matching PT and YT are burned together and returned to your prepared balance. Your wallet shows the final network fee before approval.'}
               </p>
             </div>
           )}
 
-          <ActionButton
-            className="mt-4"
-            onClick={submit}
-            disabled={isWrongNetwork || selectedMatured || blocked || !valid.ok}
-            pending={pending}
-            pendingLabel={tab === 'split' ? 'Splitting…' : 'Merging…'}
-          >
-            {tab === 'split' ? 'Confirm separation' : 'Confirm recombination'}
-          </ActionButton>
+          {needsPrepare ? (
+            <ActionButton
+              className="mt-4"
+              onClick={submitPrepare}
+              disabled={isWrongNetwork || prepare.blocked || splitPrep.underlyingToWrap <= 0n}
+              pending={prepare.pending}
+              pendingLabel="Preparing…"
+            >
+              Prepare {formatAmount(splitPrep.underlyingToWrap)} {underlyingSymbol} — step 1 of 2
+            </ActionButton>
+          ) : (
+            <ActionButton
+              className="mt-4"
+              onClick={submit}
+              disabled={isWrongNetwork || selectedMatured || blocked || !valid.ok}
+              pending={pending}
+              pendingLabel={tab === 'split' ? 'Splitting…' : 'Merging…'}
+            >
+              {tab === 'split' ? 'Confirm separation' : 'Confirm recombination'}
+            </ActionButton>
+          )}
 
           {selectedMatured ? (
             <p className="mt-3 text-center text-xs text-warning-300">
@@ -230,6 +288,11 @@ export function SplitCard({
             )
           )}
 
+          {prepare.outcome && (
+            <div className="mt-5">
+              <TxStatus outcome={prepare.outcome} onRetry={submitPrepare} />
+            </div>
+          )}
           {outcome && (
             <div className="mt-5">
               <TxStatus outcome={outcome} onRetry={submit} />
