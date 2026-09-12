@@ -7,6 +7,8 @@ import { formatAmount, formatMaturity } from '../lib/format'
 import { maturityCountdown } from '../lib/yield'
 import { formatPercent, impliedFixedApy, underlyingApy } from '../lib/amm'
 import type { RateInfo } from '../lib/contracts/underlying'
+import { activeMarket } from '../lib/market'
+import { requiredUnderlyingForSy } from '../lib/wrap'
 import { Button } from './Button'
 import { ArrowRightIcon, ClockIcon } from './icons'
 
@@ -138,6 +140,7 @@ interface MarketRowProps {
 }
 
 function MarketRow({ mp, nowMs, rateInfo, liveRate, onTrade }: MarketRowProps): ReactElement {
+  const market = activeMarket()
   const { maturity, pool, unavailable } = mp
   const countdown = maturityCountdown(maturity, nowMs)
   const dtSeconds = Number(maturity) - Math.floor(nowMs / 1000)
@@ -167,9 +170,14 @@ function MarketRow({ mp, nowMs, rateInfo, liveRate, onTrade }: MarketRowProps): 
    */
   const apyTone = fixedApy === null ? 'text-neutral-600' : 'text-accent-300'
 
+  const underlyingLiquidity = pool !== null ? requiredUnderlyingForSy(pool.syReserve, market, liveRate) : null
   const liquidity =
     pool !== null ? (
-      `${formatAmount(pool.syReserve)} SY`
+      underlyingLiquidity !== null ? (
+        `${formatAmount(underlyingLiquidity)} ${market.underlyingSymbol}`
+      ) : (
+        '—'
+      )
     ) : unavailable ? (
       <span className="text-warning-300">Unavailable</span>
     ) : (

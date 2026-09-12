@@ -91,7 +91,7 @@ export function MorePanel({
         <ConnectPrompt
           tab="more"
           embedded
-          message="Connect a Testnet wallet to convert an asset into SY or manually split a position."
+          message="Connect a Testnet wallet to prepare your balance or manually split a position."
         />
       ) : (
         <ActivityFeed

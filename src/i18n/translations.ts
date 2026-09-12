@@ -43,8 +43,8 @@ const EN_TO_TR: Record<string, string> = {
     'Sabit getiri kilitlemek, getiri pozisyonu tutmak veya işlem ücretlerinden kazanmak için bir Testnet cüzdanı bağlayın.',
   'Connect a Testnet wallet to see your positions and claimable yield.':
     'Pozisyonlarınızı ve talep edilebilir getirinizi görmek için bir Testnet cüzdanı bağlayın.',
-  'Connect a Testnet wallet to convert an asset into SY or manually split a position.':
-    'Bir varlığı SY’ye dönüştürmek veya bir pozisyonu manuel olarak ayırmak için Testnet cüzdanı bağlayın.',
+  'Connect a Testnet wallet to prepare your balance or manually split a position.':
+    'Bakiyenizi hazırlamak veya bir pozisyonu manuel olarak ayırmak için Testnet cüzdanı bağlayın.',
 
   // Marketing site
   'Everspan — fixed yield, built on Stellar': 'Everspan — Stellar üzerinde sabit getiri',

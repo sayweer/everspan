@@ -118,7 +118,7 @@ export function AccountDrawer({ open, onClose }: AccountDrawerProps): ReactEleme
         <RowLink
           icon={<SwapIcon className="h-5 w-5" />}
           title="Convert"
-          subtitle={`Move between ${market.underlyingSymbol} and SY`}
+          subtitle={`Prepare or release your ${market.underlyingSymbol} balance`}
           to="/app?view=more&tool=convert"
           onNavigate={onClose}
         />
