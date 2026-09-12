@@ -5,8 +5,9 @@ import { fundTestnetAccount } from '../lib/friendbot'
 import { isAppError, type AppError } from '../types'
 import { useToast } from '../hooks/useToast'
 import { useTransactionSafety } from '../context/TransactionSafetyContext'
+import { AMOUNT_MASK as MASK } from '../hooks/useHiddenAmounts'
 import { Button, IconButton } from './Button'
-import { RefreshIcon } from './icons'
+import { EyeIcon, EyeOffIcon, RefreshIcon } from './icons'
 
 interface BalanceCardProps {
   address: string
@@ -14,6 +15,8 @@ interface BalanceCardProps {
   funded: boolean
   loading: boolean
   error: AppError | null
+  hidden: boolean
+  onToggleHidden: () => void
   onRefresh: () => void
 }
 
@@ -34,6 +37,8 @@ export function BalanceCard({
   funded,
   loading,
   error,
+  hidden,
+  onToggleHidden,
   onRefresh,
 }: BalanceCardProps): ReactElement {
   const { notify } = useToast()
@@ -64,12 +69,20 @@ export function BalanceCard({
         <h2 id="balance-heading" className="text-sm font-medium text-neutral-400">
           XLM balance <span className="font-normal text-neutral-400">· for network fees</span>
         </h2>
-        <IconButton
-          label="Refresh balance"
-          icon={<RefreshIcon className="h-4 w-4" />}
-          onClick={onRefresh}
-          pending={loading}
-        />
+        <div className="flex items-center gap-1">
+          <IconButton
+            label={hidden ? 'Show amounts' : 'Hide amounts'}
+            aria-pressed={hidden}
+            icon={hidden ? <EyeIcon className="h-4 w-4" /> : <EyeOffIcon className="h-4 w-4" />}
+            onClick={onToggleHidden}
+          />
+          <IconButton
+            label="Refresh balance"
+            icon={<RefreshIcon className="h-4 w-4" />}
+            onClick={onRefresh}
+            pending={loading}
+          />
+        </div>
       </div>
 
       <div className="mt-4">
@@ -88,8 +101,8 @@ export function BalanceCard({
           <div className="flex min-w-0 items-baseline gap-2">
             {/* A grouped balance has no spaces to wrap at, so without a floor on
                 the box and a ceiling on the size it ran off the card. */}
-            <span className="min-w-0 truncate font-mono text-[clamp(2rem,9vw,3rem)] font-semibold tracking-tight tabular-nums text-neutral-50">
-              {balance ? formatXlm(balance) : '0.00'}
+            <span className="min-w-0 truncate font-mono text-[clamp(2.25rem,9vw,3.25rem)] font-bold tracking-tight tabular-nums text-neutral-50">
+              {hidden ? MASK : balance ? formatXlm(balance) : '0.00'}
             </span>
             <span className="text-base font-medium text-neutral-400">XLM</span>
           </div>

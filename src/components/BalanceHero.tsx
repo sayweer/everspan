@@ -1,8 +1,9 @@
 /** What the account is worth, and the one control that hides it. */
-import { useEffect, useState, type ReactElement } from 'react'
+import { useState, type ReactElement } from 'react'
 import type { Holdings } from '../lib/holdings'
 import { formatAmount } from '../lib/format'
 import { focusRing } from '../lib/buttonStyles'
+import { AMOUNT_MASK as MASK } from '../hooks/useHiddenAmounts'
 import {
   ChartBarIcon,
   ChevronDownIcon,
@@ -17,47 +18,32 @@ interface BalanceHeroProps {
   holdings: Holdings
   symbol: string
   loading: boolean
+  hidden: boolean
+  onToggleHidden: () => void
   onConvert: () => void
   onPortfolio: () => void
   onLiquidity: () => void
-}
-
-const STORAGE_KEY = 'everspan:amounts-hidden'
-const MASK = '••••••'
-
-function initialHidden(): boolean {
-  try {
-    return window.localStorage.getItem(STORAGE_KEY) === '1'
-  } catch {
-    return false
-  }
 }
 
 /*
  * The hide control is not a decoration borrowed from an exchange app. A balance
  * is the one thing on this screen a stranger can read at a glance over a
  * shoulder, and every other number here is a rate or a date that gives nothing
- * away. It persists because a reader who hides it once is telling us about
- * where they use this, not about this visit.
+ * away. It persists (via useHiddenAmounts) because a reader who hides it once
+ * is telling us about where they use this, not about this visit — and the XLM
+ * balance card above shares the same preference, so one control covers both.
  */
 export function BalanceHero({
   holdings,
   symbol,
   loading,
+  hidden,
+  onToggleHidden,
   onConvert,
   onPortfolio,
   onLiquidity,
 }: BalanceHeroProps): ReactElement {
-  const [hidden, setHidden] = useState(initialHidden)
   const [expanded, setExpanded] = useState(false)
-
-  useEffect(() => {
-    try {
-      window.localStorage.setItem(STORAGE_KEY, hidden ? '1' : '0')
-    } catch {
-      // The choice still holds for this visit.
-    }
-  }, [hidden])
 
   const parts = splitAmount(formatAmount(holdings.total, 4))
   /*
@@ -140,9 +126,7 @@ export function BalanceHero({
         <button
           type="button"
           aria-pressed={hidden}
-          onClick={() => {
-            setHidden((current) => !current)
-          }}
+          onClick={onToggleHidden}
           className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-boundary text-neutral-300 transition-colors duration-100 hover:bg-raised hover:text-neutral-100 [touch-action:manipulation] [-webkit-tap-highlight-color:transparent] ${focusRing}`}
           aria-label={hidden ? 'Show amounts' : 'Hide amounts'}
         >

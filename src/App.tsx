@@ -6,6 +6,7 @@ import { useTransactionSafety } from './context/TransactionSafetyContext'
 import { useSurface } from './hooks/useSurface'
 import { useDocumentTitle } from './hooks/useDocumentTitle'
 import { useBalance } from './hooks/useBalance'
+import { useHiddenAmounts } from './hooks/useHiddenAmounts'
 import { usePortfolio } from './hooks/usePortfolio'
 import { usePools } from './hooks/usePools'
 import { useHoldings } from './hooks/useHoldings'
@@ -130,6 +131,7 @@ function MarketContent({
 }: MarketContentProps): ReactElement {
   const { isConnected, address, isWrongNetwork } = useWallet()
   const balance = useBalance(address)
+  const [amountsHidden, toggleAmountsHidden] = useHiddenAmounts()
   const { portfolio, loading, error, refresh, refreshSilent } = usePortfolio(address)
   const pools = usePools(address, portfolio.maturities)
   const liveRate = useLiveRate(portfolio.rateInfo)
@@ -299,6 +301,8 @@ function MarketContent({
                   funded={balance.funded}
                   loading={balance.loading}
                   error={balance.error}
+                  hidden={amountsHidden}
+                  onToggleHidden={toggleAmountsHidden}
                   onRefresh={balance.refresh}
                 />
 
@@ -306,6 +310,8 @@ function MarketContent({
                   holdings={holdings}
                   symbol={activeMarket().underlyingSymbol}
                   loading={loading}
+                  hidden={amountsHidden}
+                  onToggleHidden={toggleAmountsHidden}
                   onConvert={goConvert}
                   onPortfolio={goPortfolio}
                   onLiquidity={() => {
