@@ -7,14 +7,12 @@
  * also keeps `src/components/Button.tsx` exporting components only, which is
  * what `react-refresh/only-export-components` asks for.
  *
- * ── Why the press treatment is what it is ─────────────────────────────────
- * A phone has no hover. Whatever a control does while the finger is down is
- * the only feedback it will ever give, so it has to arrive inside the ~100ms
- * the reader still attributes to their own touch. The press and the release
- * deliberately use different curves: `ease-press` is front-loaded, so the
- * control is already down by the time the touch registers, and `ease-spring`
- * overshoots slightly on the way back, which reads as a released object
- * rather than as a transition playing backwards.
+ * ── Why there is no press treatment ───────────────────────────────────────
+ * A tap fires its action immediately — the control does not need to perform
+ * "being pressed" first. The only motion left is `hover:scale-[1.04]`, and
+ * `hoverOnlyWhenSupported` in the Tailwind config keeps it off touch screens
+ * entirely, so a phone never sees it and a mouse gets a small, deliberate
+ * zoom instead of a tap flash it can't produce anyway.
  *
  * ── Why `outline` and not `ring` ──────────────────────────────────────────
  * `ring-offset` paints an opaque band that has to be told the colour of
@@ -48,7 +46,7 @@ const base = [
   // control — both are tells that nobody styled this for a finger.
   '[touch-action:manipulation] [-webkit-tap-highlight-color:transparent]',
   'transition-[background-color,border-color,color,transform] duration-100 ease-spring',
-  'motion-safe:active:scale-[0.97] active:duration-75 active:ease-press',
+  'motion-safe:hover:scale-[1.04]',
   focusRing,
   'disabled:cursor-not-allowed',
   // `pending` is spelled as `aria-disabled` rather than `disabled` so the
@@ -87,23 +85,23 @@ const ICON_SIZES: Record<ButtonSize, string> = {
  */
 const VARIANTS: Record<ButtonVariant, string> = {
   primary:
-    'bg-accent-500 text-onAccent hover:bg-accent-400 active:bg-accent-600 disabled:bg-raised disabled:text-neutral-600',
+    'bg-accent-500 text-onAccent hover:bg-accent-400 disabled:bg-raised disabled:text-neutral-600',
   /* The commit: signing a deposit, buying a position, adding liquidity. */
   positive:
-    'bg-positive-500 text-onPositive hover:bg-positive-400 active:bg-positive-500 disabled:bg-raised disabled:text-neutral-600',
+    'bg-positive-500 text-onPositive hover:bg-positive-400 disabled:bg-raised disabled:text-neutral-600',
   secondary:
-    'border border-boundary bg-neutral-900 text-neutral-200 hover:bg-raised hover:text-neutral-100 active:bg-raised disabled:border-hairline disabled:bg-transparent disabled:text-neutral-600',
+    'border border-boundary bg-neutral-900 text-neutral-200 hover:bg-raised hover:text-neutral-100 disabled:border-hairline disabled:bg-transparent disabled:text-neutral-600',
   ghost:
-    'text-neutral-400 hover:bg-raised hover:text-neutral-100 active:bg-raised disabled:text-neutral-600',
+    'text-neutral-400 hover:bg-raised hover:text-neutral-100 disabled:text-neutral-600',
   danger:
-    'border border-negative-300 text-negative-100 hover:bg-negative-500/10 active:bg-negative-500/20 disabled:border-hairline disabled:text-neutral-600',
+    'border border-negative-300 text-negative-100 hover:bg-negative-500/10 disabled:border-hairline disabled:text-neutral-600',
   /*
    * The transaction-safety banner's three controls. `danger` is red because
    * it reverses something; `warning` is grey because "this may still be
    * running" is a caution, not a destructive act.
    */
   warning:
-    'border border-warning-300 text-warning-100 hover:bg-warning-500/10 active:bg-warning-500/20 disabled:border-hairline disabled:text-neutral-600',
+    'border border-warning-300 text-warning-100 hover:bg-warning-500/10 disabled:border-hairline disabled:text-neutral-600',
 }
 
 /**
@@ -153,8 +151,7 @@ export function segmentClasses(selected: boolean, size: 'sm' | 'md' = 'md'): str
     'relative min-h-11 rounded-full font-medium leading-snug',
     size === 'sm' ? 'px-3 py-2 text-xs' : 'px-4 py-2 text-sm',
     'select-none whitespace-normal [touch-action:manipulation] [-webkit-tap-highlight-color:transparent]',
-    'transition-[background-color,color,transform] duration-100 ease-spring',
-    'motion-safe:active:scale-[0.97] active:duration-75 active:ease-press',
+    'transition-[background-color,color] duration-100 ease-spring',
     // A tighter offset than a standalone button: the track's 4px padding is
     // the only room the ring has to sit in.
     'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent-300',

@@ -102,7 +102,7 @@ export function BottomNav({ active, onChange }: SideNavProps): ReactElement {
                 active={active}
                 onChange={onChange}
                 idPrefix="tab-mobile-"
-                className={`flex min-h-14 w-full select-none flex-col items-center justify-center gap-1 px-1 py-2 text-[11px] font-medium [touch-action:manipulation] [-webkit-tap-highlight-color:transparent] transition-colors duration-100 motion-safe:active:scale-[0.94] ${
+                className={`flex min-h-14 w-full select-none flex-col items-center justify-center gap-1 px-1 py-2 text-[11px] font-medium [touch-action:manipulation] [-webkit-tap-highlight-color:transparent] transition-colors duration-100 ${
                   tab.id === active ? 'text-accent-300' : 'text-neutral-500 hover:text-neutral-200'
                 }`}
               >

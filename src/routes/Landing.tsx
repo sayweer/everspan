@@ -126,7 +126,7 @@ export function Landing(): ReactElement {
                     <button
                       type="button"
                       onClick={() => stage.current?.scrollToScene(NAV_SCENES.story)}
-                      className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-neutral-950 px-6 py-3 text-sm font-medium text-neutral-50 [touch-action:manipulation] [-webkit-tap-highlight-color:transparent] transition-transform duration-100 ease-spring hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-950 motion-safe:active:scale-[0.97] active:duration-75 active:ease-press motion-reduce:transform-none sm:w-auto"
+                      className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-neutral-950 px-6 py-3 text-sm font-medium text-neutral-50 [touch-action:manipulation] [-webkit-tap-highlight-color:transparent] transition-transform duration-100 ease-spring motion-safe:hover:scale-[1.04] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-950 motion-reduce:transform-none sm:w-auto"
                     >
                       See how it works
                     </button>
@@ -384,7 +384,7 @@ function PrimaryLink({
 }): ReactElement {
   return (
     <EnterApp
-      className={`group inline-flex items-center justify-center gap-2 rounded-full bg-accent-500 font-medium text-neutral-50 [touch-action:manipulation] [-webkit-tap-highlight-color:transparent] transition-transform duration-100 ease-spring hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 motion-safe:active:scale-[0.97] active:duration-75 active:ease-press motion-reduce:transform-none ${
+      className={`group inline-flex items-center justify-center gap-2 rounded-full bg-accent-500 font-medium text-neutral-50 [touch-action:manipulation] [-webkit-tap-highlight-color:transparent] transition-transform duration-100 ease-spring motion-safe:hover:scale-[1.04] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 motion-reduce:transform-none ${
         compact ? 'min-h-11 px-5 py-2 text-sm' : 'min-h-12 w-full px-6 py-3 text-sm sm:w-auto'
       }`}
     >
