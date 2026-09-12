@@ -13,6 +13,15 @@ export interface AppConfig {
   /** Soroban RPC endpoint (Testnet) for contract simulate/send/getEvents. */
   readonly sorobanRpcUrl: string
   /**
+   * The native XLM asset's SAC (Stellar Asset Contract) id — the same
+   * deployment the Blend market's underlying already points at. Needed to
+   * read a Soroban smart wallet's (passkey account's) XLM balance: its
+   * address is a contract id, which Horizon's classic `/accounts` endpoint
+   * cannot resolve, so that read has to go through this contract instead.
+   * Derive with `stellar contract id asset --asset native --network testnet`.
+   */
+  readonly nativeAssetId: string
+  /**
    * WalletConnect project id (free, from reown.com). Empty means the wallet
    * picker only offers wallets that inject into the page — which on a phone is
    * none of them.
@@ -44,6 +53,8 @@ export const config: AppConfig = {
     import.meta.env.VITE_STELLAR_EXPERT_URL || 'https://stellar.expert/explorer/testnet',
   networkPassphrase: Networks.TESTNET,
   sorobanRpcUrl: import.meta.env.VITE_SOROBAN_RPC_URL || 'https://soroban-testnet.stellar.org',
+  nativeAssetId:
+    import.meta.env.VITE_NATIVE_SAC_ID || 'CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC',
   /**
    * WalletConnect project id (free, from reown.com). Optional: without it the
    * picker only offers wallets that inject into the page, which on a phone
