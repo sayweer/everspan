@@ -1,11 +1,15 @@
 /**
- * Wrap the market's underlying into SY (and unwrap back), driving the tx
- * lifecycle.
+ * Prepare the market's underlying for Everspan (and release it back), driving
+ * the tx lifecycle. Internally this wraps into/unwraps out of SY, but that
+ * name never reaches the screen — both directions are entered and shown in
+ * the reader's own asset.
  *
- * The two vaults mint differently and the UI has to say so: the mock vault
- * wraps 1:1 (value lives in the rising rate), while the Blend-backed vault
- * issues bTokens, so a deposit buys `amount / rate` SY. The preview line below
- * the field is the only place a user can see that before signing.
+ * The two vaults mint differently, which is why "release" asks for an amount
+ * up to what the wallet's prepared balance is *worth* rather than a raw SY
+ * figure: the mock vault is 1:1, the Blend-backed vault issues bTokens at the
+ * live exchange rate, and `previewWrapOutput`/`requiredUnderlyingForSy` are
+ * exact inverses of each other, so entering an underlying amount on either
+ * tab always resolves to the right SY figure for the contract call.
  */
 import { useState } from 'react'
 import type { ReactElement } from 'react'
@@ -50,32 +54,32 @@ export function WrapCard({
 
   const market = activeMarket()
   const underlyingSymbol = market.underlyingSymbol
-  const inputUnit = tab === 'wrap' ? underlyingSymbol : 'SY'
-  const outputUnit = tab === 'wrap' ? 'SY' : underlyingSymbol
-  const balance = tab === 'wrap' ? underlyingBalance : syBalance
-  const valid = isValidTokenAmount(amount, balance, { label: inputUnit })
-
-  const preview = !valid.ok
-    ? null
-    : tab === 'wrap'
-      ? previewWrapOutput(valid.stroops, market, liveRate)
-      : requiredUnderlyingForSy(valid.stroops, market, liveRate)
+  // "Release" is entered in the same asset as "prepare" — the ceiling is what
+  // the wallet's prepared balance is worth, not its raw SY figure.
+  const preparedAsUnderlying = requiredUnderlyingForSy(syBalance, market, liveRate) ?? 0n
+  const balance = tab === 'wrap' ? underlyingBalance : preparedAsUnderlying
+  const valid = isValidTokenAmount(amount, balance, { label: underlyingSymbol })
+  const underlyingAmount = valid.ok ? valid.stroops : 0n
+  // The SY figure the contract call actually needs — `previewWrapOutput` and
+  // `requiredUnderlyingForSy` are exact inverses, so flooring twice (once to
+  // cap `balance` above, once here) never overshoots `syBalance`.
+  const syAmount =
+    underlyingAmount > 0n ? (previewWrapOutput(underlyingAmount, market, liveRate) ?? 0n) : 0n
 
   function submit(): void {
     if (!valid.ok || pending || blocked) return
-    const stroops = valid.stroops
     const label = tab === 'wrap' ? 'Wrap' : 'Unwrap'
     void run(
       label,
       (onPhase) =>
         tab === 'wrap'
-          ? wrapTokens(address, stroops, onPhase)
-          : unwrapTokens(address, stroops, onPhase),
+          ? wrapTokens(address, underlyingAmount, onPhase)
+          : unwrapTokens(address, syAmount, onPhase),
       () => {
         setAmount('')
         onSuccess()
       },
-      `${formatAmount(stroops)} ${tab === 'wrap' ? market.underlyingSymbol : 'SY'}`,
+      `${formatAmount(underlyingAmount)} ${underlyingSymbol}`,
     )
   }
 
@@ -88,10 +92,10 @@ export function WrapCard({
 
       <TabToggle
         className="mt-4"
-        label="Wrap or unwrap mode"
+        label="Prepare or release mode"
         options={[
-          { id: 'wrap', label: 'Convert to SY' },
-          { id: 'unwrap', label: `Return to ${underlyingSymbol}` },
+          { id: 'wrap', label: 'Prepare balance' },
+          { id: 'unwrap', label: 'Release balance' },
         ]}
         active={tab}
         onChange={(id) => {
@@ -106,8 +110,12 @@ export function WrapCard({
           id="wrap-amount"
           value={amount}
           onChange={setAmount}
-          unit={inputUnit}
-          hint={loading ? 'Loading balances…' : `Available: ${formatAmount(balance)} ${inputUnit}`}
+          unit={underlyingSymbol}
+          hint={
+            loading
+              ? 'Loading balances…'
+              : `Available: ${formatAmount(balance)} ${underlyingSymbol}`
+          }
           error={amount.trim() !== '' && !valid.ok ? valid.reason : null}
           onEnter={submit}
           disabled={blocked}
@@ -121,26 +129,19 @@ export function WrapCard({
         />
       </div>
 
-      {preview !== null && valid.ok && (
+      {valid.ok && underlyingAmount > 0n && (
         <div className="mt-4 rounded-xl border border-hairline bg-neutral-950/40 p-4">
-          <p className="text-sm font-semibold text-neutral-100">Review conversion</p>
-          <div className="mt-3 space-y-2 text-sm">
-            <p className="flex items-center justify-between gap-4">
-              <span className="text-neutral-400">You convert</span>
-              <span className="font-mono tabular-nums text-neutral-200">
-                {formatAmount(valid.stroops)} {inputUnit}
-              </span>
-            </p>
-            <p className="flex items-center justify-between gap-4">
-              <span className="text-neutral-400">You receive</span>
-              <span className="font-mono font-medium tabular-nums text-neutral-100">
-                ≈ {formatAmount(preview)} {outputUnit}
-              </span>
-            </p>
-          </div>
+          <p className="text-sm font-semibold text-neutral-100">
+            {tab === 'wrap' ? 'Review prepare' : 'Review release'}
+          </p>
+          <p className="mt-2 text-sm text-neutral-200">
+            {tab === 'wrap'
+              ? `Prepares ${formatAmount(underlyingAmount)} ${underlyingSymbol} for Everspan.`
+              : `Releases ${formatAmount(underlyingAmount)} ${underlyingSymbol} back to your wallet.`}
+          </p>
           <p className="mt-3 border-t border-hairline pt-3 text-xs leading-relaxed text-neutral-400">
-            This conversion prepares the asset for Everspan. It does not create an additional return
-            by itself. Your wallet shows the final network fee before approval.
+            This does not create an additional return by itself — your balance is worth the same
+            before and after. Your wallet shows the final network fee before approval.
           </p>
         </div>
       )}
@@ -150,9 +151,9 @@ export function WrapCard({
         onClick={submit}
         disabled={isWrongNetwork || blocked || !valid.ok}
         pending={pending}
-        pendingLabel={tab === 'wrap' ? 'Wrapping…' : 'Unwrapping…'}
+        pendingLabel={tab === 'wrap' ? 'Preparing…' : 'Releasing…'}
       >
-        {tab === 'wrap' ? 'Confirm conversion to SY' : `Confirm return to ${underlyingSymbol}`}
+        {tab === 'wrap' ? 'Confirm prepare' : 'Confirm release'}
       </ActionButton>
 
       {isWrongNetwork && (
