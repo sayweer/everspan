@@ -5,10 +5,10 @@ import type { MaturityPool } from '../hooks/usePools'
 import type { MaturityPosition } from '../hooks/usePortfolio'
 import { useNow } from '../hooks/useNow'
 import { useTxRunner } from '../hooks/useTxRunner'
+import { useSyPreparation } from '../hooks/useSyPreparation'
 import { stroopsToXlm } from '../lib/amounts'
 import { activeMarket } from '../lib/market'
 import { formatAmount, formatMaturity } from '../lib/format'
-import { isValidTokenAmount } from '../lib/validation'
 import { maturityCountdown, RATE_SCALE } from '../lib/yield'
 import {
   clearLongYieldProgress,
@@ -27,7 +27,7 @@ import {
 import { wrapTokens } from '../lib/contracts/syVault'
 import { splitSy } from '../lib/contracts/splitter'
 import { swapExactIn } from '../lib/contracts/amm'
-import { previewWrapOutput, requiredUnderlyingForSy, requiredUnderlyingForSyAtLeast } from '../lib/wrap'
+import { requiredUnderlyingForSy, requiredUnderlyingForSyAtLeast } from '../lib/wrap'
 import { AmountField, ActionButton } from './forms'
 import { MaturitySelect } from './MaturitySelect'
 import { SlippageControl } from './SlippageControl'
@@ -210,17 +210,8 @@ function LockRateForm({
     prepare.reset()
   }
 
-  const syAsUnderlying = requiredUnderlyingForSy(syBalance, market, liveRate) ?? 0n
-  const maxSpendable = underlyingBalance + syAsUnderlying
-  const valid = isValidTokenAmount(amount, maxSpendable, { label: underlyingSymbol })
-  const underlyingIn = valid.ok ? valid.stroops : 0n
-  const syNeeded = underlyingIn > 0n ? (previewWrapOutput(underlyingIn, market, liveRate) ?? 0n) : 0n
-  // How much more SY this trade needs than the wallet already holds — the
-  // part that has to be prepared before the lock itself can go through.
-  const syShort = syNeeded > syBalance ? syNeeded - syBalance : 0n
-  const underlyingToWrap =
-    syShort > 0n ? (requiredUnderlyingForSyAtLeast(syShort, market, liveRate) ?? 0n) : 0n
-  const needsPrepare = syShort > 0n
+  const { maxSpendable, valid, underlyingIn, syNeeded, underlyingToWrap, needsPrepare } =
+    useSyPreparation(amount, underlyingBalance, syBalance, market, liveRate)
 
   const ptOut = syNeeded > 0n ? quoteSwap(pool, 'SyToPt', syNeeded) : 0n
   const minOut = minOutFromSlippage(ptOut, slippageBps)
@@ -462,13 +453,15 @@ function LongYieldForm({
   const split = useTxRunner()
   const sell = useTxRunner()
 
-  const syAsUnderlying = requiredUnderlyingForSy(syBalance, market, liveRate) ?? 0n
-  const maxSpendable = underlyingBalance + syAsUnderlying
-  const valid = isValidTokenAmount(amount, maxSpendable, { label: underlyingSymbol })
-  const underlyingIn = valid.ok ? valid.stroops : 0n
   // Split target (floor(underlying→SY)·rate/SCALE, same as the split preview
   // ever was); PT == YT.
-  const syIn = underlyingIn > 0n ? (previewWrapOutput(underlyingIn, market, liveRate) ?? 0n) : 0n
+  const { maxSpendable, valid, underlyingIn, syNeeded: syIn } = useSyPreparation(
+    amount,
+    underlyingBalance,
+    syBalance,
+    market,
+    liveRate,
+  )
   const projected = liveRate !== null && syIn > 0n ? (syIn * liveRate) / RATE_SCALE : 0n
   const sellBack = projected > 0n ? quoteSwap(pool, 'PtToSy', projected) : 0n
   const sellBackUnderlying = requiredUnderlyingForSy(sellBack, market, liveRate) ?? 0n
