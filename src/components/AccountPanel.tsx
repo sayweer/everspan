@@ -6,10 +6,13 @@ import { useWallet } from '../context/WalletContext'
 import { useTheme } from '../context/ThemeContext'
 import { useLanguage } from '../context/LanguageContext'
 import { activeMarket } from '../lib/market'
-import { config, explorerContractUrl } from '../config'
+import { config, explorerContractUrl, markets, type MarketKey } from '../config'
 import { focusRing } from '../lib/buttonStyles'
 import { cardClasses } from '../lib/cardClasses'
+import { useDisclosure } from '../hooks/useDisclosure'
 import { AdvancedPanel } from './AdvancedPanel'
+import { BottomSheet } from './BottomSheet'
+import { MarketSwitcher } from './MarketSwitcher'
 // PASSKEY-ENTRY: see docs/passkey.md.
 import { PasskeySignIn } from './PasskeySignIn'
 import {
@@ -39,6 +42,8 @@ function initialAdvanced(force: boolean): boolean {
 }
 
 interface AccountPanelProps {
+  marketKey: MarketKey
+  onSwitchMarket: (key: MarketKey) => void
   portfolio: Portfolio
   liveRate: bigint | null
   loading: boolean
@@ -56,6 +61,8 @@ interface AccountPanelProps {
  * or reference.
  */
 export function AccountPanel({
+  marketKey,
+  onSwitchMarket,
   portfolio,
   liveRate,
   loading,
@@ -66,11 +73,13 @@ export function AccountPanel({
   const { theme, toggleTheme } = useTheme()
   const { language, toggleLanguage } = useLanguage()
   const [copied, setCopied] = useState(false)
+  const marketSheet = useDisclosure()
   // `forceAdvanced` only ever needs reading once: this panel remounts fresh
   // whenever the reader switches to it (see App.tsx's `<main key={tab}>`), so
   // there is no later prop change for an effect to catch up to.
   const [advanced, setAdvanced] = useState(() => initialAdvanced(forceAdvanced))
   const market = activeMarket()
+  const switchable = markets.length > 1
   const connected = isConnected && address !== null
 
   useEffect(() => {
@@ -171,6 +180,15 @@ export function AccountPanel({
         </Group>
 
         <Group label="Preferences">
+          {switchable && (
+            <RowButton
+              icon={<LayersIcon className="h-5 w-5" />}
+              title="Yield source"
+              subtitle="Which deployment balances and positions read from"
+              value={market.label}
+              onClick={marketSheet.show}
+            />
+          )}
           <RowButton
             icon={
               theme === 'dark' ? <MoonIcon className="h-5 w-5" /> : <SunIcon className="h-5 w-5" />
@@ -236,6 +254,24 @@ export function AccountPanel({
             <p className="text-sm text-neutral-400">Connect a wallet to use the advanced tools.</p>
           )}
         </div>
+      )}
+
+      {switchable && (
+        <BottomSheet open={marketSheet.open} onClose={marketSheet.hide} title="Yield source">
+          <MarketSwitcher
+            active={marketKey}
+            layout="stacked"
+            idPrefix="account-market-"
+            onChange={(key) => {
+              marketSheet.hide()
+              onSwitchMarket(key)
+            }}
+          />
+          <p className="mt-4 text-xs leading-relaxed text-neutral-400">
+            Each source is a separate deployment. Switching reloads balances and positions from that
+            market.
+          </p>
+        </BottomSheet>
       )}
     </section>
   )

@@ -295,13 +295,7 @@ function MarketContent({
               controls are both fixed-width, and on a phone they overlapped
               when forced onto one line. Below sm the switcher drops to its
               own row. */}
-          <AppHeader
-            marketKey={marketKey}
-            onSwitchMarket={onSwitchMarket}
-            address={address}
-            liveRate={liveRate}
-            personalActivity={personalActivity}
-          />
+          <AppHeader address={address} liveRate={liveRate} personalActivity={personalActivity} />
 
           {/* Keyed by the tab so the panel plays its entrance when the reader
               changes destination — and only then. Keying it on mount instead
@@ -421,6 +415,8 @@ function MarketContent({
 
             {tab === 'account' && (
               <AccountPanel
+                marketKey={marketKey}
+                onSwitchMarket={onSwitchMarket}
                 portfolio={portfolio}
                 liveRate={liveRate}
                 loading={loading}
