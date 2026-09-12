@@ -9,6 +9,7 @@
 import { useState, type ReactElement, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { useWallet } from '../context/WalletContext'
+import { useDisclosure } from '../hooks/useDisclosure'
 import { BottomSheet } from './BottomSheet'
 import { PasskeySignIn } from './PasskeySignIn'
 import { buttonClasses } from '../lib/buttonStyles'
@@ -26,7 +27,7 @@ interface EnterAppProps {
  */
 export function EnterApp({ children, className }: EnterAppProps): ReactElement {
   const { isConnected, connect } = useWallet()
-  const [open, setOpen] = useState(false)
+  const sheet = useDisclosure()
   const [error, setError] = useState<AppError | null>(null)
   const [busy, setBusy] = useState(false)
 
@@ -52,23 +53,15 @@ export function EnterApp({ children, className }: EnterAppProps): ReactElement {
     <>
       <button
         type="button"
-        onClick={() => {
-          setOpen(true)
-        }}
+        onClick={sheet.show}
         aria-haspopup="dialog"
-        aria-expanded={open}
+        aria-expanded={sheet.open}
         className={className}
       >
         {children}
       </button>
 
-      <BottomSheet
-        open={open}
-        onClose={() => {
-          setOpen(false)
-        }}
-        title="Enter Everspan"
-      >
+      <BottomSheet open={sheet.open} onClose={sheet.hide} title="Enter Everspan">
         <div className="space-y-5 pb-2">
           <p className="text-sm leading-relaxed text-neutral-400">
             Everspan needs an account to sign with — every action on chain is authorized by you,

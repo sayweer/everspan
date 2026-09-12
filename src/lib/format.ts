@@ -42,6 +42,34 @@ export function formatMaturity(maturity: bigint): string {
   })
 }
 
+const COMPACT_UNITS = [
+  { digits: 9, suffix: 'B' },
+  { digits: 6, suffix: 'M' },
+  { digits: 3, suffix: 'K' },
+] as const
+
+/**
+ * Abbreviate a large stroop amount for a tight space ("1.2M" instead of
+ * "1,234,567.00"). Works from the exact decimal string `formatAmount` already
+ * builds, so no bigint passes through `Number` — string slicing alone decides
+ * where the point in the abbreviation lands, truncated rather than rounded,
+ * the same convention `formatAmount` uses for its own decimals.
+ */
+export function formatCompact(stroops: bigint, maxDecimals = 1): string {
+  const sign = stroops < 0n ? '-' : ''
+  const [intPart = '0'] = stroopsToXlm(stroops < 0n ? -stroops : stroops).split('.')
+  const digits = intPart === '0' ? 0 : intPart.length
+
+  for (const unit of COMPACT_UNITS) {
+    if (digits <= unit.digits) continue
+    const cut = digits - unit.digits
+    const whole = intPart.slice(0, cut)
+    const frac = intPart.slice(cut, cut + maxDecimals).replace(/0+$/, '')
+    return `${sign}${whole}${frac ? `.${frac}` : ''}${unit.suffix}`
+  }
+  return formatAmount(stroops, maxDecimals)
+}
+
 /** Compact relative time (e.g. "just now", "5m ago", "3h ago"). */
 export function formatRelativeTime(iso: string, nowMs = Date.now()): string {
   const seconds = Math.max(0, Math.round((nowMs - new Date(iso).getTime()) / 1000))

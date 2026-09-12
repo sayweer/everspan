@@ -6,6 +6,7 @@ import { useTransactionSafety } from '../context/TransactionSafetyContext'
 import { hasMobileWalletSupport, isMobileBrowser } from '../lib/wallet'
 import { useToast } from '../hooks/useToast'
 import { buttonClasses } from '../lib/buttonStyles'
+import { useDisclosure } from '../hooks/useDisclosure'
 import { BottomSheet } from './BottomSheet'
 import { Button } from './Button'
 import { CheckIcon, ChevronDownIcon, CopyIcon } from './icons'
@@ -20,7 +21,7 @@ export function WalletButton(): ReactElement {
   const { notify } = useToast()
   const [notFound, setNotFound] = useState(false)
   const [copied, setCopied] = useState(false)
-  const [walletSheetOpen, setWalletSheetOpen] = useState(false)
+  const walletSheet = useDisclosure()
 
   const connecting = status === 'connecting'
 
@@ -63,10 +64,8 @@ export function WalletButton(): ReactElement {
           id="wallet-trigger"
           type="button"
           aria-haspopup="dialog"
-          aria-expanded={walletSheetOpen}
-          onClick={() => {
-            setWalletSheetOpen(true)
-          }}
+          aria-expanded={walletSheet.open}
+          onClick={walletSheet.show}
           className={`${buttonClasses({ variant: 'secondary' })} min-w-0 font-mono lg:hidden`}
         >
           <span aria-hidden="true" className="h-2 w-2 shrink-0 rounded-full bg-positive-400" />
@@ -74,13 +73,7 @@ export function WalletButton(): ReactElement {
           <ChevronDownIcon className="h-4 w-4 shrink-0 text-neutral-400" />
         </button>
 
-        <BottomSheet
-          open={walletSheetOpen}
-          onClose={() => {
-            setWalletSheetOpen(false)
-          }}
-          title="Wallet"
-        >
+        <BottomSheet open={walletSheet.open} onClose={walletSheet.hide} title="Wallet">
           <div className="space-y-4">
             <div>
               <p className="text-xs uppercase tracking-[0.14em] text-neutral-400">Address</p>
@@ -104,7 +97,7 @@ export function WalletButton(): ReactElement {
               variant="danger"
               full
               onClick={() => {
-                setWalletSheetOpen(false)
+                walletSheet.hide()
                 disconnect()
               }}
               disabled={trackedTransaction?.state === 'in_flight'}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatAmount, formatRelativeTime, truncateAddress } from './format'
+import { formatAmount, formatCompact, formatRelativeTime, truncateAddress } from './format'
 
 const UNIT = 10_000_000n // one token, in stroops
 
@@ -26,6 +26,27 @@ describe('formatAmount', () => {
     // represent consecutive integers; formatting used to rewrite the low digits.
     const stroops = 9_007_199_254_740_993_456n * UNIT
     expect(formatAmount(stroops)).toBe('9,007,199,254,740,993,456')
+  })
+})
+
+describe('formatCompact', () => {
+  it('abbreviates thousands, millions and billions', () => {
+    expect(formatCompact(1_234n * UNIT)).toBe('1.2K')
+    expect(formatCompact(1_234_567n * UNIT)).toBe('1.2M')
+    expect(formatCompact(1_234_567_890n * UNIT)).toBe('1.2B')
+  })
+
+  it('truncates rather than rounds, like formatAmount', () => {
+    expect(formatCompact(123_456n * UNIT)).toBe('123.4K')
+  })
+
+  it('falls back to formatAmount under 1,000', () => {
+    expect(formatCompact(342n * UNIT)).toBe('342')
+    expect(formatCompact(0n)).toBe('0')
+  })
+
+  it('signs negative amounts', () => {
+    expect(formatCompact(-1_234_567n * UNIT)).toBe('-1.2M')
   })
 })
 

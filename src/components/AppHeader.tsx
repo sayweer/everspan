@@ -1,8 +1,9 @@
 /** The app's top bar: one row at every width. */
-import { useState, type ReactElement } from 'react'
+import type { ReactElement } from 'react'
 import { markets, type MarketKey } from '../config'
 import { buttonClasses, iconButtonClasses } from '../lib/buttonStyles'
 import type { UseProtocolEventsResult } from '../hooks/useProtocolEvents'
+import { useDisclosure } from '../hooks/useDisclosure'
 import { AccountDrawer } from './AccountDrawer'
 import { BottomSheet } from './BottomSheet'
 import { MenuButton } from './MenuButton'
@@ -37,10 +38,10 @@ export function AppHeader({
   address,
   personalActivity,
 }: AppHeaderProps): ReactElement {
-  const [marketSheetOpen, setMarketSheetOpen] = useState(false)
-  const [drawerOpen, setDrawerOpen] = useState(false)
-  const [transactionsSheetOpen, setTransactionsSheetOpen] = useState(false)
-  const [notificationsSheetOpen, setNotificationsSheetOpen] = useState(false)
+  const marketSheet = useDisclosure()
+  const drawer = useDisclosure()
+  const transactionsSheet = useDisclosure()
+  const notificationsSheet = useDisclosure()
   const switchable = markets.length > 1
   const current = markets.find((market) => market.key === marketKey) ?? markets[0]
 
@@ -52,12 +53,7 @@ export function AppHeader({
           one of the things it holds. The desktop rail already carries both the
           mark and the navigation, so this is the phone's control only. */}
       <span className="lg:hidden">
-        <MenuButton
-          open={drawerOpen}
-          onClick={() => {
-            setDrawerOpen((current) => !current)
-          }}
-        />
+        <MenuButton open={drawer.open} onClick={drawer.toggle} />
       </span>
       {switchable && (
         <>
@@ -68,10 +64,8 @@ export function AppHeader({
             id="market-trigger"
             type="button"
             aria-haspopup="dialog"
-            aria-expanded={marketSheetOpen}
-            onClick={() => {
-              setMarketSheetOpen(true)
-            }}
+            aria-expanded={marketSheet.open}
+            onClick={marketSheet.show}
             className={`${buttonClasses({ variant: 'secondary' })} min-w-0 lg:hidden`}
           >
             <span className="truncate">{current.label}</span>
@@ -90,12 +84,10 @@ export function AppHeader({
         <button
           type="button"
           aria-haspopup="dialog"
-          aria-expanded={transactionsSheetOpen}
+          aria-expanded={transactionsSheet.open}
           aria-label="Transactions"
           title="Transactions"
-          onClick={() => {
-            setTransactionsSheetOpen(true)
-          }}
+          onClick={transactionsSheet.show}
           className={iconButtonClasses({ variant: 'ghost' })}
         >
           <ClockIcon className="h-5 w-5" />
@@ -103,55 +95,35 @@ export function AppHeader({
         <button
           type="button"
           aria-haspopup="dialog"
-          aria-expanded={notificationsSheetOpen}
+          aria-expanded={notificationsSheet.open}
           aria-label="Notifications"
           title="Notifications"
-          onClick={() => {
-            setNotificationsSheetOpen(true)
-          }}
+          onClick={notificationsSheet.show}
           className={iconButtonClasses({ variant: 'ghost' })}
         >
           <BellIcon className="h-5 w-5" />
         </button>
       </div>
 
-      <AccountDrawer
-        open={drawerOpen}
-        onClose={() => {
-          setDrawerOpen(false)
-        }}
-      />
+      <AccountDrawer open={drawer.open} onClose={drawer.hide} />
 
       <TransactionsSheet
-        open={transactionsSheetOpen}
-        onClose={() => {
-          setTransactionsSheetOpen(false)
-        }}
+        open={transactionsSheet.open}
+        onClose={transactionsSheet.hide}
         address={address}
         personalActivity={personalActivity}
       />
 
-      <NotificationsSheet
-        open={notificationsSheetOpen}
-        onClose={() => {
-          setNotificationsSheetOpen(false)
-        }}
-      />
+      <NotificationsSheet open={notificationsSheet.open} onClose={notificationsSheet.hide} />
 
       {switchable && (
-        <BottomSheet
-          open={marketSheetOpen}
-          onClose={() => {
-            setMarketSheetOpen(false)
-          }}
-          title="Yield source"
-        >
+        <BottomSheet open={marketSheet.open} onClose={marketSheet.hide} title="Yield source">
           <MarketSwitcher
             active={marketKey}
             layout="stacked"
             idPrefix="market-sheet-"
             onChange={(key) => {
-              setMarketSheetOpen(false)
+              marketSheet.hide()
               onSwitchMarket(key)
             }}
           />
