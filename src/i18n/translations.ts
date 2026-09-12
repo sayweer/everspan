@@ -14,11 +14,31 @@ const EN_TO_TR: Record<string, string> = {
     'Yalnızca Testnet. Gizli anahtarınızı asla paylaşmayın.',
   'Stellar Testnet only. Never share your secret key.':
     'Yalnızca Stellar Testnet. Gizli anahtarınızı asla paylaşmayın.',
-  Overview: 'Genel Bakış',
-  Earn: 'Kazanç',
+  Positions: 'Pozisyonlar',
   Portfolio: 'Portföy',
-  More: 'Daha Fazla',
+  Activity: 'Etkinlik',
+  Account: 'Hesap',
+  'New position': 'Yeni pozisyon',
   'Product sections': 'Ürün bölümleri',
+  'Your positions or open a new one': 'Pozisyonlarınız veya yeni bir tane açın',
+  'Your positions': 'Pozisyonlarınız',
+  'Open a position': 'Pozisyon aç',
+  'Connect a Testnet wallet to see your positions, lock a fixed return, hold yield exposure, or earn trading fees.':
+    'Pozisyonlarınızı görmek, sabit getiri kilitlemek, getiri maruziyeti tutmak veya takas ücreti kazanmak için Testnet cüzdanı bağlayın.',
+  'Every action, confirmed.': 'Her işlem, onaylanmış.',
+  'Your activity or protocol activity': 'Etkinliğiniz veya protokol etkinliği',
+  'Your activity': 'Etkinliğiniz',
+  'Connect a Testnet wallet to see your confirmed actions.':
+    'Onaylanmış işlemlerinizi görmek için Testnet cüzdanı bağlayın.',
+  'You, and how Everspan behaves.': 'Siz, ve Everspan’ın nasıl davrandığı.',
+  'Advanced mode': 'Gelişmiş mod',
+  'Prepare or split an asset by hand': 'Bir varlığı elle hazırlayın veya ayırın',
+  On: 'Açık',
+  Off: 'Kapalı',
+  'Manual controls for preparing and splitting an asset — most people never need these, the primary flow handles them automatically.':
+    'Bir varlığı hazırlamak ve ayırmak için manuel kontroller — çoğu kullanıcının bunlara ihtiyacı olmaz, ana akış bunları otomatik olarak halleder.',
+  'Connect a wallet to use the advanced tools.':
+    'Gelişmiş araçları kullanmak için bir cüzdan bağlayın.',
   'Everspan home': 'Everspan ana sayfası',
   'Yield source': 'Getiri kaynağı',
   'Each source is a separate deployment. Switching reloads balances and positions from that market.':
@@ -122,6 +142,7 @@ const EN_TO_TR: Record<string, string> = {
   'Stellar Testnet · Soroban · 2026': 'Stellar Testnet · Soroban · 2026',
 
   // Product navigation and overview
+  Home: 'Ana sayfa',
   'What do you want your yield to do?': 'Getirinizin ne yapmasını istersiniz?',
   'Choose an outcome first. Everspan shows the token mechanics only when they matter.':
     'Önce hedefinizi seçin. Everspan token mekaniklerini yalnızca gerektiğinde gösterir.',
@@ -262,7 +283,6 @@ const EN_TO_TR: Record<string, string> = {
   Redeem: 'İtfa et',
   'Claiming…': 'Talep ediliyor…',
   'Redeeming…': 'İtfa ediliyor…',
-  'Your positions': 'Pozisyonlarınız',
   'Separate an asset at a maturity to open a position — your principal, yield and claimable yield will appear here.':
     'Pozisyon açmak için bir varlığı vadede ayırın; anapara, kazanç ve talep edilebilir getiriniz burada görünecek.',
   Matured: 'Vadesi doldu',
@@ -277,13 +297,8 @@ const EN_TO_TR: Record<string, string> = {
   'Switch your wallet to Testnet to act.': 'İşlem yapmak için cüzdanınızı Testnet’e geçirin.',
   Shares: 'Paylar',
   'Principal value': 'Anapara değeri',
-  'SY value': 'SY değeri',
+  'Underlying value': 'Dayanak değeri',
   Manage: 'Yönet',
-  'Tools and activity.': 'Araçlar ve etkinlik.',
-  'Convert assets or inspect protocol events. These tools are useful, but they are not the starting point.':
-    'Varlıkları dönüştürün veya protokol olaylarını inceleyin. Bu araçlar faydalıdır ancak başlangıç noktası değildir.',
-  'Secondary tools': 'İkincil araçlar',
-  'Convert assets': 'Varlıkları dönüştür',
   'Protocol activity': 'Protokol etkinliği',
   'Convert and split assets': 'Varlıkları dönüştür ve ayır',
   'Most people can start from Earn instead.':
@@ -361,7 +376,6 @@ const EN_TO_TR: Record<string, string> = {
   'Review withdrawal': 'Çekme işlemini incele',
   'LP shares burned': 'Yakılacak LP payları',
   'PT returned': 'Dönen PT',
-  'SY returned': 'Dönen SY',
   'Removing…': 'Kaldırılıyor…',
   Unavailable: 'Kullanılamıyor',
   'No pool': 'Havuz yok',
@@ -383,8 +397,8 @@ const EN_TO_TR: Record<string, string> = {
     'PT ve hazırlanmış bakiyenizi bir vade havuzuna yatırarak %0,30 takas ücretini kazanın.',
   'Both assets enter the same maturity pool in one transaction.':
     'İki varlık da tek işlemde aynı vade havuzuna girer.',
-  'Future swaps pay a 0.30% fee shared pro-rata among liquidity providers. The value and PT/SY mix of your position can change before you withdraw.':
-    'Gelecekteki takaslar, likidite sağlayıcıları arasında oransal paylaşılan %0,30 ücret öder. Pozisyonunuzun değeri ve PT/SY dağılımı çekimden önce değişebilir.',
+  'Future swaps pay a 0.30% fee shared pro-rata among liquidity providers. The value and PT mix of your position can change before you withdraw.':
+    'Gelecekteki takaslar, likidite sağlayıcıları arasında oransal paylaşılan %0,30 ücret öder. Pozisyonunuzun değeri ve PT dağılımı çekimden önce değişebilir.',
   'Slippage and fee details': 'Kayma ve ücret ayrıntıları',
   'Your wallet shows the final Stellar network fee before approval.':
     'Cüzdanınız onaydan önce son Stellar ağ ücretini gösterir.',
@@ -393,7 +407,7 @@ const EN_TO_TR: Record<string, string> = {
   'Confirm withdrawal': 'Çekimi onayla',
   'Switch your wallet to Testnet to continue.': 'Devam etmek için cüzdanınızı Testnet’e geçirin.',
   'You need': 'Bu işlem için',
-  'PT to pair with that SY — reduce the amount, or': 'PT gerekiyor — tutarı azaltın veya',
+  'PT to pair with that amount — reduce the amount, or': 'PT gerekiyor — tutarı azaltın veya',
   'prepare PT in Convert': 'Dönüştür bölümünde PT hazırlayın',
   'You have no LP shares in the': 'Şu havuzda LP payınız yok:',
   'Transaction progress': 'İşlem ilerlemesi',
@@ -612,6 +626,7 @@ const TR_TO_EN = new Map(Object.entries(EN_TO_TR).map(([english, turkish]) => [t
 
 const dynamicPairs: Array<[RegExp, string, RegExp, string]> = [
   [/^Available: (.+)$/u, 'Kullanılabilir: $1', /^Kullanılabilir: (.+)$/u, 'Available: $1'],
+  [/^(.+) returned$/u, 'Dönen $1', /^Dönen (.+)$/u, '$1 returned'],
   [/^Loading (.+)…$/u, '$1 yükleniyor…', /^(.+) yükleniyor…$/u, 'Loading $1…'],
   [/^Get (.+)$/u, '$1 al', /^(.+) al$/u, 'Get $1'],
   [/^Sending (.+)…$/u, '$1 gönderiliyor…', /^(.+) gönderiliyor…$/u, 'Sending $1…'],

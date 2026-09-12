@@ -15,7 +15,7 @@ import { Button } from './Button'
 
 export type EarnStrategy = 'fixed' | 'yield' | 'liquidity'
 
-interface OverviewPanelProps {
+interface HomePanelProps {
   connected: boolean
   underlying: bigint
   sy: bigint
@@ -31,7 +31,7 @@ interface OverviewPanelProps {
 }
 
 /** Goal-first home: one recommended next step, then three outcomes in plain language. */
-export function OverviewPanel({
+export function HomePanel({
   connected,
   underlying,
   sy,
@@ -44,7 +44,7 @@ export function OverviewPanel({
   onRetry,
   onEarn,
   onPortfolio,
-}: OverviewPanelProps): ReactElement {
+}: HomePanelProps): ReactElement {
   const market = activeMarket()
   const hasPosition =
     positions.some(
@@ -96,10 +96,10 @@ export function OverviewPanel({
               }
 
   return (
-    <section id="panel-overview" role="tabpanel" aria-label="Overview" className="space-y-10">
+    <section id="panel-home" role="tabpanel" aria-label="Home" className="space-y-10">
       <header className="max-w-2xl">
         <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-accent-300">
-          Overview
+          Home
         </p>
         <h1
           data-panel-heading

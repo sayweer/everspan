@@ -36,8 +36,8 @@ export function AdvancedPanel({
         </h2>
         <p className="mt-1 text-sm text-neutral-400">
           {language === 'tr'
-            ? `${underlyingSymbol} varlığını Everspan için hazırlayın veya anapara ile getiriyi manuel olarak ayırın. Çoğu kullanıcı doğrudan Kazanç bölümünden başlayabilir.`
-            : `Prepare ${underlyingSymbol} for Everspan, or manually separate principal and yield. Most people can start from Earn instead.`}
+            ? `${underlyingSymbol} varlığını Everspan için hazırlayın veya anapara ile getiriyi manuel olarak ayırın. Çoğu kullanıcı doğrudan Pozisyonlar bölümünden başlayabilir.`
+            : `Prepare ${underlyingSymbol} for Everspan, or manually separate principal and yield. Most people can start from Positions instead.`}
         </p>
       </header>
 

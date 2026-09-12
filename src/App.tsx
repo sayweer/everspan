@@ -12,7 +12,7 @@ import { usePools } from './hooks/usePools'
 import { useHoldings } from './hooks/useHoldings'
 import { useLiveRate } from './hooks/useLiveRate'
 import { useProtocolEvents } from './hooks/useProtocolEvents'
-import { config, isContractsConfigured, markets, type MarketKey } from './config'
+import { isContractsConfigured, markets, type MarketKey } from './config'
 import { activeMarket, setActiveMarket } from './lib/market'
 import { NetworkBanner } from './components/NetworkBanner'
 import { BalanceCard } from './components/BalanceCard'
@@ -21,11 +21,11 @@ import { RateTicker } from './components/RateTicker'
 import { WalletBar } from './components/WalletBar'
 import { BrandMark } from './components/BrandMark'
 import { BottomNav, SideNav, type TabId } from './components/SideNav'
-import { PortfolioView } from './components/PortfolioView'
+import { PositionsPanel, type PositionsSegment } from './components/PositionsPanel'
+import { ActivityPanel, type ActivityScope } from './components/ActivityPanel'
+import { AccountPanel } from './components/AccountPanel'
 import { ConnectPrompt } from './components/ConnectPrompt'
-import { OverviewPanel, type EarnStrategy } from './components/OverviewPanel'
-import { EarnPanel } from './components/EarnPanel'
-import { MorePanel, type MoreView } from './components/MorePanel'
+import { HomePanel, type EarnStrategy } from './components/HomePanel'
 import { ConnectionBanner } from './components/ConnectionBanner'
 import { AppHeader } from './components/AppHeader'
 import { AlertTriangleIcon } from './components/icons'
@@ -150,17 +150,45 @@ function MarketContent({
 
   const [searchParams, setSearchParams] = useSearchParams()
   const requestedTab = searchParams.get('view')
-  const tab: TabId =
-    requestedTab === 'earn' ||
-    requestedTab === 'portfolio' ||
-    requestedTab === 'more' ||
-    requestedTab === 'overview'
-      ? requestedTab
-      : 'overview'
+  const legacyTool = searchParams.get('tool')
+  // Everspan shipped with four different tabs (overview/earn/portfolio/more)
+  // before this pass merged Earn+Portfolio into Positions and split More into
+  // Activity/Account. A link saved from that layout still has to land
+  // somewhere sensible rather than a blank tab.
+  const tab: TabId = (() => {
+    switch (requestedTab) {
+      case 'home':
+      case 'positions':
+      case 'activity':
+      case 'account':
+        return requestedTab
+      case 'overview':
+        return 'home'
+      case 'earn':
+      case 'portfolio':
+        return 'positions'
+      case 'more':
+        return legacyTool === 'activity' ? 'activity' : 'account'
+      default:
+        return 'home'
+    }
+  })()
+  const requestedSegment = searchParams.get('segment')
+  const segment: PositionsSegment =
+    requestedSegment === 'open'
+      ? 'open'
+      : requestedSegment === 'held'
+        ? 'held'
+        : requestedTab === 'earn'
+          ? 'open'
+          : 'held'
+  const requestedScope = searchParams.get('scope')
+  const activityScope: ActivityScope =
+    requestedScope === 'protocol' ? 'protocol' : requestedScope === 'yours' ? 'yours' : 'yours'
+  const forceAdvanced = legacyTool === 'convert'
   const requestedStrategy = searchParams.get('strategy')
   const strategy: EarnStrategy =
     requestedStrategy === 'yield' || requestedStrategy === 'liquidity' ? requestedStrategy : 'fixed'
-  const moreView: MoreView = searchParams.get('tool') === 'activity' ? 'activity' : 'convert'
   const maturity = parseMaturity(searchParams.get('maturity'))
 
   // A primary destination should start at its heading even when it is chosen
@@ -189,15 +217,19 @@ function MarketContent({
 
   function updateLocation(next: {
     tab?: TabId
+    segment?: PositionsSegment
+    scope?: ActivityScope
     strategy?: EarnStrategy
-    tool?: MoreView
     maturity?: bigint
+    tool?: 'convert'
   }): void {
     const params = new URLSearchParams(searchParams)
     if (next.tab) params.set('view', next.tab)
+    if (next.segment) params.set('segment', next.segment)
+    if (next.scope) params.set('scope', next.scope)
     if (next.strategy) params.set('strategy', next.strategy)
-    if (next.tool) params.set('tool', next.tool)
     if (next.maturity !== undefined) params.set('maturity', next.maturity.toString())
+    if (next.tool) params.set('tool', next.tool)
     setSearchParams(params)
   }
 
@@ -206,27 +238,27 @@ function MarketContent({
   }
 
   function chooseStrategy(next: EarnStrategy, maturity?: bigint): void {
-    updateLocation({ tab: 'earn', strategy: next, maturity })
+    updateLocation({ tab: 'positions', segment: 'open', strategy: next, maturity })
   }
 
   function openStrategy(next: EarnStrategy, maturity?: bigint): void {
     chooseStrategy(next, maturity)
-    focusPanel('earn')
+    focusPanel('positions')
   }
 
   function goPool(maturity: bigint): void {
-    updateLocation({ tab: 'earn', strategy: 'liquidity', maturity })
-    focusPanel('earn')
+    updateLocation({ tab: 'positions', segment: 'open', strategy: 'liquidity', maturity })
+    focusPanel('positions')
   }
 
   function goConvert(): void {
-    updateLocation({ tab: 'more', tool: 'convert' })
-    focusPanel('more')
+    updateLocation({ tab: 'account', tool: 'convert' })
+    focusPanel('account')
   }
 
   function goPortfolio(): void {
-    updateLocation({ tab: 'portfolio' })
-    focusPanel('portfolio')
+    updateLocation({ tab: 'positions', segment: 'held' })
+    focusPanel('positions')
   }
 
   const connected = isConnected && address !== null
@@ -249,21 +281,12 @@ function MarketContent({
             <SideNav active={tab} onChange={setTab} />
           </div>
 
-          <div className="mt-auto space-y-4 pt-8">
+          {/* Feedback and the Testnet disclaimer used to live here too, always
+              visible regardless of tab — they now live once, in Account,
+              since that is where "how the app behaves" belongs on every
+              width, not just a desktop-only rail. */}
+          <div className="mt-auto pt-8">
             <RateTicker rateInfo={portfolio.rateInfo} />
-            {config.feedbackFormUrl && (
-              <a
-                href={config.feedbackFormUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex min-h-11 w-full items-center justify-center rounded-full border border-boundary bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-300 transition-colors hover:bg-raised hover:text-neutral-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-300"
-              >
-                Share feedback
-              </a>
-            )}
-            <p className="text-[11px] leading-relaxed text-neutral-600">
-              Testnet only. Never share your secret key.
-            </p>
           </div>
         </aside>
 
@@ -330,8 +353,8 @@ function MarketContent({
               </>
             )}
 
-            {tab === 'overview' && (
-              <OverviewPanel
+            {tab === 'home' && (
+              <HomePanel
                 connected={connected}
                 underlying={portfolio.underlying}
                 sy={portfolio.sy}
@@ -347,74 +370,62 @@ function MarketContent({
               />
             )}
 
-            {tab === 'earn' &&
+            {tab === 'positions' &&
               (connected && dataError ? (
-                <DataUnavailable error={dataError} onRetry={refreshAll} tab="earn" />
+                <DataUnavailable error={dataError} onRetry={refreshAll} tab="positions" />
               ) : connected ? (
-                <EarnPanel
-                  strategy={strategy}
-                  onStrategyChange={(next) => chooseStrategy(next)}
+                <PositionsPanel
+                  segment={segment}
+                  onSegmentChange={(next) => updateLocation({ tab: 'positions', segment: next })}
                   address={address}
                   isWrongNetwork={isWrongNetwork}
+                  portfolio={portfolio}
+                  positions={portfolio.positions}
                   pools={pools.pools}
                   poolsLoading={pools.loading || loading}
-                  positions={portfolio.positions}
-                  underlyingBalance={portfolio.underlying}
-                  syBalance={portfolio.sy}
+                  loading={loading || pools.loading}
+                  error={dataError}
                   liveRate={liveRate}
-                  tradeMaturity={maturity}
-                  poolMaturity={maturity}
+                  strategy={strategy}
+                  onStrategyChange={(next) => chooseStrategy(next)}
+                  maturity={maturity}
                   onMaturityChange={(next) => updateLocation({ maturity: next })}
+                  onRefresh={refreshAll}
                   onSuccess={refreshAll}
+                  onManagePool={goPool}
                   onConvert={goConvert}
                 />
               ) : (
                 <ConnectPrompt
-                  tab="earn"
-                  message="Connect a Testnet wallet to lock a fixed return, hold yield exposure, or earn trading fees."
+                  tab="positions"
+                  message="Connect a Testnet wallet to see your positions, lock a fixed return, hold yield exposure, or earn trading fees."
                 />
               ))}
 
-            {tab === 'portfolio' &&
-              (connected ? (
-                <PortfolioView
-                  address={address}
-                  portfolio={portfolio}
-                  pools={pools.pools}
-                  loading={loading || pools.loading}
-                  error={dataError}
-                  liveRate={liveRate}
-                  isWrongNetwork={isWrongNetwork}
-                  onRefresh={refreshAll}
-                  onManagePool={goPool}
-                  events={personalActivity.events}
-                  activityLoading={personalActivity.loading}
-                  activityError={personalActivity.error}
-                  onRetryActivity={personalActivity.retry}
-                />
-              ) : (
-                <ConnectPrompt
-                  tab="portfolio"
-                  message="Connect a Testnet wallet to see your positions and claimable yield."
-                />
-              ))}
-
-            {tab === 'more' && (
-              <MorePanel
-                view={moreView}
-                onViewChange={(next) => updateLocation({ tab: 'more', tool: next })}
+            {tab === 'activity' && (
+              <ActivityPanel
+                scope={activityScope}
+                onScopeChange={(next) => updateLocation({ tab: 'activity', scope: next })}
                 address={connected ? address : null}
+                liveRate={liveRate}
+                personalEvents={personalActivity.events}
+                personalLoading={personalActivity.loading}
+                personalError={personalActivity.error}
+                onRetryPersonal={personalActivity.retry}
+                protocolEvents={activity.events}
+                protocolLoading={activity.loading}
+                protocolError={activity.error}
+                onRetryProtocol={activity.retry}
+              />
+            )}
+
+            {tab === 'account' && (
+              <AccountPanel
                 portfolio={portfolio}
                 liveRate={liveRate}
                 loading={loading}
-                isWrongNetwork={isWrongNetwork}
                 onSuccess={refreshAll}
-                events={activity.events}
-                activityLoading={activity.loading}
-                activityError={activity.error}
-                onRetryActivity={activity.retry}
-                dataError={dataError}
-                onRetryData={refreshAll}
+                forceAdvanced={forceAdvanced}
               />
             )}
           </main>

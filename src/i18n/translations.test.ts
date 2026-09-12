@@ -8,7 +8,7 @@ describe('UI translations', () => {
   })
 
   it('preserves layout whitespace around JSX text', () => {
-    expect(translateUiText('\n  Overview  ', 'tr')).toBe('\n  Genel Bakış  ')
+    expect(translateUiText('\n  Home  ', 'tr')).toBe('\n  Ana sayfa  ')
   })
 
   it('translates dynamic balance labels without touching the value', () => {

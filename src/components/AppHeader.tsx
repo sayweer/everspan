@@ -1,12 +1,12 @@
 /** The app's top bar: one row at every width. */
 import type { ReactElement } from 'react'
+import { Link } from 'react-router-dom'
 import { markets, type MarketKey } from '../config'
 import { buttonClasses, iconButtonClasses } from '../lib/buttonStyles'
 import type { UseProtocolEventsResult } from '../hooks/useProtocolEvents'
 import { useDisclosure } from '../hooks/useDisclosure'
-import { AccountDrawer } from './AccountDrawer'
 import { BottomSheet } from './BottomSheet'
-import { MenuButton } from './MenuButton'
+import { BrandMark } from './BrandMark'
 import { BellIcon, ChevronDownIcon, ClockIcon } from './icons'
 import { MarketSwitcher } from './MarketSwitcher'
 import { NotificationsSheet } from './NotificationsSheet'
@@ -41,7 +41,6 @@ export function AppHeader({
   personalActivity,
 }: AppHeaderProps): ReactElement {
   const marketSheet = useDisclosure()
-  const drawer = useDisclosure()
   const transactionsSheet = useDisclosure()
   const notificationsSheet = useDisclosure()
   const switchable = markets.length > 1
@@ -49,14 +48,16 @@ export function AppHeader({
 
   return (
     <header className="sticky top-[env(safe-area-inset-top)] z-20 -mx-4 flex h-14 items-center gap-2 border-b border-hairline bg-neutral-950/90 px-4 backdrop-blur lg:mx-0 lg:h-16 lg:px-0">
-      {/* The mark used to sit here and had to be dropped below 375px, which
-          left the narrowest phones with no left-hand control at all. The menu
-          takes the slot instead: it fits at every width, and the way home is
-          one of the things it holds. The desktop rail already carries both the
-          mark and the navigation, so this is the phone's control only. */}
-      <span className="lg:hidden">
-        <MenuButton open={drawer.open} onClick={drawer.toggle} />
-      </span>
+      {/* The desktop rail already carries the mark and the navigation, so this
+          is the phone's way home only — Account (in the bottom nav) now
+          carries everything the old drawer held. */}
+      <Link
+        to="/"
+        aria-label="Everspan home"
+        className={`${iconButtonClasses({ variant: 'ghost' })} -ml-2 lg:hidden`}
+      >
+        <BrandMark className="h-5 w-5" />
+      </Link>
       {switchable && (
         <>
           <div className="hidden lg:block">
@@ -106,8 +107,6 @@ export function AppHeader({
           <BellIcon className="h-5 w-5" />
         </button>
       </div>
-
-      <AccountDrawer open={drawer.open} onClose={drawer.hide} />
 
       <TransactionsSheet
         open={transactionsSheet.open}

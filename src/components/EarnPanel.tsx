@@ -3,7 +3,7 @@ import type { MaturityPool } from '../hooks/usePools'
 import type { MaturityPosition } from '../hooks/usePortfolio'
 import { PoolPanel } from './PoolPanel'
 import { TradePanel } from './TradePanel'
-import type { EarnStrategy } from './OverviewPanel'
+import type { EarnStrategy } from './HomePanel'
 import { ChartBarIcon, DropletIcon, LockIcon } from './icons'
 import { IconTile } from './IconTile'
 import { FIGURE_TONE } from '../lib/figures'
@@ -90,9 +90,11 @@ export function EarnPanel({
   }
 
   return (
-    <section id="panel-earn" role="tabpanel" aria-label="Earn" className="space-y-8">
+    <div className="space-y-8">
       <header className="max-w-2xl">
-        <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-accent-300">Earn</p>
+        <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-accent-300">
+          New position
+        </p>
         <h1
           data-panel-heading
           tabIndex={-1}
@@ -201,6 +203,6 @@ export function EarnPanel({
           />
         )}
       </div>
-    </section>
+    </div>
   )
 }

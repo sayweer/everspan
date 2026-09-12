@@ -1,9 +1,9 @@
 /** Primary product navigation — a vertical rail on desktop, a bottom bar on mobile. */
 import type { CSSProperties, ReactElement } from 'react'
 import { focusRing } from '../lib/buttonStyles'
-import { ChartBarIcon, SlidersIcon, SwapIcon, WalletIcon } from './icons'
+import { ChartBarIcon, ClockIcon, SlidersIcon, WalletIcon } from './icons'
 
-export type TabId = 'overview' | 'earn' | 'portfolio' | 'more'
+export type TabId = 'home' | 'positions' | 'activity' | 'account'
 
 interface TabDef {
   id: TabId
@@ -12,10 +12,10 @@ interface TabDef {
 }
 
 const TABS: TabDef[] = [
-  { id: 'overview', label: 'Overview', Icon: ChartBarIcon },
-  { id: 'earn', label: 'Earn', Icon: SwapIcon },
-  { id: 'portfolio', label: 'Portfolio', Icon: WalletIcon },
-  { id: 'more', label: 'More', Icon: SlidersIcon },
+  { id: 'home', label: 'Home', Icon: ChartBarIcon },
+  { id: 'positions', label: 'Positions', Icon: WalletIcon },
+  { id: 'activity', label: 'Activity', Icon: ClockIcon },
+  { id: 'account', label: 'Account', Icon: SlidersIcon },
 ]
 
 interface SideNavProps {
