@@ -59,12 +59,13 @@ export function PortfolioView({
             isWrongNetwork={isWrongNetwork}
             onSuccess={onRefresh}
           />
-          <LpPositions pools={pools} onManage={onManagePool} />
+          <LpPositions pools={pools} liveRate={liveRate} onManage={onManagePool} />
         </>
       ) : null}
       <ActivityFeed
         events={events}
         address={address}
+        liveRate={liveRate}
         loading={activityLoading}
         error={activityError}
         onRetry={onRetryActivity}

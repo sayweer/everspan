@@ -11,6 +11,7 @@ interface TransactionsSheetProps {
   open: boolean
   onClose: () => void
   address: string | null
+  liveRate: bigint | null
   personalActivity: UseProtocolEventsResult
 }
 
@@ -59,6 +60,7 @@ export function TransactionsSheet({
   open,
   onClose,
   address,
+  liveRate,
   personalActivity,
 }: TransactionsSheetProps): ReactElement {
   return (
@@ -68,6 +70,7 @@ export function TransactionsSheet({
         <ActivityFeed
           events={personalActivity.events}
           address={address ?? undefined}
+          liveRate={liveRate}
           loading={personalActivity.loading}
           error={personalActivity.error}
           onRetry={personalActivity.retry}

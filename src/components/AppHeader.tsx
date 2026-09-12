@@ -18,6 +18,7 @@ interface AppHeaderProps {
   marketKey: MarketKey
   onSwitchMarket: (key: MarketKey) => void
   address: string | null
+  liveRate: bigint | null
   personalActivity: UseProtocolEventsResult
 }
 
@@ -36,6 +37,7 @@ export function AppHeader({
   marketKey,
   onSwitchMarket,
   address,
+  liveRate,
   personalActivity,
 }: AppHeaderProps): ReactElement {
   const marketSheet = useDisclosure()
@@ -111,6 +113,7 @@ export function AppHeader({
         open={transactionsSheet.open}
         onClose={transactionsSheet.hide}
         address={address}
+        liveRate={liveRate}
         personalActivity={personalActivity}
       />
 

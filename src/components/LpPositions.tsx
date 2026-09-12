@@ -4,18 +4,22 @@ import type { MaturityPool } from '../hooks/usePools'
 import { formatAmount, formatMaturity } from '../lib/format'
 import { quoteRemoveLiquidity } from '../lib/amm'
 import { cardClasses } from '../lib/cardClasses'
+import { activeMarket } from '../lib/market'
+import { requiredUnderlyingForSy } from '../lib/wrap'
 import { ArrowRightIcon, LayersIcon } from './icons'
 import { FIGURE_TONE, figureText } from '../lib/figures'
 import { Button } from './Button'
 
 interface LpPositionsProps {
   pools: MaturityPool[]
+  liveRate: bigint | null
   onManage: (maturity: bigint) => void
 }
 
-export function LpPositions({ pools, onManage }: LpPositionsProps): ReactElement | null {
+export function LpPositions({ pools, liveRate, onManage }: LpPositionsProps): ReactElement | null {
   const held = pools.filter((p) => p.lpBalance > 0n && p.pool !== null)
   if (held.length === 0) return null
+  const market = activeMarket()
 
   return (
     <section
@@ -37,6 +41,7 @@ export function LpPositions({ pools, onManage }: LpPositionsProps): ReactElement
             { ptReserve: pool.ptReserve, syReserve: pool.syReserve, lpTotal: pool.lpTotal },
             mp.lpBalance,
           )
+          const underlyingOut = requiredUnderlyingForSy(syOut, market, liveRate)
           const share =
             pool.lpTotal > 0n ? Number((mp.lpBalance * 10_000n) / pool.lpTotal) / 100 : 0
           return (
@@ -70,19 +75,23 @@ export function LpPositions({ pools, onManage }: LpPositionsProps): ReactElement
                     Principal value
                   </dt>
                   <dd
-                    title={formatAmount(ptOut)}
+                    title={`${formatAmount(ptOut)} PT`}
                     className="truncate font-mono tabular-nums text-neutral-100"
                   >
-                    {formatAmount(ptOut)}
+                    {formatAmount(ptOut)} PT
                   </dd>
                 </div>
                 <div className="min-w-0">
-                  <dt className="text-[11px] uppercase tracking-wide text-neutral-500">SY value</dt>
+                  <dt className="text-[11px] uppercase tracking-wide text-neutral-500">
+                    Underlying value
+                  </dt>
                   <dd
-                    title={formatAmount(syOut)}
+                    title={underlyingOut !== null ? `${formatAmount(underlyingOut)} ${market.underlyingSymbol}` : undefined}
                     className="truncate font-mono tabular-nums text-neutral-100"
                   >
-                    {formatAmount(syOut)}
+                    {underlyingOut !== null
+                      ? `${formatAmount(underlyingOut)} ${market.underlyingSymbol}`
+                      : '—'}
                   </dd>
                 </div>
               </dl>

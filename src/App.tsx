@@ -276,6 +276,7 @@ function MarketContent({
             marketKey={marketKey}
             onSwitchMarket={onSwitchMarket}
             address={address}
+            liveRate={liveRate}
             personalActivity={personalActivity}
           />
 

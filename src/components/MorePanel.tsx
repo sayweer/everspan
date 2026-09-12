@@ -96,6 +96,7 @@ export function MorePanel({
       ) : (
         <ActivityFeed
           events={events}
+          liveRate={liveRate}
           loading={activityLoading}
           error={activityError}
           onRetry={onRetryActivity}

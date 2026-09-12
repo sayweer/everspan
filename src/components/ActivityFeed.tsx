@@ -5,6 +5,7 @@ import { explorerTxUrl } from '../config'
 import { formatAmount, formatRelativeTime, truncateAddress } from '../lib/format'
 import { chainNowMs } from '../lib/chainTime'
 import { activeMarket } from '../lib/market'
+import { requiredUnderlyingForSy } from '../lib/wrap'
 import type { ProtocolEvent, ProtocolEventType } from '../lib/events'
 import type { AppError } from '../types'
 import { ExternalLinkIcon } from './icons'
@@ -40,6 +41,8 @@ const META: Record<ProtocolEventType, { label: string; dot: string; unit: string
 interface ActivityFeedProps {
   events: ProtocolEvent[]
   address?: string
+  /** Needed to convert an SY-denominated event amount to its underlying equivalent. */
+  liveRate: bigint | null
   loading?: boolean
   error?: AppError | null
   onRetry?: () => void
@@ -48,11 +51,13 @@ interface ActivityFeedProps {
 export function ActivityFeed({
   events,
   address,
+  liveRate,
   loading = false,
   error = null,
   onRetry,
 }: ActivityFeedProps): ReactElement {
-  const underlyingSymbol = activeMarket().underlyingSymbol
+  const market = activeMarket()
+  const underlyingSymbol = market.underlyingSymbol
   const visibleEvents = address
     ? events.filter((event) => event.address?.toLowerCase() === address.toLowerCase())
     : events
@@ -128,7 +133,15 @@ export function ActivityFeed({
           <ul className="mt-4 space-y-2">
             {visibleEvents.map((event) => {
               const meta = META[event.type]
-              const amountLabel = `${formatAmount(event.amount)} ${event.unit ?? meta.unit ?? underlyingSymbol}`
+              // 'SY' here is never shown — it marks that the raw amount is
+              // SY-denominated and needs converting to what the reader
+              // actually holds before it reaches the screen.
+              const rawUnit = event.unit ?? meta.unit
+              const displayAmount =
+                rawUnit === 'SY' ? requiredUnderlyingForSy(event.amount, market, liveRate) : event.amount
+              const displayUnit = rawUnit === 'SY' ? underlyingSymbol : (rawUnit ?? underlyingSymbol)
+              const amountLabel =
+                displayAmount !== null ? `${formatAmount(displayAmount)} ${displayUnit}` : '—'
               return (
                 <li
                   key={event.id}
