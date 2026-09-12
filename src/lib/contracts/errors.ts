@@ -82,7 +82,7 @@ export const SY_ERRORS: ErrorTable = {
   1: { code: 'already_initialized', message: 'The vault is already initialized.' },
   2: { code: 'not_initialized', message: 'The vault has not been initialized yet.' },
   3: { code: 'invalid_amount', message: 'Enter an amount greater than 0.' },
-  4: { code: 'insufficient_balance', message: 'That exceeds your SY balance.' },
+  4: { code: 'insufficient_balance', message: 'That exceeds the balance available to convert back.' },
   5: { code: 'math_overflow', message: 'That amount is too large to process.' },
   6: { code: 'insufficient_allowance', message: 'The spender allowance is too low.' },
   7: { code: 'allowance_expired', message: 'That allowance has expired.' },
@@ -108,8 +108,8 @@ export const SPLITTER_ERRORS: ErrorTable = {
     code: 'maturity_not_reached',
     message: 'You can only redeem principal at or after maturity.',
   },
-  9: { code: 'insufficient_pt', message: 'That exceeds your PT balance.' },
-  10: { code: 'insufficient_yt', message: 'That exceeds your YT balance.' },
+  9: { code: 'insufficient_pt', message: 'That exceeds your principal balance.' },
+  10: { code: 'insufficient_yt', message: 'That exceeds your yield balance.' },
   11: { code: 'nothing_to_claim', message: 'There is no yield to claim yet.' },
   12: { code: 'unauthorized', message: 'Only the admin can do that.' },
   13: { code: 'math_overflow', message: 'That amount is too large to process.' },
@@ -150,7 +150,10 @@ export const AMM_ERRORS: ErrorTable = {
 export const SPLITTER_WRITE_ERRORS: ErrorTable = {
   ...SPLITTER_ERRORS,
   // SyError::InsufficientBalance (via SYVault.transfer), not SplitterError::MaturityNotFound.
-  4: { code: 'insufficient_sy', message: 'That exceeds your SY balance.' },
+  4: {
+    code: 'insufficient_sy',
+    message: 'That exceeds the balance available to prepare for this trade.',
+  },
   // SyError::MathOverflow, not SplitterError::MaturityExists.
   5: { code: 'math_overflow', message: 'That amount is too large to process.' },
 }

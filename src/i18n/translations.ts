@@ -554,7 +554,7 @@ const EN_TO_TR: Record<string, string> = {
   'That allowance has expired.': 'Bu izin süresi dolmuş.',
   'The vault is already initialized.': 'Kasa zaten başlatılmış.',
   'The vault has not been initialized yet.': 'Kasa henüz başlatılmamış.',
-  'That exceeds your SY balance.': 'Bu tutar SY bakiyenizi aşıyor.',
+  'That exceeds the balance available to convert back.': 'Bu tutar geri çevrilebilecek bakiyeyi aşıyor.',
   'The Blend pool has no free liquidity right now — everything is lent out. Try a smaller amount or come back shortly.':
     'Blend havuzunda şu anda boş likidite yok; tamamı ödünç verilmiş. Daha küçük bir tutar deneyin veya kısa süre sonra tekrar gelin.',
   'The Blend pool rejected this request.': 'Blend havuzu bu isteği reddetti.',
@@ -569,8 +569,10 @@ const EN_TO_TR: Record<string, string> = {
     'Bu vade geçti — ayırma ve birleştirme kapalı.',
   'You can only redeem principal at or after maturity.':
     'Anaparayı yalnızca vadede veya vade sonrasında itfa edebilirsiniz.',
-  'That exceeds your PT balance.': 'Bu tutar PT bakiyenizi aşıyor.',
-  'That exceeds your YT balance.': 'Bu tutar YT bakiyenizi aşıyor.',
+  'That exceeds your principal balance.': 'Bu tutar anapara bakiyenizi aşıyor.',
+  'That exceeds your yield balance.': 'Bu tutar getiri bakiyenizi aşıyor.',
+  'That exceeds the balance available to prepare for this trade.':
+    'Bu tutar bu işlem için hazırlanabilecek bakiyeyi aşıyor.',
   'There is no yield to claim yet.': 'Henüz talep edilecek getiri yok.',
   'That underlying ticker is not a valid token symbol.':
     'Dayanak varlığın kodu geçerli bir token sembolü değil.',
