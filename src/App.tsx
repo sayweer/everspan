@@ -15,10 +15,8 @@ import { useProtocolEvents } from './hooks/useProtocolEvents'
 import { isContractsConfigured, markets, type MarketKey } from './config'
 import { activeMarket, setActiveMarket } from './lib/market'
 import { NetworkBanner } from './components/NetworkBanner'
-import { BalanceCard } from './components/BalanceCard'
-import { BalanceHero } from './components/BalanceHero'
+import { BalanceOverview } from './components/BalanceOverview'
 import { RateTicker } from './components/RateTicker'
-import { WalletBar } from './components/WalletBar'
 import { BrandMark } from './components/BrandMark'
 import { BottomNav, SideNav, type TabId } from './components/SideNav'
 import { PositionsPanel, type PositionsSegment } from './components/PositionsPanel'
@@ -312,39 +310,25 @@ function MarketContent({
                 visit — the real wallet balance, big, ahead of everything
                 token-mechanics-shaped below it. */}
             {connected && (
-              <>
-                <BalanceCard
-                  address={address}
-                  balance={balance.balance}
-                  funded={balance.funded}
-                  loading={balance.loading}
-                  error={balance.error}
-                  hidden={amountsHidden}
-                  onToggleHidden={toggleAmountsHidden}
-                  onRefresh={balance.refresh}
-                />
-
-                <BalanceHero
-                  holdings={holdings}
-                  symbol={activeMarket().underlyingSymbol}
-                  loading={loading}
-                  hidden={amountsHidden}
-                  onToggleHidden={toggleAmountsHidden}
-                  onConvert={goConvert}
-                  onPortfolio={goPortfolio}
-                  onLiquidity={() => {
-                    openStrategy('liquidity')
-                  }}
-                />
-
-                <WalletBar
-                  address={address}
-                  underlying={portfolio.underlying}
-                  loading={loading}
-                  isWrongNetwork={isWrongNetwork}
-                  onRefresh={refreshAll}
-                />
-              </>
+              <BalanceOverview
+                address={address}
+                holdings={holdings}
+                symbol={activeMarket().underlyingSymbol}
+                loading={loading}
+                hidden={amountsHidden}
+                onToggleHidden={toggleAmountsHidden}
+                onRefresh={refreshAll}
+                xlmBalance={balance.balance}
+                xlmFunded={balance.funded}
+                xlmLoading={balance.loading}
+                xlmError={balance.error}
+                isWrongNetwork={isWrongNetwork}
+                onConvert={goConvert}
+                onPortfolio={goPortfolio}
+                onLiquidity={() => {
+                  openStrategy('liquidity')
+                }}
+              />
             )}
 
             {tab === 'home' && (

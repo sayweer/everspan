@@ -525,11 +525,9 @@ const EN_TO_TR: Record<string, string> = {
   'This does not create an additional return by itself — your balance is worth the same before and after. Your wallet shows the final network fee before approval.':
     'Bu işlem tek başına ek getiri oluşturmaz — bakiyeniz öncesi ve sonrası aynı değeri taşır. Cüzdanınız onaydan önce son ağ ücretini gösterir.',
   'Underlying yield': 'Dayanak getiri',
-  'XLM balance': 'XLM bakiyesi',
-  '· for network fees': '· ağ ücretleri için',
+  'For network fees': 'Ağ ücretleri için',
+  'Not funded yet': 'Henüz fonlanmadı',
   'Loading XLM balance': 'XLM bakiyesi yükleniyor',
-  'This account isn’t funded yet. On Testnet you can fund it instantly with Friendbot to receive 10,000 test XLM.':
-    'Bu hesap henüz fonlanmadı. Testnet’te Friendbot ile anında fonlayıp 10.000 test XLM alabilirsiniz.',
   'Fund with Friendbot': 'Friendbot ile fonla',
   'Liquidity positions': 'Likidite pozisyonları',
   '% of pool': 'havuzun %’si',

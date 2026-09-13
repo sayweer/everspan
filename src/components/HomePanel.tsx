@@ -73,7 +73,7 @@ export function HomePanel({
             title: 'Fund your test wallet.',
             body:
               market.source === 'mock'
-                ? `Use the faucet in the wallet bar above to receive ${market.underlyingSymbol}. No real funds are used.`
+                ? `Use the faucet above to receive ${market.underlyingSymbol}. No real funds are used.`
                 : (market.fundingHint ??
                   `Add ${market.underlyingSymbol} to this Testnet wallet before continuing.`),
             action: null,
