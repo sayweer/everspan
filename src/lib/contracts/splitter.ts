@@ -64,8 +64,7 @@ const client = (): Promise<SplitterClient> =>
 
 /** Read the list of registered maturity timestamps (unix seconds). */
 export async function readMaturities(): Promise<bigint[] | AppError> {
-  const c = await client()
-  return readCall(() => c.get_maturities(), SPLITTER_ERRORS)
+  return readCall(async () => (await client()).get_maturities(), SPLITTER_ERRORS)
 }
 
 /** Read `address`'s full account (balances + yield state) for `maturity`. */
@@ -73,8 +72,10 @@ export async function readAccount(
   address: string,
   maturity: bigint,
 ): Promise<AccountView | AppError> {
-  const c = await client()
-  const result = await readCall(() => c.get_account({ addr: address, maturity }), SPLITTER_ERRORS)
+  const result = await readCall(
+    async () => (await client()).get_account({ addr: address, maturity }),
+    SPLITTER_ERRORS,
+  )
   if (typeof result === 'object' && 'pt' in result) {
     return {
       pt: result.pt,
@@ -91,8 +92,10 @@ export async function readAccount(
 export async function readTotals(
   maturity: bigint,
 ): Promise<{ ptSupply: bigint; ytSupply: bigint } | AppError> {
-  const c = await client()
-  const result = await readCall(() => c.get_totals({ maturity }), SPLITTER_ERRORS)
+  const result = await readCall(
+    async () => (await client()).get_totals({ maturity }),
+    SPLITTER_ERRORS,
+  )
   if (typeof result === 'object' && 'pt_supply' in result) {
     return { ptSupply: result.pt_supply, ytSupply: result.yt_supply }
   }
@@ -104,8 +107,10 @@ export async function readPreviewClaimable(
   address: string,
   maturity: bigint,
 ): Promise<bigint | AppError> {
-  const c = await client()
-  return readCall(() => c.preview_claimable({ addr: address, maturity }), SPLITTER_ERRORS)
+  return readCall(
+    async () => (await client()).preview_claimable({ addr: address, maturity }),
+    SPLITTER_ERRORS,
+  )
 }
 
 /** Split `syAmount` (stroops) SY into equal PT/YT for `maturity`. Returns PT minted. */
@@ -115,9 +120,9 @@ export async function splitSy(
   syAmount: bigint,
   onPhase: OnTxPhase,
 ): Promise<{ hash: string; ptOut: bigint } | AppError> {
-  const c = await client()
   const result = await invokeWrite(
-    (options) => c.split({ from: address, maturity, sy_amount: syAmount }, options),
+    async (options) =>
+      (await client()).split({ from: address, maturity, sy_amount: syAmount }, options),
     address,
     onPhase,
     SPLITTER_WRITE_ERRORS,
@@ -132,9 +137,9 @@ export async function mergePtYt(
   ptAmount: bigint,
   onPhase: OnTxPhase,
 ): Promise<{ hash: string; syOut: bigint } | AppError> {
-  const c = await client()
   const result = await invokeWrite(
-    (options) => c.merge({ from: address, maturity, pt_amount: ptAmount }, options),
+    async (options) =>
+      (await client()).merge({ from: address, maturity, pt_amount: ptAmount }, options),
     address,
     onPhase,
     SPLITTER_WRITE_ERRORS,
@@ -148,9 +153,8 @@ export async function claimYield(
   maturity: bigint,
   onPhase: OnTxPhase,
 ): Promise<{ hash: string; syOut: bigint } | AppError> {
-  const c = await client()
   const result = await invokeWrite(
-    (options) => c.claim_yield({ from: address, maturity }, options),
+    async (options) => (await client()).claim_yield({ from: address, maturity }, options),
     address,
     onPhase,
     SPLITTER_WRITE_ERRORS,
@@ -165,9 +169,9 @@ export async function redeemPt(
   ptAmount: bigint,
   onPhase: OnTxPhase,
 ): Promise<{ hash: string; syOut: bigint } | AppError> {
-  const c = await client()
   const result = await invokeWrite(
-    (options) => c.redeem_pt({ from: address, maturity, pt_amount: ptAmount }, options),
+    async (options) =>
+      (await client()).redeem_pt({ from: address, maturity, pt_amount: ptAmount }, options),
     address,
     onPhase,
     SPLITTER_WRITE_ERRORS,

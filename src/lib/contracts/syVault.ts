@@ -23,14 +23,12 @@ const client = (): Promise<SyClient> => getClient<SyClient>(activeMarket().syVau
 
 /** Read the vault's current exchange rate (SY → underlying, scaled by 1e12). */
 export async function readExchangeRate(): Promise<bigint | AppError> {
-  const c = await client()
-  return readCall(() => c.exchange_rate(), SY_ERRORS)
+  return readCall(async () => (await client()).exchange_rate(), SY_ERRORS)
 }
 
 /** Read `address`'s SY balance. */
 export async function readSyBalance(address: string): Promise<bigint | AppError> {
-  const c = await client()
-  return readCall(() => c.balance({ id: address }), SY_ERRORS)
+  return readCall(async () => (await client()).balance({ id: address }), SY_ERRORS)
 }
 
 /** Wrap `amount` (stroops) of the underlying token into SY. */
@@ -39,9 +37,8 @@ export async function wrapTokens(
   amount: bigint,
   onPhase: OnTxPhase,
 ): Promise<{ hash: string; newBalance: bigint } | AppError> {
-  const c = await client()
   const result = await invokeWrite(
-    (options) => c.wrap({ from: address, amount }, options),
+    async (options) => (await client()).wrap({ from: address, amount }, options),
     address,
     onPhase,
     wrapErrors(activeMarket().underlyingSymbol),
@@ -55,9 +52,8 @@ export async function unwrapTokens(
   amount: bigint,
   onPhase: OnTxPhase,
 ): Promise<{ hash: string; newBalance: bigint } | AppError> {
-  const c = await client()
   const result = await invokeWrite(
-    (options) => c.unwrap({ from: address, amount }, options),
+    async (options) => (await client()).unwrap({ from: address, amount }, options),
     address,
     onPhase,
     SY_ERRORS,

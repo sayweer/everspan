@@ -70,8 +70,7 @@ const client = (): Promise<AmmClient> => getClient<AmmClient>(activeMarket().amm
 
 /** Read the pool state for `maturity`. */
 export async function readPool(maturity: bigint): Promise<PoolView | AppError> {
-  const c = await client()
-  const result = await readCall(() => c.get_pool({ maturity }), AMM_ERRORS)
+  const result = await readCall(async () => (await client()).get_pool({ maturity }), AMM_ERRORS)
   if (typeof result === 'object' && 'pt_reserve' in result) {
     return {
       ptToken: result.pt_token,
@@ -89,17 +88,15 @@ export async function quoteSwap(
   side: SwapSide,
   amountIn: bigint,
 ): Promise<bigint | AppError> {
-  const c = await client()
   return readCall(
-    () => c.quote_swap({ maturity, side: { tag: side }, amount_in: amountIn }),
+    async () => (await client()).quote_swap({ maturity, side: { tag: side }, amount_in: amountIn }),
     AMM_ERRORS,
   )
 }
 
 /** Read `address`'s LP share balance for `maturity`. */
 export async function readLpBalance(address: string, maturity: bigint): Promise<bigint | AppError> {
-  const c = await client()
-  return readCall(() => c.lp_balance({ addr: address, maturity }), AMM_ERRORS)
+  return readCall(async () => (await client()).lp_balance({ addr: address, maturity }), AMM_ERRORS)
 }
 
 /**
@@ -114,10 +111,9 @@ export async function swapExactIn(
   minOut: bigint,
   onPhase: OnTxPhase,
 ): Promise<{ hash: string; amountOut: bigint } | AppError> {
-  const c = await client()
   const result = await invokeWrite(
-    (options) =>
-      c.swap_exact_in(
+    async (options) =>
+      (await client()).swap_exact_in(
         { from: address, maturity, side: { tag: side }, amount_in: amountIn, min_out: minOut },
         options,
       ),
@@ -141,10 +137,9 @@ export async function addLiquidity(
   syMin: bigint,
   onPhase: OnTxPhase,
 ): Promise<{ hash: string; lpMinted: bigint } | AppError> {
-  const c = await client()
   const result = await invokeWrite(
-    (options) =>
-      c.add_liquidity(
+    async (options) =>
+      (await client()).add_liquidity(
         {
           from: address,
           maturity,
@@ -174,10 +169,12 @@ export async function removeLiquidity(
   syMin: bigint,
   onPhase: OnTxPhase,
 ): Promise<{ hash: string; ptOut: bigint; syOut: bigint } | AppError> {
-  const c = await client()
   const result = await invokeWrite(
-    (options) =>
-      c.remove_liquidity({ from: address, maturity, lp, pt_min: ptMin, sy_min: syMin }, options),
+    async (options) =>
+      (await client()).remove_liquidity(
+        { from: address, maturity, lp, pt_min: ptMin, sy_min: syMin },
+        options,
+      ),
     address,
     onPhase,
     AMM_ERRORS,

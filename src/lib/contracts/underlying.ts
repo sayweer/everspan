@@ -41,8 +41,7 @@ interface MytClient {
   ): Promise<AssembledTransaction<null>>
 }
 
-const client = (): Promise<MytClient> =>
-  getClient<MytClient>(activeMarket().underlyingContractId)
+const client = (): Promise<MytClient> => getClient<MytClient>(activeMarket().underlyingContractId)
 
 /**
  * Read `address`'s underlying balance (0 if the account has none). Goes through
@@ -69,8 +68,7 @@ export async function readRateInfo(): Promise<RateInfo | AppError> {
     if (isAppError(rate)) return rate
     return { since: BigInt(Math.floor(chainNowMs() / 1000)), rate, slopePerSec: 0n }
   }
-  const c = await client()
-  const result = await readCall(() => c.get_rate_info(), MYT_ERRORS)
+  const result = await readCall(async () => (await client()).get_rate_info(), MYT_ERRORS)
   if (typeof result === 'object' && 'since' in result) {
     return { since: result.since, rate: result.rate, slopePerSec: result.slope_per_sec }
   }
@@ -83,9 +81,8 @@ export async function requestFaucet(
   amount: bigint,
   onPhase: OnTxPhase,
 ): Promise<{ hash: string } | AppError> {
-  const c = await client()
   const result = await invokeWrite(
-    (options) => c.faucet({ to: address, amount }, options),
+    async (options) => (await client()).faucet({ to: address, amount }, options),
     address,
     onPhase,
     MYT_ERRORS,
