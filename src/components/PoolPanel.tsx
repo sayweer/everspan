@@ -11,6 +11,7 @@ import { formatAmount, formatMaturity } from '../lib/format'
 import { isValidTokenAmount } from '../lib/validation'
 import { activeMarket } from '../lib/market'
 import { requiredUnderlyingForSy } from '../lib/wrap'
+import { underlyingMark } from '../lib/tokenMarks'
 import { wrapTokens } from '../lib/contracts/syVault'
 import { minOutFromSlippage, quoteAddLiquidity, quoteRemoveLiquidity } from '../lib/amm'
 import { addLiquidity, removeLiquidity } from '../lib/contracts/amm'
@@ -18,6 +19,7 @@ import { AmountField, ActionButton, TabToggle } from './forms'
 import { MaturitySelect } from './MaturitySelect'
 import { SlippageControl } from './SlippageControl'
 import { SummaryRow } from './SummaryRow'
+import { TokenAmount } from './TokenIcon'
 import { TxStatus } from './TxStatus'
 
 interface PoolPanelProps {
@@ -265,11 +267,17 @@ function AddForm({
           </p>
           <div className="mt-4 space-y-2.5">
             <SummaryRow label="You provide">
-              {formatAmount(requiredUnderlyingForSy(quote.syIn, market, liveRate) ?? 0n)}{' '}
-              {underlyingSymbol}
+              <TokenAmount mark={underlyingMark(underlyingSymbol)}>
+                {formatAmount(requiredUnderlyingForSy(quote.syIn, market, liveRate) ?? 0n)}{' '}
+                {underlyingSymbol}
+              </TokenAmount>
             </SummaryRow>
-            <SummaryRow label="PT paired">{formatAmount(ptNeeded)} PT</SummaryRow>
-            <SummaryRow label="LP shares received">{formatAmount(quote.lpMinted)} LP</SummaryRow>
+            <SummaryRow label="PT paired">
+              <TokenAmount mark="principal">{formatAmount(ptNeeded)} PT</TokenAmount>
+            </SummaryRow>
+            <SummaryRow label="LP shares received">
+              <TokenAmount mark="liquidity">{formatAmount(quote.lpMinted)} LP</TokenAmount>
+            </SummaryRow>
             <SummaryRow label="Pool swap fee rate">0.30%</SummaryRow>
           </div>
           <p className="mt-4 border-t border-hairline pt-3 text-xs leading-relaxed text-neutral-400">
@@ -407,11 +415,17 @@ function RemoveForm({
         <div className="rounded-xl border border-hairline bg-neutral-950/40 p-4">
           <p className="text-sm font-semibold text-neutral-100">Review withdrawal</p>
           <div className="mt-4 space-y-2.5">
-            <SummaryRow label="LP shares burned">{formatAmount(lp)} LP</SummaryRow>
-            <SummaryRow label="PT returned">{formatAmount(quote.ptOut)} PT</SummaryRow>
+            <SummaryRow label="LP shares burned">
+              <TokenAmount mark="liquidity">{formatAmount(lp)} LP</TokenAmount>
+            </SummaryRow>
+            <SummaryRow label="PT returned">
+              <TokenAmount mark="principal">{formatAmount(quote.ptOut)} PT</TokenAmount>
+            </SummaryRow>
             <SummaryRow label={`${market.underlyingSymbol} returned`}>
-              {formatAmount(requiredUnderlyingForSy(quote.syOut, market, liveRate) ?? 0n)}{' '}
-              {market.underlyingSymbol}
+              <TokenAmount mark={underlyingMark(market.underlyingSymbol)}>
+                {formatAmount(requiredUnderlyingForSy(quote.syOut, market, liveRate) ?? 0n)}{' '}
+                {market.underlyingSymbol}
+              </TokenAmount>
             </SummaryRow>
           </div>
           <details className="mt-3 border-t border-hairline pt-3 text-xs">

@@ -2,12 +2,14 @@
 import type { ReactElement } from 'react'
 import type { Portfolio } from '../hooks/usePortfolio'
 import { formatAmount } from '../lib/format'
+import type { TokenMark } from '../lib/tokenMarks'
 import { claimableAt } from '../lib/yield'
 import { chainNowMs } from '../lib/chainTime'
 import type { AppError } from '../types'
 import { IconButton } from './Button'
 import { RefreshIcon } from './icons'
 import { Button } from './Button'
+import { TokenAmount } from './TokenIcon'
 
 interface PortfolioPanelProps {
   address: string | null
@@ -22,6 +24,8 @@ interface Stat {
   label: string
   value: string
   accent?: boolean
+  /** The coin the figure is counted in, when it is an amount of one token. */
+  mark?: TokenMark
 }
 
 export function PortfolioPanel({
@@ -47,12 +51,17 @@ export function PortfolioPanel({
         )
 
   const stats: Stat[] = [
-    { label: 'Principal (all maturities)', value: disconnected ? '—' : formatAmount(totalPt) },
+    {
+      label: 'Principal (all maturities)',
+      value: disconnected ? '—' : formatAmount(totalPt),
+      mark: 'principal',
+    },
     { label: 'Open maturities', value: disconnected ? '—' : String(portfolio.positions.length) },
     {
       label: 'Claimable yield',
       value: disconnected || totalClaimable === null ? '—' : formatAmount(totalClaimable, 6),
       accent: true,
+      mark: 'yield',
     },
   ]
 
@@ -100,11 +109,15 @@ export function PortfolioPanel({
               ) : (
                 <dd
                   title={stat.value}
-                  className={`mt-1 truncate font-mono text-base font-semibold tabular-nums sm:text-lg ${
+                  className={`mt-1 flex min-w-0 font-mono text-base font-semibold tabular-nums sm:text-lg ${
                     stat.accent ? 'text-accent-300' : 'text-neutral-50'
                   }`}
                 >
-                  {stat.value}
+                  {stat.mark ? (
+                    <TokenAmount mark={stat.mark}>{stat.value}</TokenAmount>
+                  ) : (
+                    <span className="truncate">{stat.value}</span>
+                  )}
                 </dd>
               )}
             </div>

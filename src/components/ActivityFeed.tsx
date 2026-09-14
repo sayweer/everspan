@@ -6,11 +6,13 @@ import { formatAmount, formatRelativeTime, truncateAddress } from '../lib/format
 import { chainNowMs } from '../lib/chainTime'
 import { activeMarket } from '../lib/market'
 import { requiredUnderlyingForSy } from '../lib/wrap'
+import { underlyingMark } from '../lib/tokenMarks'
 import type { ProtocolEvent, ProtocolEventType } from '../lib/events'
 import type { AppError } from '../types'
 import { ExternalLinkIcon } from './icons'
 import { iconButtonClasses } from '../lib/buttonStyles'
 import { Button } from './Button'
+import { TokenAmount } from './TokenIcon'
 
 /**
  * Display label, dot colour, and default amount unit per event type. A null
@@ -165,9 +167,17 @@ export function ActivityFeed({
                     </span>
                     <span
                       title={amountLabel}
-                      className="min-w-0 break-all text-right font-mono tabular-nums text-neutral-300 sm:max-w-56"
+                      className="flex min-w-0 justify-end font-mono tabular-nums text-neutral-300 sm:max-w-56"
                     >
-                      {amountLabel}
+                      {displayAmount !== null ? (
+                        <TokenAmount
+                          mark={displayUnit === 'PT' ? 'principal' : underlyingMark(displayUnit)}
+                        >
+                          {amountLabel}
+                        </TokenAmount>
+                      ) : (
+                        amountLabel
+                      )}
                     </span>
                     <a
                       href={explorerTxUrl(event.txHash)}

@@ -6,9 +6,11 @@ import { quoteRemoveLiquidity } from '../lib/amm'
 import { cardClasses } from '../lib/cardClasses'
 import { activeMarket } from '../lib/market'
 import { requiredUnderlyingForSy } from '../lib/wrap'
+import { underlyingMark } from '../lib/tokenMarks'
 import { ArrowRightIcon, LayersIcon } from './icons'
 import { FIGURE_TONE, figureText } from '../lib/figures'
 import { Button } from './Button'
+import { TokenAmount } from './TokenIcon'
 
 interface LpPositionsProps {
   pools: MaturityPool[]
@@ -65,9 +67,9 @@ export function LpPositions({ pools, liveRate, onManage }: LpPositionsProps): Re
                   <dt className="text-[11px] uppercase tracking-wide text-neutral-500">Shares</dt>
                   <dd
                     title={formatAmount(mp.lpBalance)}
-                    className="truncate font-mono tabular-nums text-neutral-100"
+                    className="flex min-w-0 font-mono tabular-nums text-neutral-100"
                   >
-                    {formatAmount(mp.lpBalance)}
+                    <TokenAmount mark="liquidity">{formatAmount(mp.lpBalance)}</TokenAmount>
                   </dd>
                 </div>
                 <div className="min-w-0">
@@ -76,9 +78,9 @@ export function LpPositions({ pools, liveRate, onManage }: LpPositionsProps): Re
                   </dt>
                   <dd
                     title={`${formatAmount(ptOut)} PT`}
-                    className="truncate font-mono tabular-nums text-neutral-100"
+                    className="flex min-w-0 font-mono tabular-nums text-neutral-100"
                   >
-                    {formatAmount(ptOut)} PT
+                    <TokenAmount mark="principal">{formatAmount(ptOut)} PT</TokenAmount>
                   </dd>
                 </div>
                 <div className="min-w-0">
@@ -87,11 +89,15 @@ export function LpPositions({ pools, liveRate, onManage }: LpPositionsProps): Re
                   </dt>
                   <dd
                     title={underlyingOut !== null ? `${formatAmount(underlyingOut)} ${market.underlyingSymbol}` : undefined}
-                    className="truncate font-mono tabular-nums text-neutral-100"
+                    className="flex min-w-0 font-mono tabular-nums text-neutral-100"
                   >
-                    {underlyingOut !== null
-                      ? `${formatAmount(underlyingOut)} ${market.underlyingSymbol}`
-                      : '—'}
+                    {underlyingOut !== null ? (
+                      <TokenAmount mark={underlyingMark(market.underlyingSymbol)}>
+                        {formatAmount(underlyingOut)} {market.underlyingSymbol}
+                      </TokenAmount>
+                    ) : (
+                      '—'
+                    )}
                   </dd>
                 </div>
               </dl>

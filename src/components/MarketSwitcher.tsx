@@ -8,7 +8,9 @@ import type { KeyboardEvent, ReactElement } from 'react'
 import { markets, type MarketKey } from '../config'
 import { useTransactionSafety } from '../context/TransactionSafetyContext'
 import { focusRing, segmentClasses, segmentTrackClass } from '../lib/buttonStyles'
+import { underlyingMark } from '../lib/tokenMarks'
 import { CheckIcon } from './icons'
+import { TokenIcon } from './TokenIcon'
 
 interface MarketSwitcherProps {
   active: MarketKey
@@ -105,6 +107,7 @@ export function MarketSwitcher({
             >
               {stacked ? (
                 <>
+                  <TokenIcon mark={underlyingMark(market.underlyingSymbol)} />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate">{market.label}</span>
                     <span className="block truncate text-xs font-normal text-neutral-400">
