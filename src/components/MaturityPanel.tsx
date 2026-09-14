@@ -9,8 +9,8 @@ import { formatMaturity } from '../lib/format'
 import { chainNowMs } from '../lib/chainTime'
 import { cardClasses } from '../lib/cardClasses'
 import { useTxRunner } from '../hooks/useTxRunner'
-import { ClockIcon, CoinsIcon } from './icons'
-import { FIGURE_TONE, figureText } from '../lib/figures'
+import { ClockIcon } from './icons'
+import { TokenAmount, TokenIcon } from './TokenIcon'
 import { TxStatus } from './TxStatus'
 import { ActionButton } from './forms'
 
@@ -147,24 +147,24 @@ function MaturityCard({
           <dt className="text-[11px] uppercase tracking-wide text-neutral-400">Principal</dt>
           <dd
             title={formatAmount(position.pt)}
-            className="truncate font-mono tabular-nums text-neutral-100"
+            className="flex min-w-0 font-mono tabular-nums text-neutral-100"
           >
-            {formatAmount(position.pt)}
+            <TokenAmount mark="principal">{formatAmount(position.pt)}</TokenAmount>
           </dd>
         </div>
         <div className="min-w-0">
           <dt className="text-[11px] uppercase tracking-wide text-neutral-400">Yield</dt>
           <dd
             title={formatAmount(position.yt)}
-            className="truncate font-mono tabular-nums text-neutral-100"
+            className="flex min-w-0 font-mono tabular-nums text-neutral-100"
           >
-            {formatAmount(position.yt)}
+            <TokenAmount mark="yield">{formatAmount(position.yt)}</TokenAmount>
           </dd>
         </div>
       </dl>
 
       <div className="mt-3 flex items-center gap-1.5 rounded-xl border border-hairline bg-neutral-950/60 px-3 py-2">
-        <CoinsIcon className={`h-4 w-4 ${figureText(FIGURE_TONE.value)}`} />
+        <TokenIcon mark="yield" className="h-4 w-4" />
         <span className="text-xs text-neutral-300">Claimable now</span>
         <span
           title={claimable === null ? undefined : formatAmount(claimable, 6)}

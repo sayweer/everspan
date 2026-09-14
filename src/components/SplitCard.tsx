@@ -15,6 +15,7 @@ import type { MaturityPosition } from '../hooks/usePortfolio'
 import { isValidTokenAmount } from '../lib/validation'
 import { chainNowMs } from '../lib/chainTime'
 import { activeMarket } from '../lib/market'
+import { underlyingMark } from '../lib/tokenMarks'
 import { requiredUnderlyingForSy } from '../lib/wrap'
 import { RATE_SCALE } from '../lib/yield'
 import { cardClasses } from '../lib/cardClasses'
@@ -22,6 +23,7 @@ import { useTxRunner } from '../hooks/useTxRunner'
 import { useSyPreparation } from '../hooks/useSyPreparation'
 import { SplitIcon } from './icons'
 import { FIGURE_TONE, figureText } from '../lib/figures'
+import { TokenAmount } from './TokenIcon'
 import { TxStatus } from './TxStatus'
 import { AmountField, TabToggle, ActionButton } from './forms'
 import { MaturitySelect, type MaturityOption } from './MaturitySelect'
@@ -43,6 +45,20 @@ const ZERO_POSITION: AccountView = { pt: 0n, yt: 0n, index: 0n, accruedSy: 0n, c
 
 function isMatured(maturity: bigint, nowMs: number): boolean {
   return Number(maturity) * 1000 <= nowMs
+}
+
+/** Matching principal and yield amounts, each led by its own coin. */
+function PtYtPair({ amount, approximate = false }: { amount: bigint; approximate?: boolean }): ReactElement {
+  return (
+    <>
+      <TokenAmount mark="principal">
+        {approximate ? '≈ ' : ''}
+        {formatAmount(amount)} PT
+      </TokenAmount>
+      <span className="text-neutral-500">+</span>
+      <TokenAmount mark="yield">{formatAmount(amount)} YT</TokenAmount>
+    </>
+  )
 }
 
 export function SplitCard({
@@ -230,18 +246,26 @@ export function SplitCard({
               <div className="mt-3 space-y-2 text-sm">
                 <p className="flex items-center justify-between gap-4">
                   <span className="text-neutral-400">You use</span>
-                  <span className="font-mono tabular-nums text-neutral-200">
-                    {tab === 'split'
-                      ? `${formatAmount(splitPrep.underlyingIn)} ${underlyingSymbol}`
-                      : `${formatAmount(mergeValid.ok ? mergeValid.stroops : 0n)} PT + YT`}
+                  <span className="flex min-w-0 flex-wrap items-center justify-end gap-x-2 gap-y-1 font-mono tabular-nums text-neutral-200">
+                    {tab === 'split' ? (
+                      <TokenAmount mark={underlyingMark(underlyingSymbol)}>
+                        {formatAmount(splitPrep.underlyingIn)} {underlyingSymbol}
+                      </TokenAmount>
+                    ) : (
+                      <PtYtPair amount={mergeValid.ok ? mergeValid.stroops : 0n} />
+                    )}
                   </span>
                 </p>
                 <p className="flex items-center justify-between gap-4">
                   <span className="text-neutral-400">You receive</span>
-                  <span className="text-right font-mono font-medium tabular-nums text-neutral-100">
-                    {tab === 'split'
-                      ? `≈ ${formatAmount(ptYtOut ?? 0n)} PT + ${formatAmount(ptYtOut ?? 0n)} YT`
-                      : `≈ ${formatAmount(mergeUnderlyingOut ?? 0n)} ${underlyingSymbol}`}
+                  <span className="flex min-w-0 flex-wrap items-center justify-end gap-x-2 gap-y-1 font-mono font-medium tabular-nums text-neutral-100">
+                    {tab === 'split' ? (
+                      <PtYtPair amount={ptYtOut ?? 0n} approximate />
+                    ) : (
+                      <TokenAmount mark={underlyingMark(underlyingSymbol)}>
+                        ≈ {formatAmount(mergeUnderlyingOut ?? 0n)} {underlyingSymbol}
+                      </TokenAmount>
+                    )}
                   </span>
                 </p>
               </div>

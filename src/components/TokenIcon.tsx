@@ -3,7 +3,7 @@
  * on top. XLM reuses the Stellar mark; the others are 24-unit glyphs drawn to
  * sit inside the disc's safe area.
  */
-import type { ReactElement } from 'react'
+import type { ReactElement, ReactNode } from 'react'
 import { TOKEN_MARK_COLORS, type TokenMark } from '../lib/tokenMarks'
 import { StellarMark } from './StellarMark'
 
@@ -72,6 +72,16 @@ export function TokenIcon({ mark, className = 'h-8 w-8' }: TokenIconProps): Reac
           {GLYPHS[mark]}
         </svg>
       )}
+    </span>
+  )
+}
+
+/** An amount led by a small coin, for review lines and position figures. */
+export function TokenAmount({ mark, children }: { mark: TokenMark; children: ReactNode }): ReactElement {
+  return (
+    <span className="inline-flex min-w-0 items-center gap-1.5">
+      <TokenIcon mark={mark} className="h-4 w-4" />
+      <span className="min-w-0 truncate">{children}</span>
     </span>
   )
 }

@@ -8,6 +8,7 @@ import { useTxRunner } from '../hooks/useTxRunner'
 import { useSyPreparation } from '../hooks/useSyPreparation'
 import { stroopsToXlm } from '../lib/amounts'
 import { activeMarket } from '../lib/market'
+import { underlyingMark } from '../lib/tokenMarks'
 import { formatAmount, formatMaturity } from '../lib/format'
 import { maturityCountdown, RATE_SCALE } from '../lib/yield'
 import {
@@ -32,6 +33,7 @@ import { AmountField, ActionButton } from './forms'
 import { MaturitySelect } from './MaturitySelect'
 import { SlippageControl } from './SlippageControl'
 import { SummaryRow } from './SummaryRow'
+import { TokenAmount } from './TokenIcon'
 import { TxStatus } from './TxStatus'
 import { AlertTriangleIcon, LockIcon } from './icons'
 import { FIGURE_TONE, figureText } from '../lib/figures'
@@ -292,10 +294,12 @@ function LockRateForm({
           </p>
           <div className="mt-4 space-y-2.5">
             <SummaryRow label="You pay">
-              {formatAmount(underlyingIn)} {underlyingSymbol}
+              <TokenAmount mark={underlyingMark(underlyingSymbol)}>
+                {formatAmount(underlyingIn)} {underlyingSymbol}
+              </TokenAmount>
             </SummaryRow>
             <SummaryRow label="You receive at least" accent>
-              {formatAmount(minOut)} Principal
+              <TokenAmount mark="principal">{formatAmount(minOut)} Principal</TokenAmount>
             </SummaryRow>
             <SummaryRow label="Fixed APY">{formatPercent(lockedApy)}</SummaryRow>
             <SummaryRow label="Maturity">{formatMaturity(maturity)}</SummaryRow>
@@ -648,13 +652,17 @@ function LongYieldForm({
           </p>
           <div className="mt-4 space-y-2.5">
             <SummaryRow label="You use">
-              {formatAmount(underlyingIn)} {underlyingSymbol}
+              <TokenAmount mark={underlyingMark(underlyingSymbol)}>
+                {formatAmount(underlyingIn)} {underlyingSymbol}
+              </TokenAmount>
             </SummaryRow>
             <SummaryRow label="Yield you keep" accent>
-              {formatAmount(projected)}
+              <TokenAmount mark="yield">{formatAmount(projected)}</TokenAmount>
             </SummaryRow>
             <SummaryRow label="Principal sold for">
-              ≈ {formatAmount(sellBackUnderlying)} {underlyingSymbol}
+              <TokenAmount mark={underlyingMark(underlyingSymbol)}>
+                ≈ {formatAmount(sellBackUnderlying)} {underlyingSymbol}
+              </TokenAmount>
             </SummaryRow>
             <SummaryRow label="Estimated net cost">
               ≈ {formatAmount(netCost)} {underlyingSymbol}
