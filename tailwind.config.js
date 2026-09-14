@@ -97,6 +97,9 @@ export default {
           'sans-serif',
         ],
         mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Consolas', 'monospace'],
+        // The platform's own UI face (SF Pro, Segoe UI, Roboto) for a balance
+        // figure: its tabular digits are drawn for exactly this job.
+        figure: ['-apple-system', 'BlinkMacSystemFont', 'system-ui', 'Segoe UI', 'Roboto', 'sans-serif'],
       },
       transitionTimingFunction: {
         // Overshoots slightly on the way back, which is what reads as a

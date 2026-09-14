@@ -150,19 +150,19 @@ export function BalanceOverview({
             Total value
           </span>
           <div
-            className={`mt-1 flex items-baseline gap-2 tabular-nums text-neutral-50 ${
+            className={`mt-1 flex min-w-0 items-baseline font-figure tabular-nums text-neutral-50 ${
               loading ? 'opacity-60' : ''
             }`}
           >
-            <span className="truncate text-[clamp(2.25rem,9vw,3.25rem)] font-bold leading-none tracking-tight">
+            <span className="truncate text-[clamp(2.25rem,9vw,3.25rem)] font-bold leading-none tracking-[-0.02em]">
               {hidden ? MASK : parts.whole}
             </span>
-            {!hidden && parts.fraction && (
-              <span className="text-lg font-medium leading-none text-neutral-400">
-                .{parts.fraction}
-              </span>
-            )}
-            <span className="text-base font-medium text-neutral-400">{symbol}</span>
+            {/* The fraction and unit ride on the whole number's baseline as one
+                quieter run, so the eye lands on the whole figure first. */}
+            <span className="shrink-0 whitespace-pre text-base font-medium leading-none text-neutral-400">
+              {!hidden && parts.fraction ? `.${parts.fraction} ` : ' '}
+              {symbol}
+            </span>
           </div>
         </div>
 
