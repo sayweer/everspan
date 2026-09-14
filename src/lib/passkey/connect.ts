@@ -10,6 +10,7 @@ import type { AppError } from '../../types'
 import { isAppError } from '../../types'
 import { adoptWallet, closeWallet, createWallet, openWallet } from './kit'
 import { relayEnvelope } from './relay'
+import { awaitConfirmation } from '../transactionStatus'
 import { endPasskeySession, rememberedWallet, startPasskeySession } from './session'
 
 /** What the reader is called in their authenticator's list of passkeys. */
@@ -58,6 +59,8 @@ export async function createPasskeyWallet(): Promise<PasskeyConnection | AppErro
 
   const deployed = await relayEnvelope(fetch, created.signedTx)
   if (isAppError(deployed)) return deployed
+  const unconfirmed = await awaitConfirmation(deployed.hash)
+  if (unconfirmed) return unconfirmed
 
   const identity = await adoptWallet(created, deployed.hash)
   if (isAppError(identity)) return identity

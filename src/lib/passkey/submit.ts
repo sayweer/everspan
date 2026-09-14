@@ -15,6 +15,7 @@ import type { AppError } from '../../types'
 import { ensureOpen, signAssembled } from './kit'
 import { relayAssembled, type AssembledLike } from './relay'
 import { storedCredentialId } from './session'
+import { awaitConfirmation } from '../transactionStatus'
 
 /** The phase callback `invokeWrite` threads through, in the shape it uses. */
 type OnPhase = (phase: 'building' | 'signing' | 'pending', hash?: string) => boolean | undefined
@@ -43,5 +44,8 @@ export async function submitThroughRelay(
   if ('code' in sent) return sent
 
   onPhase('pending', sent.hash)
-  return sent
+  // The relay returns once the network has the transaction, not once it has
+  // landed; the simulated result must not be reported until it has.
+  const unconfirmed = await awaitConfirmation(sent.hash)
+  return unconfirmed ?? sent
 }
