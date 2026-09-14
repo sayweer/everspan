@@ -56,11 +56,11 @@ export function MarketSwitcher({
     }
     if (nextIndex === null) return
     event.preventDefault()
-    const next = markets[nextIndex]
-    onChange(next.key)
-    window.requestAnimationFrame(() => {
-      document.getElementById(`${idPrefix}${next.key}`)?.focus()
-    })
+    // Arrows only move focus; Enter, Space or a click commits. A switch
+    // remounts every panel and closes the sheet this sits in, so committing on
+    // each arrow press threw keyboard focus to <body> before the reader could
+    // look at the other option.
+    document.getElementById(`${idPrefix}${markets[nextIndex].key}`)?.focus()
   }
 
   const stacked = layout === 'stacked'

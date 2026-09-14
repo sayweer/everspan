@@ -12,7 +12,7 @@ import { usePools } from './hooks/usePools'
 import { useHoldings } from './hooks/useHoldings'
 import { useLiveRate } from './hooks/useLiveRate'
 import { useProtocolEvents } from './hooks/useProtocolEvents'
-import { isContractsConfigured, markets, type MarketKey } from './config'
+import { isContractsConfigured, type MarketKey } from './config'
 import { activeMarket, setActiveMarket } from './lib/market'
 import { NetworkBanner } from './components/NetworkBanner'
 import { BalanceOverview } from './components/BalanceOverview'
@@ -32,7 +32,10 @@ import { DataUnavailable } from './components/DataUnavailable'
 function App(): ReactElement {
   useSurface('app')
   useDocumentTitle('App — Everspan')
-  const [marketKey, setMarketKey] = useState<MarketKey>(markets[0].key)
+  // Seeded from the module selection, not `markets[0]`: that selection outlives
+  // this component, so leaving /app and coming back must not show one market
+  // while every read still targets another.
+  const [marketKey, setMarketKey] = useState<MarketKey>(() => activeMarket().key)
   const { address } = useWallet()
   const { resolutionVersion, dataVersion, trackedTransaction } = useTransactionSafety()
   const configured = isContractsConfigured()

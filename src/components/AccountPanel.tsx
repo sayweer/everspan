@@ -182,6 +182,7 @@ export function AccountPanel({
         <Group label="Preferences">
           {switchable && (
             <RowButton
+              id="market-trigger"
               icon={<LayersIcon className="h-5 w-5" />}
               title="Yield source"
               subtitle="Which deployment balances and positions read from"
@@ -381,10 +382,11 @@ function Chevron(): ReactElement {
 
 function RowButton({
   onClick,
+  id,
   ...content
-}: RowContentProps & { onClick: () => void }): ReactElement {
+}: RowContentProps & { onClick: () => void; id?: string }): ReactElement {
   return (
-    <button type="button" onClick={onClick} className={`${ROW} ${focusRing}`}>
+    <button type="button" id={id} onClick={onClick} className={`${ROW} ${focusRing}`}>
       <RowContent {...content} />
     </button>
   )
