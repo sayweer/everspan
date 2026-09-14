@@ -20,20 +20,12 @@ import { useTransactionSafety } from '../context/TransactionSafetyContext'
 import { useTxRunner } from '../hooks/useTxRunner'
 import { AMOUNT_MASK as MASK } from '../hooks/useHiddenAmounts'
 import { focusRing } from '../lib/buttonStyles'
+import { underlyingMark } from '../lib/tokenMarks'
 import { Button, IconButton } from './Button'
 import { FaucetButton, FAUCET_AMOUNT } from './FaucetButton'
 import { TxStatus } from './TxStatus'
-import { StellarMark } from './StellarMark'
-import {
-  ChartBarIcon,
-  ChevronDownIcon,
-  CoinsIcon,
-  DropletIcon,
-  EyeIcon,
-  EyeOffIcon,
-  LockIcon,
-  RefreshIcon,
-} from './icons'
+import { TokenIcon } from './TokenIcon'
+import { ChevronDownIcon, EyeIcon, EyeOffIcon, RefreshIcon } from './icons'
 
 interface BalanceOverviewProps {
   address: string
@@ -124,28 +116,28 @@ export function BalanceOverview({
       label: 'Liquid',
       hint: `${symbol} you can act with now`,
       value: holdings.liquid,
-      icon: <CoinsIcon className="h-5 w-5" />,
+      icon: <TokenIcon mark={underlyingMark(market.underlyingSymbol)} />,
       onSelect: onConvert,
     },
     {
       label: 'Principal',
       hint: 'Principal held, marked at the pool',
       value: holdings.principal,
-      icon: <LockIcon className="h-5 w-5" />,
+      icon: <TokenIcon mark="principal" />,
       onSelect: onPortfolio,
     },
     {
       label: 'Liquidity',
       hint: 'Your share of the pools',
       value: holdings.liquidity,
-      icon: <DropletIcon className="h-5 w-5" />,
+      icon: <TokenIcon mark="liquidity" />,
       onSelect: onLiquidity,
     },
     {
       label: 'Claimable',
       hint: 'Yield accrued and waiting',
       value: holdings.claimable,
-      icon: <ChartBarIcon className="h-5 w-5" />,
+      icon: <TokenIcon mark="yield" />,
       onSelect: onPortfolio,
     },
   ].filter((segment) => segment.value > 0n)
@@ -195,9 +187,7 @@ export function BalanceOverview({
             what the market's underlying asset already counts. */}
         <li>
           <div className="flex w-full items-center gap-3 py-3">
-            <span aria-hidden="true" className="shrink-0 text-neutral-400">
-              <StellarMark className="h-5 w-5" />
-            </span>
+            <TokenIcon mark="xlm" />
             <span className="min-w-0 flex-1">
               <span className="block text-sm font-medium text-neutral-100">XLM</span>
               <span className="mt-0.5 block truncate text-xs text-neutral-500">
@@ -254,9 +244,7 @@ export function BalanceOverview({
               onClick={segment.onSelect}
               className={`flex w-full items-center gap-3 py-3 text-left transition-colors duration-100 hover:bg-raised ${focusRing}`}
             >
-              <span aria-hidden="true" className="shrink-0 text-neutral-400">
-                {segment.icon}
-              </span>
+              {segment.icon}
               <span className="min-w-0 flex-1">
                 <span className="block text-sm font-medium text-neutral-100">
                   {segment.label}
