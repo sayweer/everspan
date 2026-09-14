@@ -26,4 +26,12 @@ describe('UI translations', () => {
   it('leaves protocol symbols and unknown copy unchanged', () => {
     expect(translateUiText('PT + YT', 'tr')).toBe('PT + YT')
   })
+
+  /* The reverse map is built from values, so two keys sharing a Turkish string
+     would silently translate one of them back to the wrong English. */
+  it('keeps every Turkish string unique so switching back to English is exact', () => {
+    for (const english of ['On', 'Light', 'Total value', 'Hide amounts', 'Claimable']) {
+      expect(translateUiText(translateUiText(english, 'tr'), 'en')).toBe(english)
+    }
+  })
 })

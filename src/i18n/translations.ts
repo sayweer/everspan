@@ -618,6 +618,60 @@ const EN_TO_TR: Record<string, string> = {
     'Çevrimdışısınız. Bu işlemi göndermeden önce yeniden bağlanın.',
   'Something interrupted this transaction. Check its status before continuing.':
     'Bir şey bu işlemi yarıda kesti. Devam etmeden önce durumunu kontrol edin.',
+  // Balance overview, account panel and transaction-safety copy added after the first pass.
+  'Total value': 'Toplam değer',
+  Liquid: 'Hazır bakiye',
+  Claimable: 'Talep edilebilir',
+  'Yield accrued and waiting': 'Birikmiş ve bekleyen getiri',
+  'Your share of the pools': 'Havuzlardaki payınız',
+  'Principal held, marked at the pool': 'Tutulan anapara, havuz fiyatıyla',
+  'Hide amounts': 'Tutarları gizle',
+  'Show amounts': 'Tutarları göster',
+  'Funding…': 'Fonlanıyor…',
+  'Balance overview': 'Bakiye özeti',
+  Language: 'Dil',
+  'Interface language': 'Arayüz dili',
+  Dark: 'Karanlık',
+  Light: 'Aydınlık',
+  'Dark or light surface': 'Karanlık veya aydınlık görünüm',
+  Preferences: 'Tercihler',
+  Advanced: 'Gelişmiş',
+  About: 'Hakkında',
+  'How it works': 'Nasıl çalışır',
+  'Contracts on explorer': 'Gezginde kontratlar',
+  'Not connected': 'Bağlı değil',
+  'Wrong network': 'Yanlış ağ',
+  'Network unreported': 'Ağ bildirilmedi',
+  'Connect a wallet': 'Cüzdan bağla',
+  'Clear the session on this device': 'Bu cihazdaki oturumu temizle',
+  'View account on explorer': 'Hesabı gezginde görüntüle',
+  'Which deployment balances and positions read from': 'Bakiyelerin ve pozisyonların okunduğu dağıtım',
+  'Checking your session…': 'Oturumunuz kontrol ediliyor…',
+  'Loading active maturities': 'Aktif vadeler yükleniyor',
+  'This request is taking longer than expected. Check your wallet or transaction status before continuing.':
+    'Bu istek beklenenden uzun sürüyor. Devam etmeden önce cüzdanınızı veya işlem durumunu kontrol edin.',
+  'The reload-safe transaction record could not be updated. Do not repeat this action until the active transaction notice is resolved.':
+    'Yeniden yüklemeye dayanıklı işlem kaydı güncellenemedi. Aktif işlem bildirimi çözülene kadar bu işlemi tekrarlamayın.',
+  'Secure site storage is unavailable. Enable site storage before signing a transaction.':
+    'Güvenli site depolaması kullanılamıyor. İşlem imzalamadan önce site depolamasını etkinleştirin.',
+  'Everspan could not create a reload-safe transaction record. No wallet request was sent.':
+    'Everspan yeniden yüklemeye dayanıklı işlem kaydı oluşturamadı. Cüzdana istek gönderilmedi.',
+  'Your wallet is on the wrong network. Switch it to Stellar Testnet first.':
+    'Cüzdanınız yanlış ağda. Önce Stellar Testnet ağına geçin.',
+  'The network rejected this transaction, usually because a price or balance changed after it was prepared. Only the network fee was spent.':
+    'Ağ bu işlemi reddetti; genellikle işlem hazırlandıktan sonra bir fiyat veya bakiye değiştiği için. Yalnızca ağ ücreti harcandı.',
+  'The network has not confirmed this transaction yet. Check its status before trying again.':
+    'Ağ bu işlemi henüz onaylamadı. Tekrar denemeden önce durumunu kontrol edin.',
+  'Everspan could not verify every pool or LP balance. Financial actions are paused until the data is refreshed.':
+    'Everspan her havuzu veya LP bakiyesini doğrulayamadı. Veriler yenilenene kadar finansal işlemler duraklatıldı.',
+  'Everspan could not verify every position. Financial actions are paused until the data is refreshed.':
+    'Everspan her pozisyonu doğrulayamadı. Veriler yenilenene kadar finansal işlemler duraklatıldı.',
+  'The transaction was submitted, but Everspan could not verify its final status. Do not submit it again until you check the transaction below.':
+    'İşlem gönderildi ancak Everspan son durumunu doğrulayamadı. Aşağıdaki işlemi kontrol etmeden tekrar göndermeyin.',
+  'Submission may have started, but Everspan did not receive a transaction hash or final status. Check your wallet activity before trying again.':
+    'Gönderim başlamış olabilir ancak Everspan bir işlem hash’i veya son durum almadı. Tekrar denemeden önce cüzdan etkinliğinizi kontrol edin.',
+  'Everspan did not receive a transaction hash. Your entered values are still available above.':
+    'Everspan bir işlem hash’i almadı. Girdiğiniz değerler yukarıda duruyor.',
 }
 
 const TR_TO_EN = new Map(Object.entries(EN_TO_TR).map(([english, turkish]) => [turkish, english]))
