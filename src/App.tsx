@@ -137,17 +137,17 @@ function MarketContent({
   const pools = usePools(address, portfolio.maturities)
   const liveRate = useLiveRate(portfolio.rateInfo)
   const holdings = useHoldings(portfolio, pools.pools, liveRate)
-  const refreshPools = pools.refresh
+  const refreshPoolsSilent = pools.refreshSilent
   const refreshBalance = balance.refresh
   const seenDataVersion = useRef(dataVersion)
 
   useEffect(() => {
     if (seenDataVersion.current === dataVersion) return
     seenDataVersion.current = dataVersion
-    refresh()
-    refreshPools()
+    refreshSilent()
+    refreshPoolsSilent()
     refreshBalance()
-  }, [dataVersion, refresh, refreshBalance, refreshPools])
+  }, [dataVersion, refreshSilent, refreshBalance, refreshPoolsSilent])
 
   const [searchParams, setSearchParams] = useSearchParams()
   const requestedTab = searchParams.get('view')
@@ -213,6 +213,16 @@ function MarketContent({
   function refreshAll(): void {
     refresh()
     pools.refresh()
+    balance.refresh()
+  }
+
+  // After a confirmed write the panels must stay mounted. A spinner refresh
+  // swaps them for skeletons, which wiped a two-step flow's amount, its
+  // in-memory continuation and the success card. Only an explicit refresh or
+  // retry shows the skeleton.
+  function refreshAfterWrite(): void {
+    refreshSilent()
+    pools.refreshSilent()
     balance.refresh()
   }
 
@@ -372,7 +382,7 @@ function MarketContent({
                   maturity={maturity}
                   onMaturityChange={(next) => updateLocation({ maturity: next })}
                   onRefresh={refreshAll}
-                  onSuccess={refreshAll}
+                  onSuccess={refreshAfterWrite}
                   onManagePool={goPool}
                   onConvert={goConvert}
                 />
@@ -407,7 +417,7 @@ function MarketContent({
                 portfolio={portfolio}
                 liveRate={liveRate}
                 loading={loading}
-                onSuccess={refreshAll}
+                onSuccess={refreshAfterWrite}
                 forceAdvanced={forceAdvanced}
               />
             )}
