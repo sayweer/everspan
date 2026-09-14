@@ -52,7 +52,7 @@ export function useTxRunner(): UseTxRunnerResult {
     releaseTrackedTransaction,
     completeTrackedTransaction,
   } = useTransactionSafety()
-  const { address: walletAddress } = useWallet()
+  const { address: walletAddress, isWrongNetwork } = useWallet()
   const [outcome, setOutcome] = useState<TxOutcome | null>(null)
   const [pending, setPending] = useState(false)
   // React state cannot close the same-tick double-click window. This ref is the
@@ -70,6 +70,22 @@ export function useTxRunner(): UseTxRunnerResult {
       runnerActive.current = true
 
       try {
+        // The forms disable their buttons on the wrong network, but Enter in an
+        // amount field and a failed card's "Try again" call the handler
+        // directly, so the check has to live where every write passes.
+        if (isWrongNetwork) {
+          setOutcome({
+            status: 'error',
+            label,
+            error: {
+              code: 'wrong_network',
+              message: 'Your wallet is on the wrong network. Switch it to Stellar Testnet first.',
+            },
+            hash: null,
+            phase: 'building',
+          })
+          return
+        }
         if (!online) {
           setOutcome({
             status: 'error',
@@ -269,6 +285,7 @@ export function useTxRunner(): UseTxRunnerResult {
       completeTrackedTransaction,
       notify,
       walletAddress,
+      isWrongNetwork,
     ],
   )
 
