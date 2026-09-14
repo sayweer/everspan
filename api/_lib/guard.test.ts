@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { Address, Contract, StrKey, xdr } from '@stellar/stellar-sdk'
-import { admits, classifyHostFunction, isRelayAllowed, parseList } from './guard'
+import { Address, Contract, Keypair, StrKey, xdr } from '@stellar/stellar-sdk'
+import { admits, authAdmissible, classifyHostFunction, isRelayAllowed, parseList } from './guard'
 
 const MARKET = 'CDN42W36GJ2AGPWGDMEL2BUEKCGCVCQ4GRLFXUBPTQUDIEDWQQHZG3TR'
 /* Derived rather than typed out: a hand-written id fails the strkey checksum,
@@ -120,6 +120,59 @@ describe('admits', () => {
 
   it('refuses anything it cannot read', async () => {
     expect(await admits('garbage', cfg)).toBe(false)
+  })
+})
+
+function authEntry(credentials: xdr.SorobanCredentials): xdr.SorobanAuthorizationEntry {
+  return new xdr.SorobanAuthorizationEntry({
+    credentials,
+    rootInvocation: new xdr.SorobanAuthorizedInvocation({
+      function: xdr.SorobanAuthorizedFunction.sorobanAuthorizedFunctionTypeContractFn(
+        new xdr.InvokeContractArgs({
+          contractAddress: new Address(MARKET).toScAddress(),
+          functionName: 'transfer',
+          args: [],
+        }),
+      ),
+      subInvocations: [],
+    }),
+  })
+}
+
+function addressEntry(address: string): xdr.SorobanAuthorizationEntry {
+  return authEntry(
+    xdr.SorobanCredentials.sorobanCredentialsAddress(
+      new xdr.SorobanAddressCredentials({
+        address: new Address(address).toScAddress(),
+        nonce: xdr.Int64.fromString('1'),
+        signatureExpirationLedger: 100,
+        signature: xdr.ScVal.scvVoid(),
+      }),
+    ),
+  )
+}
+
+describe('authAdmissible', () => {
+  const SPONSOR = Keypair.random().publicKey()
+  const DEPLOYER = Keypair.random().publicKey()
+
+  it('passes address entries signed by a wallet or the deployer', () => {
+    expect(authAdmissible([addressEntry(UNLISTED), addressEntry(DEPLOYER)], SPONSOR)).toBe(true)
+    expect(authAdmissible([], SPONSOR)).toBe(true)
+  })
+
+  /*
+   * The sponsor signs as the transaction source, so a source-account entry
+   * would be approved by the sponsor's own signature — a caller could spend
+   * the sponsor's balance through any allowlisted token.
+   */
+  it('refuses a source-account entry', () => {
+    const source = authEntry(xdr.SorobanCredentials.sorobanCredentialsSourceAccount())
+    expect(authAdmissible([addressEntry(UNLISTED), source], SPONSOR)).toBe(false)
+  })
+
+  it('refuses an address entry naming the sponsor', () => {
+    expect(authAdmissible([addressEntry(SPONSOR)], SPONSOR)).toBe(false)
   })
 })
 

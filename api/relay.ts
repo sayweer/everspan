@@ -42,6 +42,7 @@ import type { GuardConfig } from './_lib/guard.js'
  */
 interface RelayDeps {
   admits: (funcXdr: string, cfg: GuardConfig) => Promise<boolean>
+  authAdmissible: (entries: readonly xdr.SorobanAuthorizationEntry[], sponsor: string) => boolean
   parseList: (value: string | undefined) => string[]
   INCLUSION_FEE: string
   paddedResourceFee: (quoted: bigint) => bigint
@@ -55,6 +56,7 @@ async function loadDeps(): Promise<RelayDeps | string> {
     const [guard, fees] = await Promise.all([import('./_lib/guard.js'), import('./_lib/fees.js')])
     cachedDeps = {
       admits: guard.admits,
+      authAdmissible: guard.authAdmissible,
       parseList: guard.parseList,
       INCLUSION_FEE: fees.INCLUSION_FEE,
       paddedResourceFee: fees.paddedResourceFee,
@@ -121,6 +123,17 @@ function guardConfig(server: Server, deps: RelayDeps): GuardConfig {
  * for anything that is not exactly one host-function operation, which is the
  * case the envelope path still has to handle.
  */
+function parseAuth(entries: unknown[]): xdr.SorobanAuthorizationEntry[] | null {
+  try {
+    return entries.map((entry) => {
+      if (typeof entry !== 'string') throw new Error('not a string')
+      return xdr.SorobanAuthorizationEntry.fromXDR(entry, 'base64')
+    })
+  } catch {
+    return null
+  }
+}
+
 function decomposeEnvelope(
   envelopeXdr: string,
 ): { func: xdr.HostFunction; auth: xdr.SorobanAuthorizationEntry[] } | null {
@@ -181,8 +194,9 @@ async function submitHostFunction(
   const tx = build(data)
   tx.sign(keypair)
   const sent = await server.sendTransaction(tx)
-  if (sent.status === 'ERROR') {
-    throw new Error(`rejected: ${JSON.stringify(sent.errorResult ?? {})}`)
+  // TRY_AGAIN_LATER means the network did not take the transaction at all.
+  if (sent.status === 'ERROR' || sent.status === 'TRY_AGAIN_LATER') {
+    throw new Error(`rejected (${sent.status}): ${JSON.stringify(sent.errorResult ?? {})}`)
   }
   return { hash: sent.hash, status: await settle(server, sent.hash, sent.status) }
 }
@@ -222,8 +236,9 @@ async function submitEnvelope(
   )
   bumped.sign(keypair)
   const sent = await server.sendTransaction(bumped)
-  if (sent.status === 'ERROR') {
-    throw new Error(`rejected: ${JSON.stringify(sent.errorResult ?? {})}`)
+  // TRY_AGAIN_LATER means the network did not take the transaction at all.
+  if (sent.status === 'ERROR' || sent.status === 'TRY_AGAIN_LATER') {
+    throw new Error(`rejected (${sent.status}): ${JSON.stringify(sent.errorResult ?? {})}`)
   }
   return { hash: sent.hash, status: await settle(server, sent.hash, sent.status) }
 }
@@ -252,8 +267,17 @@ export async function POST(request: Request): Promise<Response> {
      as an ordinary call — see `decomposeEnvelope`. Only what cannot be taken
      apart goes down the fee-bump path. */
   const decomposed = isCall ? null : decomposeEnvelope(envelope as string)
+  const callAuth = isCall ? parseAuth(auth as unknown[]) : null
+  if (isCall && callAuth === null) return json({ error: 'Malformed request.' }, 400)
+
   const gated = isCall ? func : (decomposed?.func.toXDR('base64') ?? null)
   if (gated === null || !(await deps.admits(gated, guardConfig(server, deps)))) {
+    return json({ error: 'Not allowed.' }, 403)
+  }
+  // The gate above vets *what* is called; this vets *whose authority* the
+  // sponsor's signature would lend it. See `authAdmissible`.
+  const entries = callAuth ?? decomposed?.auth ?? []
+  if (!deps.authAdmissible(entries, keypair.publicKey())) {
     return json({ error: 'Not allowed.' }, 403)
   }
 
@@ -264,7 +288,7 @@ export async function POST(request: Request): Promise<Response> {
         server,
         keypair,
         xdr.HostFunction.fromXDR(func, 'base64'),
-        (auth as string[]).map((entry) => xdr.SorobanAuthorizationEntry.fromXDR(entry, 'base64')),
+        entries,
         deps,
       )
     } else if (decomposed) {

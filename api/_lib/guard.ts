@@ -112,6 +112,33 @@ export async function admits(funcXdr: string, cfg: GuardConfig): Promise<boolean
   return false
 }
 
+/**
+ * Whether the caller's authorization entries may ride on a transaction the
+ * sponsor signs.
+ *
+ * The sponsor is the transaction's source, and a source-account credential
+ * carries no signature of its own — the envelope signature is what approves
+ * it. Admitting one would let a caller write `transfer(from: sponsor, …)`
+ * against an allowlisted token and have the sponsor's own signature authorize
+ * paying it out. Every legitimate entry here is an address credential signed by
+ * a passkey wallet or the kit's deployer, so anything else is refused, and so
+ * is an address entry naming the sponsor itself.
+ */
+export function authAdmissible(
+  entries: readonly xdr.SorobanAuthorizationEntry[],
+  sponsor: string,
+): boolean {
+  return entries.every((entry) => {
+    try {
+      const credentials = entry.credentials()
+      if (credentials.switch().name !== 'sorobanCredentialsAddress') return false
+      return Address.fromScAddress(credentials.address().address()).toString() !== sponsor
+    } catch {
+      return false
+    }
+  })
+}
+
 /** Split a comma-separated environment value into a clean list. */
 export function parseList(value: string | undefined): string[] {
   return (value ?? '')
