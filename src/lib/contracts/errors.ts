@@ -4,7 +4,7 @@
  * it can be unit-tested in a plain node environment; the per-contract tables
  * disambiguate the overlapping numeric codes across contracts.
  */
-import { AssembledTransaction } from '@stellar/stellar-sdk/contract'
+import { AssembledTransaction, SentTransaction } from '@stellar/stellar-sdk/contract'
 import * as Sentry from '@sentry/react'
 import { config } from '../../config'
 import type { AppError } from '../../types'
@@ -32,6 +32,23 @@ export function classifyContractError(e: unknown, errorTable: ErrorTable): AppEr
   // classifying it as a user cancel would enable a dangerous blind retry.
   if (e instanceof AssembledTransaction.Errors.UserRejected) {
     return { code: 'user_declined', message: 'You cancelled the transaction.' }
+  }
+  // After submission the SDK reports outcomes as untyped text or its own error
+  // class, neither carrying the contract code. Saying "try again" to either
+  // was wrong: one already failed for a reason, the other may still land.
+  if (e instanceof SentTransaction.Errors.TransactionStillPending) {
+    return {
+      code: 'transaction_unconfirmed',
+      message:
+        'The network has not confirmed this transaction yet. Check its status before trying again.',
+    }
+  }
+  if (/Transaction failed! Cannot parse result/.test(message)) {
+    return {
+      code: 'transaction_failed_on_chain',
+      message:
+        'The network rejected this transaction, usually because a price or balance changed after it was prepared. Only the network fee was spent.',
+    }
   }
   if (/account.*not.*found|not.*exist/i.test(message)) {
     return {

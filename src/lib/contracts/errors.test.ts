@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { AssembledTransaction } from '@stellar/stellar-sdk/contract'
+import { AssembledTransaction, SentTransaction } from '@stellar/stellar-sdk/contract'
 import {
   AMM_ERRORS,
   AMM_WRITE_ERRORS,
@@ -37,6 +37,13 @@ describe('classifyContractError', () => {
     expect(classifyContractError(new Error('Error(Contract, #8)'), AMM_WRITE_ERRORS).code).toBe(
       'slippage_exceeded',
     )
+  })
+
+  it('tells a transaction that failed on chain apart from one still pending', () => {
+    const failed = new Error('Transaction failed! Cannot parse result.')
+    expect(classifyContractError(failed, AMM_WRITE_ERRORS).code).toBe('transaction_failed_on_chain')
+    const pending = new SentTransaction.Errors.TransactionStillPending('Waited 300 seconds')
+    expect(classifyContractError(pending, AMM_WRITE_ERRORS).code).toBe('transaction_unconfirmed')
   })
 
   it('detects a user-rejected signature', () => {

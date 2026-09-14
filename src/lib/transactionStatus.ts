@@ -47,7 +47,8 @@ export async function checkTransactionStatus(
 
 const FAILED_ON_CHAIN: AppError = {
   code: 'transaction_failed_on_chain',
-  message: 'The network rejected this transaction. Nothing was moved.',
+  message:
+    'The network rejected this transaction, usually because a price or balance changed after it was prepared. Only the network fee was spent.',
 }
 
 const NOT_CONFIRMED: AppError = {
