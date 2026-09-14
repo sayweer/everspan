@@ -6,7 +6,7 @@ import type { AssembledTransaction, MethodOptions } from '@stellar/stellar-sdk/c
 import type { AppError } from '../../types'
 import { activeMarket } from '../market'
 import { getClient, invokeWrite, readCall, type OnTxPhase } from './base'
-import { AMM_ERRORS } from './errors'
+import { AMM_ERRORS, AMM_WRITE_ERRORS } from './errors'
 
 /** Which asset goes in on a swap (mirrors the contract enum). */
 export type SwapSide = 'PtToSy' | 'SyToPt'
@@ -119,7 +119,7 @@ export async function swapExactIn(
       ),
     address,
     onPhase,
-    AMM_ERRORS,
+    AMM_WRITE_ERRORS,
   )
   return 'hash' in result ? { hash: result.hash, amountOut: result.result } : result
 }
@@ -152,7 +152,7 @@ export async function addLiquidity(
       ),
     address,
     onPhase,
-    AMM_ERRORS,
+    AMM_WRITE_ERRORS,
   )
   return 'hash' in result ? { hash: result.hash, lpMinted: result.result } : result
 }
@@ -177,7 +177,7 @@ export async function removeLiquidity(
       ),
     address,
     onPhase,
-    AMM_ERRORS,
+    AMM_WRITE_ERRORS,
   )
   return 'hash' in result
     ? { hash: result.hash, ptOut: result.result[0], syOut: result.result[1] }

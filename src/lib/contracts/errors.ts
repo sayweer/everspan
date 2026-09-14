@@ -159,6 +159,23 @@ export const SPLITTER_WRITE_ERRORS: ErrorTable = {
 }
 
 /**
+ * AMM write paths (swap/add/remove) move PT and SY with plain `transfer`, so a
+ * token's own error code surfaces unchanged and overlaps the AMM's. There,
+ * AmmError #3 (PoolNotFound) cannot be the cause — a pool is never removed, and
+ * the UI only quotes maturities that have one — and #4 (PoolAlreadyExists) is
+ * `create_pool`-only. A #3 is PtError::InsufficientBalance; a #4 is
+ * SyError::InsufficientBalance.
+ */
+export const AMM_WRITE_ERRORS: ErrorTable = {
+  ...AMM_ERRORS,
+  3: { code: 'insufficient_pt', message: 'That exceeds your principal balance.' },
+  4: {
+    code: 'insufficient_sy',
+    message: 'That exceeds the balance available to prepare for this trade.',
+  },
+}
+
+/**
  * Wrapping pulls the underlying through its own token contract, so an
  * insufficient-underlying failure surfaces as that token's
  * `InsufficientBalance` #4. Wrap mints SY (never debits it), so SyError #4 is

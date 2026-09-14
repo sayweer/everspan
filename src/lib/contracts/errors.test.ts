@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { AssembledTransaction } from '@stellar/stellar-sdk/contract'
 import {
   AMM_ERRORS,
+  AMM_WRITE_ERRORS,
   classifyContractError,
   MYT_ERRORS,
   SPLITTER_ERRORS,
@@ -23,6 +24,19 @@ describe('classifyContractError', () => {
     expect(classifyContractError(slippage, AMM_ERRORS).code).toBe('slippage_exceeded')
     const noPool = new Error('Error(Contract, #3)')
     expect(classifyContractError(noPool, AMM_ERRORS).code).toBe('pool_not_found')
+  })
+
+  /* A write's PT/SY transfer surfaces the token's own InsufficientBalance code. */
+  it('reads #3/#4 on AMM writes as insufficient PT/SY, not as pool errors', () => {
+    expect(classifyContractError(new Error('Error(Contract, #3)'), AMM_WRITE_ERRORS).code).toBe(
+      'insufficient_pt',
+    )
+    expect(classifyContractError(new Error('Error(Contract, #4)'), AMM_WRITE_ERRORS).code).toBe(
+      'insufficient_sy',
+    )
+    expect(classifyContractError(new Error('Error(Contract, #8)'), AMM_WRITE_ERRORS).code).toBe(
+      'slippage_exceeded',
+    )
   })
 
   it('detects a user-rejected signature', () => {
