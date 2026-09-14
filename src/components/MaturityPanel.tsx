@@ -4,7 +4,7 @@ import type { ReactElement } from 'react'
 import type { MaturityPosition } from '../hooks/usePortfolio'
 import { claimYield, redeemPt } from '../lib/contracts/splitter'
 import { formatAmount } from '../lib/format'
-import { maturityCountdown, claimableAt, type RateCheckpoint } from '../lib/yield'
+import { maturityCountdown, displayClaimable, type RateCheckpoint } from '../lib/yield'
 import { formatMaturity } from '../lib/format'
 import { chainNowMs } from '../lib/chainTime'
 import { cardClasses } from '../lib/cardClasses'
@@ -98,7 +98,7 @@ function MaturityCard({
   const claimable =
     rateInfo === null
       ? null
-      : claimableAt(position, rateInfo, maturity, BigInt(Math.floor(nowMs / 1000)))
+      : displayClaimable(position, rateInfo, maturity, BigInt(Math.floor(nowMs / 1000)))
   // Matured, principal redeemed, and nothing left to claim — the position is done.
   const settled = countdown.matured && position.pt <= 0n && claimable !== null && claimable <= 0n
   const canClaim = claimable !== null && claimable > 0n

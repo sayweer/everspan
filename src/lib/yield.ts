@@ -65,6 +65,24 @@ export function claimableAt(
   return projectedClaimable(pos, rateAt(cp, effTs))
 }
 
+/**
+ * The claimable figure to show. Where the rate path is known (a checkpoint with
+ * a slope, the mock market) the projection ticks live and freezes at maturity.
+ * Where it is not (the Blend vault reports only its current rate), projecting a
+ * matured position with the live rate over-reports: the vault pins the rate at
+ * maturity, so yield already claimed would reappear as claimable. The
+ * contract's own `claimable` applies that pinned rate, so it is used instead.
+ */
+export function displayClaimable(
+  pos: PositionLike & { claimable: bigint },
+  cp: RateCheckpoint,
+  maturitySec: bigint,
+  nowSec: bigint,
+): bigint {
+  if (cp.slopePerSec === 0n) return pos.claimable
+  return claimableAt(pos, cp, maturitySec, nowSec)
+}
+
 /** A rate as a human decimal (e.g. 1_200_000_000_000n -> 1.2). */
 export function rateToDecimal(rate: bigint): number {
   return Number(rate) / Number(RATE_SCALE)

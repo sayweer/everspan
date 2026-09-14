@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   ceilDiv,
   claimableAt,
+  displayClaimable,
   maturityCountdown,
   projectedClaimable,
   ratePerMinutePct,
@@ -65,6 +66,24 @@ describe('claimableAt', () => {
     expect(claimableAt(pos, cp, maturity, 1000n)).toBe(atMaturity)
     expect(claimableAt(pos, cp, maturity, 5000n)).toBe(atMaturity)
     expect(claimableAt(pos, cp, maturity, 999_999n)).toBe(atMaturity)
+  })
+})
+
+describe('displayClaimable', () => {
+  const maturity = 1000n
+
+  it('ticks the projection where the rate path is known', () => {
+    const cp = { since: 0n, rate: RATE_SCALE, slopePerSec: 200_000_000n }
+    const pos = { yt: 1_000_000_000n, index: RATE_SCALE, accruedSy: 0n, claimable: 7n }
+    expect(displayClaimable(pos, cp, maturity, 500n)).toBe(claimableAt(pos, cp, maturity, 500n))
+  })
+
+  /* Blend: index already settled at the pinned maturity rate, live rate kept growing. */
+  it('trusts the contract when only the current rate is known', () => {
+    const live = { since: 5000n, rate: (RATE_SCALE * 11n) / 10n, slopePerSec: 0n }
+    const claimed = { yt: 1_000_000_000n, index: RATE_SCALE, accruedSy: 0n, claimable: 0n }
+    expect(claimableAt(claimed, live, maturity, 5000n)).toBeGreaterThan(0n)
+    expect(displayClaimable(claimed, live, maturity, 5000n)).toBe(0n)
   })
 })
 

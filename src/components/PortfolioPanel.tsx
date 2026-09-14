@@ -3,7 +3,7 @@ import type { ReactElement } from 'react'
 import type { Portfolio } from '../hooks/usePortfolio'
 import { formatAmount } from '../lib/format'
 import type { TokenMark } from '../lib/tokenMarks'
-import { claimableAt } from '../lib/yield'
+import { displayClaimable } from '../lib/yield'
 import { chainNowMs } from '../lib/chainTime'
 import type { AppError } from '../types'
 import { IconButton } from './Button'
@@ -46,7 +46,7 @@ export function PortfolioPanel({
     liveRate === null || cp === null
       ? null
       : portfolio.positions.reduce(
-          (sum, p) => sum + claimableAt(p.position, cp, p.maturity, nowSec),
+          (sum, p) => sum + displayClaimable(p.position, cp, p.maturity, nowSec),
           0n,
         )
 
