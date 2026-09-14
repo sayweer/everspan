@@ -15,8 +15,9 @@ import {
   TransactionBuilder,
   nativeToScVal,
   scValToNative,
+  xdr,
 } from '@stellar/stellar-sdk'
-import { Api, Server } from '@stellar/stellar-sdk/rpc'
+import { Api, Durability, Server } from '@stellar/stellar-sdk/rpc'
 
 const RPC_URL = process.env.RELAY_RPC_URL ?? 'https://soroban-testnet.stellar.org'
 const NETWORK_PASSPHRASE = 'Test SDF Network ; September 2015'
@@ -71,6 +72,44 @@ async function balance(server: Server, source: string, holder: string): Promise<
   }
 }
 
+/*
+ * Only a deployed contract running approved code is a wallet. The regex alone
+ * admitted any C-address, and every never-used one holds zero — so the
+ * one-per-wallet check was satisfied by inventing addresses. The approved
+ * hashes are the relay's list, which is where the wallet's code is already
+ * approved for deployment.
+ */
+async function runsApprovedCode(server: Server, contractId: string): Promise<boolean> {
+  const allowed = (process.env.RELAY_ALLOWED_WASM ?? '')
+    .split(',')
+    .map((hash) => hash.trim().toLowerCase())
+    .filter((hash) => hash.length > 0)
+  if (allowed.length === 0) return false
+  try {
+    const entry = await server.getContractData(
+      contractId,
+      xdr.ScVal.scvLedgerKeyContractInstance(),
+      Durability.Persistent,
+    )
+    const executable = entry.val.contractData().val().instance().executable()
+    if (executable.switch().name !== 'contractExecutableWasm') return false
+    return allowed.includes(executable.wasmHash().toString('hex').toLowerCase())
+  } catch {
+    return false
+  }
+}
+
+/** Wait for the dispense to land; the reader's empty wallet is the cost of guessing. */
+async function landed(server: Server, hash: string): Promise<boolean> {
+  for (let attempt = 0; attempt < 10; attempt += 1) {
+    await new Promise((resolve) => setTimeout(resolve, 1000))
+    const { status } = await server.getTransaction(hash)
+    if (status === Api.GetTransactionStatus.SUCCESS) return true
+    if (status === Api.GetTransactionStatus.FAILED) return false
+  }
+  return false
+}
+
 export async function POST(request: Request): Promise<Response> {
   const keypair = dispenser()
   if (!keypair) return json({ error: 'Faucet is not configured.' }, 503)
@@ -85,11 +124,18 @@ export async function POST(request: Request): Promise<Response> {
   const server = new Server(RPC_URL)
   const source = keypair.publicKey()
 
-  const held = await balance(server, source, wallet)
-  if (held !== null && held > 0n) return json({ error: 'This wallet already has funds.' }, 409)
+  if (!(await runsApprovedCode(server, wallet))) {
+    return json({ error: 'Not a smart wallet address.' }, 400)
+  }
 
+  // Both checks fail closed: a balance that cannot be read is not a zero one.
+  const held = await balance(server, source, wallet)
+  if (held === null) return json({ error: 'Could not check that wallet. Try again shortly.' }, 503)
+  if (held > 0n) return json({ error: 'This wallet already has funds.' }, 409)
+
+  // The floor has to survive the dispense, not just precede it.
   const reserves = await balance(server, source, source)
-  if (reserves !== null && reserves < RESERVE_XLM * STROOPS) {
+  if (reserves === null || reserves < (RESERVE_XLM + DISPENSE_XLM) * STROOPS) {
     return json({ error: 'The faucet is empty. Tell us and we will refill it.' }, 503)
   }
 
@@ -112,9 +158,10 @@ export async function POST(request: Request): Promise<Response> {
     const prepared = await server.prepareTransaction(built)
     prepared.sign(keypair)
     const sent = await server.sendTransaction(prepared)
-    if (sent.status === 'ERROR') {
-      throw new Error(`rejected: ${JSON.stringify(sent.errorResult ?? {})}`)
+    if (sent.status === 'ERROR' || sent.status === 'TRY_AGAIN_LATER') {
+      throw new Error(`rejected (${sent.status}): ${JSON.stringify(sent.errorResult ?? {})}`)
     }
+    if (!(await landed(server, sent.hash))) throw new Error(`not confirmed: ${sent.hash}`)
     return json({ hash: sent.hash, amount: DISPENSE_XLM.toString() }, 200)
   } catch (error) {
     console.error('[faucet] dispense failed:', error)
