@@ -318,11 +318,10 @@ function MarketContent({
             tabIndex={-1}
             className="flex-1 space-y-6 py-6 motion-safe:animate-rise-in sm:py-8"
           >
-            {/* /app is only reachable once connected (RequireSession redirects
-                otherwise), so this is the first thing a reader sees on every
-                visit — the real wallet balance, big, ahead of everything
-                token-mechanics-shaped below it. */}
-            {connected && (
+            {/* The account summary belongs to Home. Task-focused destinations
+                should begin with their own controls and content instead of
+                repeating a dashboard-sized balance block above them. */}
+            {connected && tab === 'home' && (
               <BalanceOverview
                 address={address}
                 holdings={holdings}
