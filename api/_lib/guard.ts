@@ -120,9 +120,16 @@ export async function admits(funcXdr: string, cfg: GuardConfig): Promise<boolean
  * carries no signature of its own — the envelope signature is what approves
  * it. Admitting one would let a caller write `transfer(from: sponsor, …)`
  * against an allowlisted token and have the sponsor's own signature authorize
- * paying it out. Every legitimate entry here is an address credential signed by
- * a passkey wallet or the kit's deployer, so anything else is refused, and so
- * is an address entry naming the sponsor itself.
+ * paying it out. Every legitimate entry here is a legacy or V2 address
+ * credential signed by a passkey wallet or the kit's deployer, so anything
+ * else is refused, and so is an address entry naming the sponsor itself.
+ *
+ * Protocol 27's `ADDRESS_V2` carries the same address credentials as the
+ * legacy arm but binds that address into the signed payload. passkey-kit
+ * upgrades entries to V2 before signing, so rejecting the new arm after the
+ * user signs would strand every otherwise-valid passkey transaction at this
+ * gate. Delegated credentials remain deliberately out of scope: accepting
+ * those needs a separate policy for every address in the delegate tree.
  */
 export function authAdmissible(
   entries: readonly xdr.SorobanAuthorizationEntry[],
@@ -131,8 +138,15 @@ export function authAdmissible(
   return entries.every((entry) => {
     try {
       const credentials = entry.credentials()
-      if (credentials.switch().name !== 'sorobanCredentialsAddress') return false
-      return Address.fromScAddress(credentials.address().address()).toString() !== sponsor
+      const kind = credentials.switch().name
+      const address =
+        kind === 'sorobanCredentialsAddress'
+          ? credentials.address().address()
+          : kind === 'sorobanCredentialsAddressV2'
+            ? credentials.addressV2().address()
+            : null
+      if (address === null) return false
+      return Address.fromScAddress(address).toString() !== sponsor
     } catch {
       return false
     }

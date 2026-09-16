@@ -139,16 +139,20 @@ function authEntry(credentials: xdr.SorobanCredentials): xdr.SorobanAuthorizatio
   })
 }
 
-function addressEntry(address: string): xdr.SorobanAuthorizationEntry {
+function addressEntry(
+  address: string,
+  version: 'legacy' | 'v2' = 'legacy',
+): xdr.SorobanAuthorizationEntry {
+  const credentials = new xdr.SorobanAddressCredentials({
+    address: new Address(address).toScAddress(),
+    nonce: xdr.Int64.fromString('1'),
+    signatureExpirationLedger: 100,
+    signature: xdr.ScVal.scvVoid(),
+  })
   return authEntry(
-    xdr.SorobanCredentials.sorobanCredentialsAddress(
-      new xdr.SorobanAddressCredentials({
-        address: new Address(address).toScAddress(),
-        nonce: xdr.Int64.fromString('1'),
-        signatureExpirationLedger: 100,
-        signature: xdr.ScVal.scvVoid(),
-      }),
-    ),
+    version === 'v2'
+      ? xdr.SorobanCredentials.sorobanCredentialsAddressV2(credentials)
+      : xdr.SorobanCredentials.sorobanCredentialsAddress(credentials),
   )
 }
 
@@ -156,8 +160,13 @@ describe('authAdmissible', () => {
   const SPONSOR = Keypair.random().publicKey()
   const DEPLOYER = Keypair.random().publicKey()
 
-  it('passes address entries signed by a wallet or the deployer', () => {
-    expect(authAdmissible([addressEntry(UNLISTED), addressEntry(DEPLOYER)], SPONSOR)).toBe(true)
+  it('passes legacy and V2 address entries signed by a wallet or the deployer', () => {
+    expect(
+      authAdmissible(
+        [addressEntry(UNLISTED), addressEntry(DEPLOYER, 'v2')],
+        SPONSOR,
+      ),
+    ).toBe(true)
     expect(authAdmissible([], SPONSOR)).toBe(true)
   })
 
@@ -173,6 +182,7 @@ describe('authAdmissible', () => {
 
   it('refuses an address entry naming the sponsor', () => {
     expect(authAdmissible([addressEntry(SPONSOR)], SPONSOR)).toBe(false)
+    expect(authAdmissible([addressEntry(SPONSOR, 'v2')], SPONSOR)).toBe(false)
   })
 })
 
