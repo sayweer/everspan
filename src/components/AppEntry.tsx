@@ -13,6 +13,7 @@ import { useDisclosure } from '../hooks/useDisclosure'
 import { BottomSheet } from './BottomSheet'
 import { PasskeySignIn } from './PasskeySignIn'
 import { buttonClasses } from '../lib/buttonStyles'
+import { openAfterDialogCloses } from '../lib/walletEntry'
 import { isAppError, type AppError } from '../types'
 
 interface EnterAppProps {
@@ -42,9 +43,16 @@ export function EnterApp({ children, className }: EnterAppProps): ReactElement {
   async function connectWallet(): Promise<void> {
     setBusy(true)
     setError(null)
-    const result = await connect()
+    // Wallets Kit appends its picker to <body>. A native showModal() dialog is
+    // in the browser's top layer and therefore sits above that picker no matter
+    // how large the picker's z-index is. Leave this sheet first, then wait for
+    // the close commit before opening the wallet UI.
+    const result = await openAfterDialogCloses(sheet.hide, connect)
     setBusy(false)
-    if (isAppError(result)) setError(result)
+    if (isAppError(result)) {
+      setError(result)
+      sheet.show()
+    }
     // Success needs nothing here: `useEnterOnConnect` takes it from the
     // session change, which is the same signal a passkey sign-in produces.
   }

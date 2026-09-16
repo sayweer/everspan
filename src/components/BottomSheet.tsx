@@ -1,5 +1,5 @@
 /** A sheet that rises from the bottom edge — the phone's answer to a popover. */
-import { useEffect, useRef, type ReactElement, type ReactNode } from 'react'
+import { useEffect, useLayoutEffect, useRef, type ReactElement, type ReactNode } from 'react'
 import { IconButton } from './Button'
 import { XIcon } from './icons'
 
@@ -25,7 +25,10 @@ interface BottomSheetProps {
 export function BottomSheet({ open, onClose, title, children }: BottomSheetProps): ReactElement {
   const dialogRef = useRef<HTMLDialogElement>(null)
 
-  useEffect(() => {
+  // Top-layer membership is layout, not background work. Closing synchronously
+  // with the React commit also lets a following third-party modal become the
+  // active top layer without spending a frame hidden behind this dialog.
+  useLayoutEffect(() => {
     const dialog = dialogRef.current
     if (!dialog) return
     if (open && !dialog.open) dialog.showModal()
