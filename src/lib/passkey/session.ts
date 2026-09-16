@@ -19,9 +19,25 @@ const SESSION_ADDRESS = 'everspan:passkey:address'
 const CREDENTIAL_ID = 'everspan:passkey:credential'
 const REMEMBERED_ADDRESS = 'everspan:passkey:wallet'
 
-function read(storage: Storage, key: string): string | null {
+type StorageScope = 'session' | 'local'
+
+/**
+ * Resolve Web Storage inside the guarded call rather than at the call site.
+ * Node (including the Node 24 used by CI), SSR and some privacy modes do not
+ * expose these globals at all; privacy controls may also throw while reading
+ * the property itself.
+ */
+function storageFor(scope: StorageScope): Storage | null {
   try {
-    return storage.getItem(key)
+    return (scope === 'session' ? globalThis.sessionStorage : globalThis.localStorage) ?? null
+  } catch {
+    return null
+  }
+}
+
+function read(scope: StorageScope, key: string): string | null {
+  try {
+    return storageFor(scope)?.getItem(key) ?? null
   } catch {
     // Private windows and storage-blocking settings throw rather than return
     // null. A reader with no storage can still use the app for this tab.
@@ -29,8 +45,10 @@ function read(storage: Storage, key: string): string | null {
   }
 }
 
-function write(storage: Storage, key: string, value: string | null): void {
+function write(scope: StorageScope, key: string, value: string | null): void {
   try {
+    const storage = storageFor(scope)
+    if (storage === null) return
     if (value === null) storage.removeItem(key)
     else storage.setItem(key, value)
   } catch {
@@ -40,7 +58,7 @@ function write(storage: Storage, key: string, value: string | null): void {
 
 /** The smart wallet this tab is acting as, or null for a wallet/no session. */
 export function passkeyAddress(): string | null {
-  return read(sessionStorage, SESSION_ADDRESS)
+  return read('session', SESSION_ADDRESS)
 }
 
 /**
@@ -53,7 +71,7 @@ export function isPasskeySession(): boolean {
 
 /** The credential that can re-open this reader's existing wallet, if any. */
 export function storedCredentialId(): string | null {
-  return read(localStorage, CREDENTIAL_ID)
+  return read('local', CREDENTIAL_ID)
 }
 
 /**
@@ -62,16 +80,16 @@ export function storedCredentialId(): string | null {
  * address as much as the credential, and neither is a secret.
  */
 export function rememberedWallet(): { address: string; credentialId: string } | null {
-  const address = read(localStorage, REMEMBERED_ADDRESS)
-  const credentialId = read(localStorage, CREDENTIAL_ID)
+  const address = read('local', REMEMBERED_ADDRESS)
+  const credentialId = read('local', CREDENTIAL_ID)
   return address !== null && credentialId !== null ? { address, credentialId } : null
 }
 
 /** Adopt a smart wallet as this tab's session and remember how to re-open it. */
 export function startPasskeySession(address: string, credentialId: string): void {
-  write(sessionStorage, SESSION_ADDRESS, address)
-  write(localStorage, CREDENTIAL_ID, credentialId)
-  write(localStorage, REMEMBERED_ADDRESS, address)
+  write('session', SESSION_ADDRESS, address)
+  write('local', CREDENTIAL_ID, credentialId)
+  write('local', REMEMBERED_ADDRESS, address)
 }
 
 /**
@@ -81,9 +99,9 @@ export function startPasskeySession(address: string, credentialId: string): void
  * is for the reader who explicitly wants this device to stop offering it.
  */
 export function endPasskeySession(forget = false): void {
-  write(sessionStorage, SESSION_ADDRESS, null)
+  write('session', SESSION_ADDRESS, null)
   if (forget) {
-    write(localStorage, CREDENTIAL_ID, null)
-    write(localStorage, REMEMBERED_ADDRESS, null)
+    write('local', CREDENTIAL_ID, null)
+    write('local', REMEMBERED_ADDRESS, null)
   }
 }
