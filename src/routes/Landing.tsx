@@ -30,8 +30,12 @@ import { useEnterOnConnect } from '../hooks/useEnterOnConnect'
  *          then expands to full bleed while the layer beneath recedes
  *
  * The page does not scroll past the hero: scrolling drives the chapters
- * directly (see `ScrollStage`). Below `md`, and under reduced motion, the
- * same scenes render as ordinary stacked sections.
+ * directly (see `ScrollStage`), on a phone as much as on a desktop. Under
+ * reduced motion the same scenes render as ordinary stacked sections.
+ *
+ * Every scene has to fit the frame it is pinned in, so each one carries a
+ * compact phone composition with the desktop values restored at `sm:`. A
+ * scene that grows past the viewport is not scrolled — it is clipped.
  *
  * Scene indices are referenced by the header nav — keep NAV_SCENES in sync
  * with the order of <ScrollScene> children below.
@@ -158,15 +162,15 @@ export function Landing(): ReactElement {
             </ScrollScene>
 
             <ScrollScene id="markets" className="bg-accent-500 text-neutral-50">
-              <SceneBody className="grid items-center gap-14 lg:grid-cols-[0.92fr_1.08fr]">
+              <SceneBody className="grid items-center gap-7 sm:gap-14 lg:grid-cols-[0.92fr_1.08fr]">
                 <div>
                   <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-neutral-50/90">
                     Principal
                   </p>
-                  <h2 className="mt-7 max-w-3xl text-[clamp(3rem,6vw,6rem)] font-medium leading-[0.87] tracking-[-0.06em]">
+                  <h2 className="mt-4 max-w-3xl text-[2.5rem] font-medium leading-[0.87] tracking-[-0.06em] sm:mt-7 sm:text-[clamp(3rem,6vw,6rem)]">
                     Know what comes back.
                   </h2>
-                  <p className="mt-8 max-w-xl text-lg leading-relaxed text-neutral-50/80">
+                  <p className="mt-5 max-w-xl text-base leading-relaxed text-neutral-50/80 sm:mt-8 sm:text-lg">
                     Principal trades below its maturity value. The difference between what you pay
                     and what you redeem defines the implied rate for your position.
                   </p>
@@ -178,7 +182,7 @@ export function Landing(): ReactElement {
             </ScrollScene>
 
             <ScrollScene className="bg-neutral-50 text-neutral-950">
-              <SceneBody className="grid items-center gap-14 lg:grid-cols-[1.08fr_0.92fr]">
+              <SceneBody className="grid items-center gap-7 sm:gap-14 lg:grid-cols-[1.08fr_0.92fr]">
                 <SceneParallax className="order-2 lg:order-1">
                   <YieldVisual />
                 </SceneParallax>
@@ -186,27 +190,28 @@ export function Landing(): ReactElement {
                   <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent-500">
                     Yield
                   </p>
-                  <h2 className="mt-7 max-w-3xl text-[clamp(3rem,6vw,6rem)] font-medium leading-[0.87] tracking-[-0.06em]">
+                  <h2 className="mt-4 max-w-3xl text-[2.5rem] font-medium leading-[0.87] tracking-[-0.06em] sm:mt-7 sm:text-[clamp(3rem,6vw,6rem)]">
                     Hold the rate itself.
                   </h2>
-                  <p className="mt-8 max-w-xl text-lg leading-relaxed text-neutral-600">
-                    The yield side receives what is released before maturity. When it moves, Everspan
-                    settles both holders first—accrued yield always follows the time it was earned.
+                  <p className="mt-5 max-w-xl text-base leading-relaxed text-neutral-600 sm:mt-8 sm:text-lg">
+                    The yield side receives what is released before maturity. When it moves,
+                    Everspan settles both holders first—accrued yield always follows the time it was
+                    earned.
                   </p>
                 </div>
               </SceneBody>
             </ScrollScene>
 
             <ScrollScene className="bg-neutral-200 text-neutral-950">
-              <SceneBody className="grid items-center gap-14 lg:grid-cols-2">
+              <SceneBody className="grid items-center gap-7 sm:gap-14 lg:grid-cols-2">
                 <div>
                   <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-neutral-600">
                     The market
                   </p>
-                  <h2 className="mt-7 max-w-3xl text-[clamp(3rem,6vw,6rem)] font-medium leading-[0.87] tracking-[-0.06em]">
+                  <h2 className="mt-4 max-w-3xl text-[2.5rem] font-medium leading-[0.87] tracking-[-0.06em] sm:mt-7 sm:text-[clamp(3rem,6vw,6rem)]">
                     Make the market.
                   </h2>
-                  <p className="mt-8 max-w-xl text-lg leading-relaxed text-neutral-600">
+                  <p className="mt-5 max-w-xl text-base leading-relaxed text-neutral-600 sm:mt-8 sm:text-lg">
                     Swap the principal against your deposit, or provide both sides as liquidity.
                     Every pool is tied to one maturity, with a transparent 30 bps fee on each trade.
                   </p>
@@ -218,15 +223,15 @@ export function Landing(): ReactElement {
             </ScrollScene>
 
             <ScrollScene className="surface-ink bg-neutral-950 text-neutral-50">
-              <SceneBody className="grid items-center gap-16 lg:grid-cols-2">
+              <SceneBody className="grid items-center gap-7 sm:gap-16 lg:grid-cols-2">
                 <div>
                   <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent-300">
                     Yield sources
                   </p>
-                  <h2 className="mt-7 text-[clamp(3rem,6vw,6rem)] font-medium leading-[0.87] tracking-[-0.06em]">
+                  <h2 className="mt-4 text-[2.5rem] font-medium leading-[0.87] tracking-[-0.06em] sm:mt-7 sm:text-[clamp(3rem,6vw,6rem)]">
                     One standard interface.
                   </h2>
-                  <p className="mt-8 max-w-xl text-lg leading-relaxed text-neutral-300">
+                  <p className="mt-5 max-w-xl text-base leading-relaxed text-neutral-300 sm:mt-8 sm:text-lg">
                     Start with deterministic mUSDY or use a live Blend-backed XLM position. The same
                     split, settlement and market mechanics run across both.
                   </p>
@@ -248,22 +253,22 @@ export function Landing(): ReactElement {
 
             <ScrollScene id="security" className="bg-neutral-50 text-neutral-950">
               <SceneBody>
-                <div className="grid gap-12 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
+                <div className="grid gap-5 sm:gap-12 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
                   <div>
                     <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent-500">
                       Protocol assurance
                     </p>
-                    <h2 className="mt-7 max-w-5xl text-[clamp(3rem,6vw,6rem)] font-medium leading-[0.87] tracking-[-0.06em]">
+                    <h2 className="mt-4 max-w-5xl text-[2.5rem] font-medium leading-[0.87] tracking-[-0.06em] sm:mt-7 sm:text-[clamp(3rem,6vw,6rem)]">
                       Your wallet stays in control.
                     </h2>
                   </div>
-                  <p className="max-w-xl text-lg leading-relaxed text-neutral-600">
+                  <p className="max-w-xl text-base leading-relaxed text-neutral-600 sm:text-lg">
                     Signing happens inside your wallet. Contracts are open source and deployed on
                     Stellar Testnet. There is no admin path into user balances.
                   </p>
                 </div>
 
-                <div className="mt-16 grid border-y border-neutral-950/10 sm:grid-cols-3">
+                <div className="mt-7 grid border-y border-neutral-950/10 sm:mt-16 sm:grid-cols-3">
                   <Assurance
                     number="01"
                     title="Self-custodial"
@@ -396,14 +401,14 @@ function PrimaryLink({
 
 function FixedRateVisual(): ReactElement {
   return (
-    <div className="rounded-3xl bg-neutral-50 p-6 text-neutral-950 shadow-2xl shadow-neutral-950/15 sm:p-8">
-      <div className="flex items-center justify-between gap-4 border-b border-neutral-950/10 pb-6">
+    <div className="rounded-3xl bg-neutral-50 p-5 text-neutral-950 shadow-2xl shadow-neutral-950/15 sm:p-8">
+      <div className="flex items-center justify-between gap-4 border-b border-neutral-950/10 pb-4 sm:pb-6">
         <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-600">
           Illustrative principal position
         </p>
         <LockIcon className={`h-5 w-5 ${figureText(FIGURE_TONE.fixed)}`} />
       </div>
-      <div className="grid gap-8 py-10 sm:grid-cols-2">
+      <div className="grid gap-5 py-6 sm:grid-cols-2 sm:gap-8 sm:py-10">
         <Metric label="Cost today" value="958" />
         <Metric label="Redeem at maturity" value="1,000" />
       </div>
@@ -422,18 +427,18 @@ function FixedRateVisual(): ReactElement {
 
 function YieldVisual(): ReactElement {
   return (
-    <div className="surface-ink order-2 rounded-3xl bg-neutral-950 p-6 text-neutral-50 shadow-2xl shadow-neutral-950/15 sm:p-8 lg:order-1">
-      <div className="flex items-center justify-between gap-4 border-b border-neutral-50/15 pb-6">
+    <div className="surface-ink order-2 rounded-3xl bg-neutral-950 p-5 text-neutral-50 shadow-2xl shadow-neutral-950/15 sm:p-8 lg:order-1">
+      <div className="flex items-center justify-between gap-4 border-b border-neutral-50/15 pb-4 sm:pb-6">
         <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-400">
           Yield accrual
         </p>
         <ChartBarIcon className={`h-5 w-5 ${figureText(FIGURE_TONE.yield)}`} />
       </div>
-      <div className="py-10">
-        <p className="text-[clamp(4rem,9vw,7rem)] font-medium leading-none tracking-[-0.06em] text-accent-400">
+      <div className="py-6 sm:py-10">
+        <p className="text-[3.25rem] font-medium leading-none tracking-[-0.06em] text-accent-400 sm:text-[clamp(4rem,9vw,7rem)]">
           Yield
         </p>
-        <p className="mt-5 max-w-md text-lg leading-relaxed text-neutral-300">
+        <p className="mt-3 max-w-md text-base leading-relaxed text-neutral-300 sm:mt-5 sm:text-lg">
           Yield is measured against each holder’s settlement index and stops exactly at maturity.
         </p>
       </div>
@@ -448,21 +453,23 @@ function YieldVisual(): ReactElement {
 
 function LiquidityVisual(): ReactElement {
   return (
-    <div className="rounded-3xl bg-neutral-50 p-6 shadow-2xl shadow-neutral-950/10 sm:p-8">
-      <div className="flex items-center justify-between gap-4 border-b border-neutral-950/10 pb-6">
+    <div className="rounded-3xl bg-neutral-50 p-5 shadow-2xl shadow-neutral-950/10 sm:p-8">
+      <div className="flex items-center justify-between gap-4 border-b border-neutral-950/10 pb-4 sm:pb-6">
         <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-600">
           Constant product pool
         </p>
         <DropletIcon className={`h-5 w-5 ${figureText(FIGURE_TONE.liquidity)}`} />
       </div>
-      <div className="grid gap-3 py-8 sm:grid-cols-[1fr_auto_1fr] sm:items-center">
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 py-5 sm:gap-3 sm:py-8">
         <TokenTile label="Principal" value="Fixed at maturity" />
-        <SwapIcon className="mx-auto h-6 w-6 rotate-90 text-neutral-600 sm:rotate-0" />
+        <SwapIcon className="mx-auto h-5 w-5 text-neutral-600 sm:h-6 sm:w-6" />
         <TokenTile label="Deposit" value="Yield source" accent />
       </div>
-      <div className="flex items-baseline justify-between gap-4 rounded-2xl bg-neutral-200 px-5 py-4">
+      <div className="flex items-baseline justify-between gap-4 rounded-2xl bg-neutral-200 px-4 py-3 sm:px-5 sm:py-4">
         <span className="text-sm text-neutral-600">Fee per swap</span>
-        <span className="text-3xl font-medium tracking-[-0.04em] tabular-nums">0.30%</span>
+        <span className="text-2xl font-medium tracking-[-0.04em] tabular-nums sm:text-3xl">
+          0.30%
+        </span>
       </div>
     </div>
   )
@@ -472,7 +479,7 @@ function Metric({ label, value }: { label: string; value: string }): ReactElemen
   return (
     <div>
       <p className="text-sm text-neutral-600">{label}</p>
-      <p className="mt-3 text-4xl font-medium tracking-[-0.045em] tabular-nums sm:text-5xl">
+      <p className="mt-2 text-3xl font-medium tracking-[-0.045em] tabular-nums sm:mt-3 sm:text-5xl">
         {value}
       </p>
     </div>
@@ -490,10 +497,10 @@ function TokenTile({
 }): ReactElement {
   return (
     <div
-      className={`rounded-2xl p-5 ${accent ? 'bg-accent-500 text-onAccent' : 'bg-neutral-950 text-neutral-50'}`}
+      className={`rounded-2xl p-3.5 sm:p-5 ${accent ? 'bg-accent-500 text-onAccent' : 'bg-neutral-950 text-neutral-50'}`}
     >
-      <p className="text-4xl font-medium tracking-[-0.045em]">{label}</p>
-      <p className="mt-2 text-xs opacity-90">{value}</p>
+      <p className="text-xl font-medium tracking-[-0.045em] sm:text-4xl">{label}</p>
+      <p className="mt-1 text-[0.6875rem] leading-tight opacity-90 sm:mt-2 sm:text-xs">{value}</p>
     </div>
   )
 }
@@ -508,11 +515,11 @@ function YieldSource({
   body: string
 }): ReactElement {
   return (
-    <article className="surface-ink flex min-h-80 flex-col justify-between bg-neutral-900 p-6 sm:p-8">
+    <article className="surface-ink flex flex-col justify-between gap-3.5 bg-neutral-900 p-5 sm:min-h-80 sm:gap-0 sm:p-8">
       <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-accent-300">{label}</p>
       <div>
-        <h3 className="text-3xl font-medium tracking-[-0.04em]">{title}</h3>
-        <p className="mt-4 leading-relaxed text-neutral-300">{body}</p>
+        <h3 className="text-xl font-medium tracking-[-0.04em] sm:text-3xl">{title}</h3>
+        <p className="mt-2 text-sm leading-relaxed text-neutral-300 sm:mt-4 sm:text-base">{body}</p>
       </div>
     </article>
   )
@@ -528,10 +535,14 @@ function Assurance({
   body: string
 }): ReactElement {
   return (
-    <article className="border-b border-neutral-950/10 py-8 last:border-b-0 sm:border-b-0 sm:border-r sm:px-8 sm:first:pl-0 sm:last:border-r-0 sm:last:pr-0">
+    <article className="border-b border-neutral-950/10 py-3 last:border-b-0 sm:border-b-0 sm:border-r sm:px-8 sm:py-8 sm:first:pl-0 sm:last:border-r-0 sm:last:pr-0">
       <p className="font-mono text-[10px] tracking-[0.18em] text-accent-500">{number}</p>
-      <h3 className="mt-8 text-xl font-medium tracking-[-0.025em]">{title}</h3>
-      <p className="mt-3 max-w-xs leading-relaxed text-neutral-600">{body}</p>
+      <h3 className="mt-1.5 text-base font-medium tracking-[-0.025em] sm:mt-8 sm:text-xl">
+        {title}
+      </h3>
+      <p className="mt-1 text-sm leading-snug text-neutral-600 sm:mt-3 sm:max-w-xs sm:text-base sm:leading-relaxed">
+        {body}
+      </p>
     </article>
   )
 }

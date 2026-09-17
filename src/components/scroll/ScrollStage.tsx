@@ -5,23 +5,27 @@ import {
   useMemo,
   useRef,
   useState,
+  type CSSProperties,
   type ReactElement,
   type ReactNode,
   type RefObject,
 } from 'react'
 import { gsap, ScrollTrigger } from '../../lib/gsap'
 import {
+  MOTION_QUERY,
   SCENE_LENGTH_VH,
   SceneIndexContext,
   StageContext,
   dwellProgress,
   initialClipPath,
+  measureStageHeight,
   paintEntrance,
   paintRecede,
   pinningSuits,
   resetScene,
   segmentLengthPx,
   segmentStartPx,
+  stageResized,
   trackHeightVh,
   type SceneRegistration,
   type StageApi,
@@ -38,9 +42,16 @@ import {
  * then expands to full bleed. The layer beneath recedes and dims, which reads
  * as depth rather than as a page change.
  *
- * Below `md`, or under reduced-motion, none of this runs: scenes render as
- * ordinary stacked sections. Mobile is excluded on purpose — browser chrome
- * resizes the viewport mid-scroll, which makes pinned layers jump.
+ * Under reduced-motion none of this runs: scenes render as ordinary stacked
+ * sections instead.
+ *
+ * A phone gets the same stage as a desktop. What used to rule it out is that
+ * the browser's chrome slides away mid-scroll and resizes the viewport under
+ * the pinned layers. The stage answers that by measuring its height once and
+ * laying everything — the track, each segment, the pinned box — out against
+ * that one number, and by re-measuring only for a resize ScrollTrigger itself
+ * would honour (`stageResized`). The chrome may come and go; the geometry the
+ * scenes were painted from does not move.
  * ───────────────────────────────────────────────────────── */
 
 /** Where in a scene's segment the nav lands: past the entrance, inside dwell. */
@@ -69,18 +80,33 @@ export function ScrollStage({
   const scenes = useRef(new Map<number, SceneRegistration>())
   const listeners = useRef(new Map<number, Set<(progress: number) => void>>())
   const [pinned, setPinned] = useState(pinningSuits)
+  /** See `measureStageHeight` — one number the whole stage is laid out against. */
+  const [stageHeight, setStageHeight] = useState(measureStageHeight)
   /** Mirrors each scene's `length` so geometry is available during render. */
   const [lengths, setLengths] = useState<Record<number, number>>({})
 
   const sceneCount = Children.count(children)
 
   useEffect(() => {
-    const query = window.matchMedia(
-      '(min-width: 768px) and (prefers-reduced-motion: no-preference)',
-    )
+    const query = window.matchMedia(MOTION_QUERY)
     const sync = (): void => setPinned(query.matches)
     query.addEventListener('change', sync)
     return () => query.removeEventListener('change', sync)
+  }, [])
+
+  useEffect(() => {
+    // The baseline is what a resize is judged against, and it only moves when
+    // one is accepted — so a chrome that slides away and back never accumulates
+    // into a re-measure. A rotation changes the width, which always counts.
+    const baseline = { width: window.innerWidth, height: window.innerHeight }
+    const sync = (): void => {
+      if (!stageResized(baseline)) return
+      baseline.width = window.innerWidth
+      baseline.height = window.innerHeight
+      setStageHeight(baseline.height)
+    }
+    window.addEventListener('resize', sync)
+    return () => window.removeEventListener('resize', sync)
   }, [])
 
   const register = useCallback((index: number, registration: SceneRegistration) => {
@@ -123,10 +149,11 @@ export function ScrollStage({
       const offset =
         index === 0
           ? 0
-          : segmentStartPx(lengths, index) + segmentLengthPx(lengths, index) * SCENE_TARGET
+          : segmentStartPx(lengths, index, stageHeight) +
+            segmentLengthPx(lengths, index, stageHeight) * SCENE_TARGET
       window.scrollTo({ top: track.offsetTop + offset, behavior: 'smooth' })
     },
-    [lengths, pinned],
+    [lengths, pinned, stageHeight],
   )
 
   useEffect(() => {
@@ -178,8 +205,9 @@ export function ScrollStage({
 
         ScrollTrigger.create({
           trigger: track,
-          start: () => `top+=${segmentStartPx(lengths, index)} top`,
-          end: () => `top+=${segmentStartPx(lengths, index) + segmentLengthPx(lengths, index)} top`,
+          start: () => `top+=${segmentStartPx(lengths, index, stageHeight)} top`,
+          end: () =>
+            `top+=${segmentStartPx(lengths, index, stageHeight) + segmentLengthPx(lengths, index, stageHeight)} top`,
           invalidateOnRefresh: true,
           onUpdate: (self) => paint(self.progress),
           onRefresh: (self) => paint(self.progress),
@@ -212,11 +240,11 @@ export function ScrollStage({
         scene.dim.style.visibility = 'hidden'
       })
     }
-  }, [lengths, pinned])
+  }, [lengths, pinned, stageHeight])
 
   const api = useMemo<StageApi>(
-    () => ({ pinned, register, subscribe, scrollToScene }),
-    [pinned, register, subscribe, scrollToScene],
+    () => ({ pinned, stageHeight, register, subscribe, scrollToScene }),
+    [pinned, stageHeight, register, subscribe, scrollToScene],
   )
 
   useEffect(() => {
@@ -241,8 +269,22 @@ export function ScrollStage({
 
   return (
     <StageContext.Provider value={api}>
-      <div ref={trackRef} style={{ height: `${trackHeightVh(lengths, sceneCount)}vh` }}>
-        <div ref={viewportRef} className="relative h-[100svh] overflow-hidden bg-neutral-950">
+      {/* Both heights are the measured one, never a `vh` unit: on a phone `vh`
+          is the viewport with the chrome hidden, so a track in `vh` outlasted
+          scenes laid out against `innerHeight` by a chrome's worth of dead
+          scroll. `--stage-vh` publishes a hundredth of it for the scenes that
+          place things in viewport heights. */}
+      <div
+        ref={trackRef}
+        style={{ height: `${(trackHeightVh(lengths, sceneCount) / 100) * stageHeight}px` }}
+      >
+        <div
+          ref={viewportRef}
+          className="relative overflow-hidden bg-neutral-950"
+          style={
+            { height: `${stageHeight}px`, '--stage-vh': `${stageHeight / 100}px` } as CSSProperties
+          }
+        >
           {indexed}
         </div>
       </div>

@@ -35,7 +35,7 @@ export function YieldJourney(): ReactElement {
   const activeStep = pinned ? scrubbedStep : JOURNEY_STEPS.length - 1
 
   return (
-    <div className="mx-auto grid w-full max-w-7xl gap-10 px-5 sm:px-8 lg:grid-cols-[0.92fr_1.08fr] lg:gap-20 lg:px-10">
+    <div className="mx-auto grid w-full max-w-7xl gap-6 px-5 sm:gap-10 sm:px-8 lg:grid-cols-[0.92fr_1.08fr] lg:gap-20 lg:px-10">
       <JourneyVisual activeStep={activeStep} />
 
       {pinned ? (
@@ -75,10 +75,12 @@ function JourneyCopy({
         <p className="font-mono text-[11px] uppercase tracking-[0.2em]">{step.eyebrow}</p>
         <span aria-hidden="true">{step.icon}</span>
       </div>
-      <h3 className="mt-6 text-[clamp(2.25rem,4.6vw,4.25rem)] font-medium leading-[0.9] tracking-[-0.055em]">
+      <h3 className="mt-4 text-[2rem] font-medium leading-[0.9] tracking-[-0.055em] sm:mt-6 sm:text-[clamp(2.25rem,4.6vw,4.25rem)]">
         {step.title}
       </h3>
-      <p className="mt-6 max-w-lg text-lg leading-relaxed text-neutral-300">{step.body}</p>
+      <p className="mt-4 max-w-lg text-base leading-relaxed text-neutral-300 sm:mt-6 sm:text-lg">
+        {step.body}
+      </p>
     </div>
   )
 }
@@ -87,7 +89,7 @@ function JourneyVisual({ activeStep }: { activeStep: number }): ReactElement {
   return (
     <div
       aria-hidden="true"
-      className="relative mx-auto aspect-square w-full max-w-md self-center overflow-hidden rounded-3xl border border-neutral-50/15 bg-neutral-900 p-5 sm:p-8 lg:mx-0"
+      className="relative mx-auto aspect-square w-full max-w-[16rem] self-center overflow-hidden rounded-3xl border border-neutral-50/15 bg-neutral-900 p-5 sm:max-w-md sm:p-8 lg:mx-0"
     >
       <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-400">
         <span>Position architecture</span>
@@ -99,7 +101,7 @@ function JourneyVisual({ activeStep }: { activeStep: number }): ReactElement {
           <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-400">
             Source
           </p>
-          <p className="mt-4 text-5xl font-medium tracking-[-0.05em] tabular-nums sm:text-6xl">
+          <p className="mt-3 text-4xl font-medium tracking-[-0.05em] tabular-nums sm:mt-4 sm:text-6xl">
             1,000
           </p>
           <div className="mt-auto flex items-end justify-between gap-4">
@@ -147,12 +149,14 @@ function PositionCard({
   note: string
 }): ReactElement {
   return (
-    <div className={`flex min-h-40 flex-col rounded-2xl p-5 pb-14 sm:min-h-48 sm:p-6 ${className}`}>
+    <div
+      className={`flex min-h-32 flex-col rounded-2xl p-4 pb-12 sm:min-h-48 sm:p-6 sm:pb-14 ${className}`}
+    >
       <p className="font-mono text-[10px] uppercase tracking-[0.16em] opacity-90">{label}</p>
-      <p className="mt-auto text-2xl font-medium tracking-[-0.04em] tabular-nums sm:text-3xl">
+      <p className="mt-auto text-xl font-medium tracking-[-0.04em] tabular-nums sm:text-3xl">
         {amount}
       </p>
-      <p className="mt-1 text-xs opacity-90">{note}</p>
+      <p className="mt-1 text-[0.6875rem] leading-tight opacity-90 sm:text-xs">{note}</p>
     </div>
   )
 }

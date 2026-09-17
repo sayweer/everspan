@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react'
+import { ScrollTrigger } from '../../lib/gsap'
 
 /* ─────────────────────────────────────────────────────────
  * SCROLL STAGE — shared contract
@@ -51,6 +52,8 @@ export type SceneRegistration = {
 
 export type StageApi = {
   pinned: boolean
+  /** The measured height every scene is laid out in. See `measureStageHeight`. */
+  stageHeight: number
   register(index: number, registration: SceneRegistration): () => void
   subscribe(index: number, listener: (progress: number) => void): () => void
   scrollToScene(index: number): void
@@ -59,8 +62,40 @@ export type StageApi = {
 export const StageContext = createContext<StageApi | null>(null)
 export const SceneIndexContext = createContext(0)
 
+/** The one condition the stage runs under: the reader accepts motion. */
+export const MOTION_QUERY = '(prefers-reduced-motion: no-preference)'
+
 export function pinningSuits(): boolean {
-  return window.matchMedia('(min-width: 768px) and (prefers-reduced-motion: no-preference)').matches
+  return window.matchMedia(MOTION_QUERY).matches
+}
+
+/**
+ * The height the whole stage is measured against — the track's length, each
+ * segment's share of it, and the pinned box itself all come from this one
+ * number, so they can never disagree.
+ *
+ * It is a measurement rather than a `vh` unit because on a phone the two are
+ * not the same quantity: `vh` is the viewport with the browser's chrome
+ * hidden, while `innerHeight` is whatever is on screen right now. Mixing them
+ * left every scene finishing before the track did.
+ */
+export function measureStageHeight(): number {
+  return window.innerHeight
+}
+
+/**
+ * Whether a resize is real or is just a phone's chrome sliding away. Mirrors
+ * ScrollTrigger's own rule for touch-only devices (a width change, or a height
+ * change past a quarter of the viewport) so our geometry and its refreshes
+ * agree about what counts as a resize — otherwise the stage would re-measure
+ * on a scroll that GSAP deliberately ignored, and every layer would jump.
+ */
+export function stageResized(previous: { width: number; height: number }): boolean {
+  if (window.innerWidth !== previous.width) return true
+  if (ScrollTrigger.isTouch === 1) {
+    return Math.abs(window.innerHeight - previous.height) > window.innerHeight * 0.25
+  }
+  return window.innerHeight !== previous.height
 }
 
 export function clamp01(value: number): number {
@@ -74,14 +109,22 @@ export function clamp01(value: number): number {
  * begins. Scene 0 owns a segment too — it is the opening, which animates in
  * place rather than entering over something.
  */
-export function segmentStartPx(lengths: Record<number, number>, index: number): number {
+export function segmentStartPx(
+  lengths: Record<number, number>,
+  index: number,
+  stageHeight: number,
+): number {
   let vh = 0
   for (let i = 0; i < index; i += 1) vh += (lengths[i] ?? 1) * SCENE_LENGTH_VH
-  return vh * window.innerHeight
+  return vh * stageHeight
 }
 
-export function segmentLengthPx(lengths: Record<number, number>, index: number): number {
-  return (lengths[index] ?? 1) * SCENE_LENGTH_VH * window.innerHeight
+export function segmentLengthPx(
+  lengths: Record<number, number>,
+  index: number,
+  stageHeight: number,
+): number {
+  return (lengths[index] ?? 1) * SCENE_LENGTH_VH * stageHeight
 }
 
 export function trackHeightVh(lengths: Record<number, number>, sceneCount: number): number {

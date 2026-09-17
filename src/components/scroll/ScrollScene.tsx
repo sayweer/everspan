@@ -52,10 +52,10 @@ export function ScrollScene({
     return stage.register(index, { element, content, dim, length, custom })
   }, [custom, index, length, stage])
 
-  // Pinned mode owns its entrance via the scroll-jacked stage; below `md` (or
-  // under reduced motion) scenes stack as ordinary sections instead, so each
-  // one gets a plain fade-and-rise the first time it crosses into view —
-  // without it the fallback pops every block in at once, unrelated to scroll.
+  // Pinned mode owns its entrance via the scroll-jacked stage; under reduced
+  // motion scenes stack as ordinary sections instead, so each one gets a plain
+  // fade-and-rise the first time it crosses into view — without it the
+  // fallback pops every block in at once, unrelated to scroll.
   useEffect(() => {
     if (pinned || revealed) return
     const element = sceneRef.current
@@ -92,7 +92,13 @@ export function ScrollScene({
     >
       <div
         ref={contentRef}
-        className={pinned ? 'w-full' : undefined}
+        /* The site header is fixed above the stage, so on a phone — where a
+           scene fills the frame almost exactly — centring in the whole
+           viewport slid the first line of every chapter underneath it. The
+           padding hands that strip back, and `justify-center` then centres in
+           what is left. Above `md` there is room to spare and the desktop
+           composition is left exactly as it was. */
+        className={pinned ? 'w-full pt-[4.5rem] md:pt-0' : undefined}
         style={
           pinned
             ? undefined

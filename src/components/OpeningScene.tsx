@@ -67,6 +67,17 @@ const STATS_ENTRY_START = 1 / 3
 const STATS_RISE_VH = 14
 /** How far they carry on upward as the band grows past them. */
 const STATS_EXIT_VH = 10
+/**
+ * Viewport heights, as a length. Everything the opening places in `vh` reads
+ * this instead of the unit: on a phone `vh` is the viewport with the browser's
+ * chrome hidden, which is taller than the box the stage actually laid out, so
+ * the band and the hero would be placed against a frame neither of them is in.
+ * `ScrollStage` publishes it; outside the stage it falls back to the unit.
+ */
+function vh(count: number): string {
+  return `calc(var(--stage-vh, 1vh) * ${count})`
+}
+
 /** Ease-out cubic: fast off the mark, settled well before the band stops. */
 function settle(t: number): number {
   return 1 - (1 - t) ** 3
@@ -114,7 +125,12 @@ export function OpeningScene({
   const statsRef = useRef<HTMLDivElement>(null)
   const origin = useRef<Offset | null>(null)
   const gapYPct = useRef(50)
-  const pinned = useStage()?.pinned ?? false
+  const stage = useStage()
+  const pinned = stage?.pinned ?? false
+  // The band's clip percentages are read against the scene box, so the gap has
+  // to be expressed against that same box — not against a live `innerHeight`
+  // that a phone's chrome moves out from under it.
+  const stageHeight = stage?.stageHeight ?? 0
 
   /**
    * Locates the gap between the headline and the copy — the point the page
@@ -138,11 +154,11 @@ export function OpeningScene({
     // Horizontally the punch-in stays dead centre; anchoring it to anything
     // off-centre sweeps the headline sideways instead of opening around it.
     origin.current = { x: zoomRect.width / 2, y: gapY - zoomRect.top }
-    gapYPct.current = (gapY / window.innerHeight) * 100
+    gapYPct.current = (gapY / (stageHeight || window.innerHeight)) * 100
     ;[zoom, head, body].forEach((element, index) => {
       element.style.transform = previous[index]
     })
-  }, [])
+  }, [stageHeight])
 
   useEffect(() => {
     measure()
@@ -170,12 +186,12 @@ export function OpeningScene({
     const split = settle(clamp01((p - PUNCH_END) / SPLIT_SPAN))
     const travel = (split * SPLIT_VH) / scale
     if (headlineRef.current) {
-      headlineRef.current.style.transform = `translateY(${-travel}vh) scale(${Math.exp(
+      headlineRef.current.style.transform = `translateY(${vh(-travel)}) scale(${Math.exp(
         punch * Math.log(HEADLINE_LEAD),
       )})`
     }
     if (bodyRef.current) {
-      bodyRef.current.style.transform = `translateY(${travel}vh)`
+      bodyRef.current.style.transform = `translateY(${vh(travel)})`
     }
     // Both halves are off frame well before the split completes; keeping the
     // layer painted past that point only asks the browser to re-rasterise
@@ -206,7 +222,7 @@ export function OpeningScene({
     if (!figures) return
     const rise = 1 - settle(clamp01((open - STATS_ENTRY_START) / (1 - STATS_ENTRY_START)))
     const leave = clamp01((expand - 0.02) / 0.28)
-    figures.style.transform = `translateY(${rise * STATS_RISE_VH - leave * STATS_EXIT_VH}vh)`
+    figures.style.transform = `translateY(${vh(rise * STATS_RISE_VH - leave * STATS_EXIT_VH)})`
     figures.style.opacity = String(1 - leave)
 
     // The belt is scrubbed rather than stepped: each figure gets an equal
@@ -238,7 +254,10 @@ export function OpeningScene({
         </div>
         <dl className="mt-20 grid grid-cols-1 gap-px bg-neutral-50/15 sm:grid-cols-2">
           {stats.map((stat) => (
-            <div key={stat.label} className="surface-ink min-w-0 bg-neutral-950 px-5 py-10 text-neutral-50">
+            <div
+              key={stat.label}
+              className="surface-ink min-w-0 bg-neutral-950 px-5 py-10 text-neutral-50"
+            >
               <dt className="font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-400">
                 {stat.note}
               </dt>
@@ -257,7 +276,7 @@ export function OpeningScene({
     <>
       {/* The lift sits outside the zoom wrapper, whose `transform` is rewritten
           on every scroll frame and would overwrite it. */}
-      <div className="w-full" style={{ transform: `translateY(-${HERO_LIFT_VH}vh)` }}>
+      <div className="w-full" style={{ transform: `translateY(${vh(-HERO_LIFT_VH)})` }}>
         <div ref={zoomRef} className="relative w-full will-change-transform">
           <div ref={headlineRef} className="will-change-transform">
             {headline}
@@ -277,7 +296,7 @@ export function OpeningScene({
             className="will-change-transform"
             style={
               {
-                transform: `translateY(${STATS_RISE_VH}vh)`,
+                transform: `translateY(${vh(STATS_RISE_VH)})`,
                 '--stat-note': '0',
                 '--stat-value': '0',
                 '--stat-label': '0',
