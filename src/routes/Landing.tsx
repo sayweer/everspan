@@ -152,7 +152,11 @@ export function Landing(): ReactElement {
                 <p className="mx-auto mt-8 max-w-2xl text-lg leading-relaxed text-neutral-300">
                   Three steps turn a yield-bearing deposit into two tradeable positions.
                 </p>
-                <SceneDocsLink to="/docs#protocol" tone="dark" className="mt-8 justify-center">
+                <SceneDocsLink
+                  to="/docs#protocol"
+                  tone="dark"
+                  className="mt-6 justify-center sm:mt-8"
+                >
                   Read the protocol reference
                 </SceneDocsLink>
               </SceneBody>
@@ -167,7 +171,7 @@ export function Landing(): ReactElement {
             </ScrollScene>
 
             <ScrollScene id="markets" className="bg-accent-500 text-neutral-50">
-              <SceneBody className="grid items-center gap-7 sm:gap-14 lg:grid-cols-[0.92fr_1.08fr]">
+              <SceneBody className="grid items-center gap-6 sm:gap-14 lg:grid-cols-[0.92fr_1.08fr]">
                 <div>
                   <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-neutral-50/90">
                     Principal
@@ -175,11 +179,11 @@ export function Landing(): ReactElement {
                   <h2 className="mt-4 max-w-3xl text-[2.5rem] font-medium leading-[0.87] tracking-[-0.06em] sm:mt-7 sm:text-[clamp(3rem,6vw,6rem)]">
                     Know what comes back.
                   </h2>
-                  <p className="mt-5 max-w-xl text-base leading-relaxed text-neutral-50/80 sm:mt-8 sm:text-lg">
+                  <p className="mt-5 max-w-xl text-[0.9375rem] leading-relaxed text-neutral-50/80 sm:mt-8 sm:text-lg">
                     Principal trades below its maturity value. The difference between what you pay
                     and what you redeem defines the implied rate for your position.
                   </p>
-                  <SceneDocsLink to="/docs#markets" tone="dark" className="mt-7">
+                  <SceneDocsLink to="/docs#markets" tone="dark" className="mt-4 sm:mt-7">
                     How the rate is priced
                   </SceneDocsLink>
                 </div>
@@ -201,7 +205,7 @@ export function Landing(): ReactElement {
                   <h2 className="mt-4 max-w-3xl text-[2.5rem] font-medium leading-[0.87] tracking-[-0.06em] sm:mt-7 sm:text-[clamp(3rem,6vw,6rem)]">
                     Hold the rate itself.
                   </h2>
-                  <p className="mt-5 max-w-xl text-base leading-relaxed text-neutral-600 sm:mt-8 sm:text-lg">
+                  <p className="mt-5 max-w-xl text-[0.9375rem] leading-relaxed text-neutral-600 sm:mt-8 sm:text-lg">
                     The yield side receives what is released before maturity. When it moves,
                     Everspan settles both holders first—accrued yield always follows the time it was
                     earned.
@@ -219,7 +223,7 @@ export function Landing(): ReactElement {
                   <h2 className="mt-4 max-w-3xl text-[2.5rem] font-medium leading-[0.87] tracking-[-0.06em] sm:mt-7 sm:text-[clamp(3rem,6vw,6rem)]">
                     Make the market.
                   </h2>
-                  <p className="mt-5 max-w-xl text-base leading-relaxed text-neutral-600 sm:mt-8 sm:text-lg">
+                  <p className="mt-5 max-w-xl text-[0.9375rem] leading-relaxed text-neutral-600 sm:mt-8 sm:text-lg">
                     Swap the principal against your deposit, or provide both sides as liquidity.
                     Every pool is tied to one maturity, with a transparent 30 bps fee on each trade.
                   </p>
@@ -239,7 +243,7 @@ export function Landing(): ReactElement {
                   <h2 className="mt-4 text-[2.5rem] font-medium leading-[0.87] tracking-[-0.06em] sm:mt-7 sm:text-[clamp(3rem,6vw,6rem)]">
                     One standard interface.
                   </h2>
-                  <p className="mt-5 max-w-xl text-base leading-relaxed text-neutral-300 sm:mt-8 sm:text-lg">
+                  <p className="mt-5 max-w-xl text-[0.9375rem] leading-relaxed text-neutral-300 sm:mt-8 sm:text-lg">
                     Start with deterministic mUSDY or use a live Blend-backed XLM position. The same
                     split, settlement and market mechanics run across both.
                   </p>
@@ -270,13 +274,13 @@ export function Landing(): ReactElement {
                       Your wallet stays in control.
                     </h2>
                   </div>
-                  <p className="max-w-xl text-base leading-relaxed text-neutral-600 sm:text-lg">
+                  <p className="max-w-xl text-[0.9375rem] leading-relaxed text-neutral-600 sm:text-lg">
                     Signing happens inside your wallet. Contracts are open source and deployed on
                     Stellar Testnet. There is no admin path into user balances.
                   </p>
                 </div>
 
-                <div className="mt-7 grid border-y border-neutral-950/10 sm:mt-16 sm:grid-cols-3">
+                <div className="mt-5 grid border-y border-neutral-950/10 sm:mt-16 sm:grid-cols-3">
                   <Assurance
                     number="01"
                     title="Self-custodial"
@@ -294,7 +298,7 @@ export function Landing(): ReactElement {
                   />
                 </div>
 
-                <SceneDocsLink to="/docs#security" tone="light" className="mt-7">
+                <SceneDocsLink to="/docs#security" tone="light" className="mt-4 sm:mt-7">
                   Read the security model
                 </SceneDocsLink>
               </SceneBody>
@@ -408,14 +412,14 @@ function LandingNav({ onNavigate }: { onNavigate: (scene: number) => void }): Re
 
 function FixedRateVisual(): ReactElement {
   return (
-    <div className="rounded-3xl bg-neutral-50 p-5 text-neutral-950 shadow-2xl shadow-neutral-950/15 sm:p-8">
+    <div className="rounded-3xl bg-neutral-50 p-4 text-neutral-950 shadow-2xl shadow-neutral-950/15 sm:p-8">
       <div className="flex items-center justify-between gap-4 border-b border-neutral-950/10 pb-4 sm:pb-6">
         <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-600">
           Illustrative principal position
         </p>
         <LockIcon className={`h-5 w-5 ${figureText(FIGURE_TONE.fixed)}`} />
       </div>
-      <div className="grid gap-5 py-6 sm:grid-cols-2 sm:gap-8 sm:py-10">
+      <div className="grid gap-4 py-5 sm:grid-cols-2 sm:gap-8 sm:py-10">
         <Metric label="Cost today" value="958" />
         <Metric label="Redeem at maturity" value="1,000" />
       </div>
@@ -423,7 +427,7 @@ function FixedRateVisual(): ReactElement {
         <span className="absolute -top-1 left-0 h-2 w-2 rounded-full bg-accent-500" />
         <span className="absolute -top-1 right-0 h-2 w-2 rounded-full bg-neutral-950" />
       </div>
-      <div className="mt-4 flex justify-between font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-600">
+      <div className="mt-3 flex justify-between font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-600 sm:mt-4">
         <span>Entry</span>
         <span>90 days</span>
         <span>Maturity</span>
@@ -445,7 +449,7 @@ function YieldVisual(): ReactElement {
         <p className="text-[3.25rem] font-medium leading-none tracking-[-0.06em] text-accent-400 sm:text-[clamp(4rem,9vw,7rem)]">
           Yield
         </p>
-        <p className="mt-3 max-w-md text-base leading-relaxed text-neutral-300 sm:mt-5 sm:text-lg">
+        <p className="mt-3 max-w-md text-[0.9375rem] leading-relaxed text-neutral-300 sm:mt-5 sm:text-lg">
           Yield is measured against each holder’s settlement index and stops exactly at maturity.
         </p>
       </div>
@@ -542,7 +546,7 @@ function Assurance({
   body: string
 }): ReactElement {
   return (
-    <article className="border-b border-neutral-950/10 py-3 last:border-b-0 sm:border-b-0 sm:border-r sm:px-8 sm:py-8 sm:first:pl-0 sm:last:border-r-0 sm:last:pr-0">
+    <article className="border-b border-neutral-950/10 py-2.5 last:border-b-0 sm:border-b-0 sm:border-r sm:px-8 sm:py-8 sm:first:pl-0 sm:last:border-r-0 sm:last:pr-0">
       <p className="font-mono text-[10px] tracking-[0.18em] text-accent-500">{number}</p>
       <h3 className="mt-1.5 text-base font-medium tracking-[-0.025em] sm:mt-8 sm:text-xl">
         {title}
