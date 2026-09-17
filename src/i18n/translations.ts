@@ -1,11 +1,19 @@
+import { DOCS_EN_TO_TR } from './docsTranslations'
+
 export type Language = 'en' | 'tr'
 
 /**
  * The English UI is the canonical copy. Keeping Turkish beside it makes missing
  * translations easy to spot in review and lets the DOM bridge translate legacy
  * components without coupling financial logic to presentation concerns.
+ *
+ * The documentation page's copy is merged in from its own file — it is forty
+ * screens of prose and belongs beside itself, not in the middle of the app's
+ * labels. It spreads first so an app string always wins a collision, the app
+ * being the surface where an exact wording matters most.
  */
 const EN_TO_TR: Record<string, string> = {
+  ...DOCS_EN_TO_TR,
   'Skip to main content': 'Ana içeriğe geç',
   'App — Everspan': 'Uygulama — Everspan',
   'Wallet disconnected.': 'Cüzdan bağlantısı kesildi.',
@@ -572,7 +580,8 @@ const EN_TO_TR: Record<string, string> = {
   'That allowance has expired.': 'Bu izin süresi dolmuş.',
   'The vault is already initialized.': 'Kasa zaten başlatılmış.',
   'The vault has not been initialized yet.': 'Kasa henüz başlatılmamış.',
-  'That exceeds the balance available to convert back.': 'Bu tutar geri çevrilebilecek bakiyeyi aşıyor.',
+  'That exceeds the balance available to convert back.':
+    'Bu tutar geri çevrilebilecek bakiyeyi aşıyor.',
   'The Blend pool has no free liquidity right now — everything is lent out. Try a smaller amount or come back shortly.':
     'Blend havuzunda şu anda boş likidite yok; tamamı ödünç verilmiş. Daha küçük bir tutar deneyin veya kısa süre sonra tekrar gelin.',
   'The Blend pool rejected this request.': 'Blend havuzu bu isteği reddetti.',
@@ -645,7 +654,8 @@ const EN_TO_TR: Record<string, string> = {
   'Connect a wallet': 'Cüzdan bağla',
   'Clear the session on this device': 'Bu cihazdaki oturumu temizle',
   'View account on explorer': 'Hesabı gezginde görüntüle',
-  'Which deployment balances and positions read from': 'Bakiyelerin ve pozisyonların okunduğu dağıtım',
+  'Which deployment balances and positions read from':
+    'Bakiyelerin ve pozisyonların okunduğu dağıtım',
   'Checking your session…': 'Oturumunuz kontrol ediliyor…',
   'Loading active maturities': 'Aktif vadeler yükleniyor',
   'This request is taking longer than expected. Check your wallet or transaction status before continuing.':
@@ -708,6 +718,12 @@ const dynamicPairs: Array<[RegExp, string, RegExp, string]> = [
     'Wallet connected to $1. Account $2.',
   ],
   [/^Copy address (.+)$/u, '$1 adresini kopyala', /^(.+) adresini kopyala$/u, 'Copy address $1'],
+  [
+    /^Open (.+) on the explorer$/u,
+    '$1 kaydını gezginde aç',
+    /^(.+) kaydını gezginde aç$/u,
+    'Open $1 on the explorer',
+  ],
   [/^Lock (.+) APY$/u, '%$1 APY kilitle', /^%(.+) APY kilitle$/u, 'Lock $1 APY'],
   [/^(.+) failed$/u, '$1 başarısız', /^(.+) başarısız$/u, '$1 failed'],
   [

@@ -72,8 +72,8 @@ function Overview(): ReactElement {
         <P>
           Almost all on-chain yield is variable by construction. You deposit, and what you earn is
           whatever the pool pays next week. That is fine until you need to plan around it — and
-          there is no way to take the opposite side of it either, no way to say "I think this rate
-          is going higher" without also taking on the principal.
+          there is no way to take the opposite side of it either, no way to say “I think this rate
+          is going higher” without also taking on the principal.
         </P>
         <P>
           Separating principal from yield makes both trades possible at once, and neither side needs
@@ -187,7 +187,7 @@ function Protocol(): ReactElement {
           Every user-initiated change to a Yield balance settles both parties first, using the
           balances as they were before the change. The sender keeps everything accrued up to that
           instant and the receiver starts earning from it, so a transfer can never move somebody
-          else's accrued yield along with the token.
+          else’s accrued yield along with the token.
         </P>
       </Sub>
 
@@ -287,7 +287,7 @@ function Markets(): ReactElement {
         />
         <Callout title="Exit can genuinely fail on Blend">
           A lending pool that is fully borrowed has nothing free to pay a withdrawal. When that
-          happens Everspan surfaces Blend's own error rather than a generic failure, so you are told
+          happens Everspan surfaces Blend’s own error rather than a generic failure, so you are told
           the pool has no free liquidity right now instead of being left guessing. The position is
           untouched; the withdrawal can be retried once utilisation drops.
         </Callout>
@@ -376,7 +376,7 @@ function Security(): ReactElement {
     <Section id="security" {...meta('security')}>
       <Sub title="Custody">
         <P>
-          Everspan is self-custodial in the literal sense: there is no account on the protocol's
+          Everspan is self-custodial in the literal sense: there is no account on the protocol’s
           side that holds your assets for you. Your key stays in your wallet, every transaction is
           built in your browser and signed by you, and the app never requests, stores or logs a
           secret.
@@ -384,14 +384,14 @@ function Security(): ReactElement {
         <P>
           Every function that pays out — withdraw, unwrap, merge, claim, redeem — pays the caller
           that authorized the call, from that caller’s own recorded balance. There is no argument
-          for "pay someone else" to get wrong.
+          for “pay someone else” to get wrong.
         </P>
       </Sub>
 
       <Sub title="Admin powers, in full">
         <P>
           Four entry points in the entire workspace are admin-gated, and none of them can move a
-          user's funds: minting and setting the rate on the demo token, creating a maturity, and
+          user’s funds: minting and setting the rate on the demo token, creating a maturity, and
           creating a pool. The two vaults that actually hold deposits have no admin entry point at
           all.
         </P>
@@ -502,7 +502,7 @@ function Contracts(): ReactElement {
               href={explorerContractUrl(market.syVaultContractId)}
             />
             <AddressRow
-              label="Market"
+              label="Market contract"
               note="Split, merge, claim, redeem"
               id={market.splitterContractId}
               href={explorerContractUrl(market.splitterContractId)}

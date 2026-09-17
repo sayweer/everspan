@@ -21,7 +21,7 @@ export const DOCS_SECTIONS: readonly DocsSectionMeta[] = [
   },
   {
     id: 'protocol',
-    title: 'The protocol',
+    title: 'Protocol',
     lede: 'Standardized Yield, the two positions a deposit becomes, the four operations that move between them, and how yield is accounted for.',
   },
   {
