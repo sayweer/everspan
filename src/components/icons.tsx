@@ -130,6 +130,15 @@ export function XCircleIcon({ className }: IconProps): ReactElement {
   )
 }
 
+export function BookIcon({ className }: IconProps): ReactElement {
+  return (
+    <Icon className={className}>
+      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z" />
+    </Icon>
+  )
+}
+
 export function InfoIcon({ className }: IconProps): ReactElement {
   return (
     <Icon className={className}>

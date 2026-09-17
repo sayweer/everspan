@@ -7,6 +7,7 @@ import './index.css'
 import App from './App.tsx'
 import { config } from './config.ts'
 import { LandingRoute } from './routes/LandingRoute.tsx'
+import { DocsRoute } from './routes/DocsRoute.tsx'
 import { NotFound } from './routes/NotFound.tsx'
 import { ErrorBoundary } from './components/ErrorBoundary.tsx'
 import { ToastProvider } from './context/ToastContext.tsx'
@@ -41,6 +42,10 @@ createRoot(rootElement).render(
                   <TransactionSafetyBanner />
                   <Routes>
                     <Route path="/" element={<LandingRoute />} />
+                    {/* Public reference. Deep-linked from the landing
+                      chapters and from Account, so it stays outside the
+                      session gate. */}
+                    <Route path="/docs" element={<DocsRoute />} />
                     {/* The app is for people who can act on it, and every
                       action needs an account. Without one the reader goes back
                       to the page that exists to give them one. */}

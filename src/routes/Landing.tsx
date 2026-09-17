@@ -2,6 +2,7 @@
 import { useRef, type ReactElement, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { BrandMark } from '../components/BrandMark'
+import { SiteCta, SiteFooter, SiteHeader, siteNavItemClass } from '../components/SiteChrome'
 import { OpeningScene } from '../components/OpeningScene'
 import { PixelText } from '../components/PixelText'
 import { YieldJourney } from '../components/YieldJourney'
@@ -18,7 +19,6 @@ import { maturityCountdown } from '../lib/yield'
 import { formatAmount } from '../lib/format'
 import { ArrowRightIcon, ChartBarIcon, DropletIcon, LockIcon, SwapIcon } from '../components/icons'
 import { FIGURE_TONE, figureText } from '../lib/figures'
-import { LanguageToggle } from '../components/LanguageToggle'
 import { EnterApp } from '../components/AppEntry'
 import { useEnterOnConnect } from '../hooks/useEnterOnConnect'
 
@@ -95,7 +95,9 @@ export function Landing(): ReactElement {
         >
           Skip to main content
         </a>
-        <SiteHeader onNavigate={(scene) => stage.current?.scrollToScene(scene)} />
+        <SiteHeader
+          nav={<LandingNav onNavigate={(scene) => stage.current?.scrollToScene(scene)} />}
+        />
 
         <main id="landing-main" tabIndex={-1}>
           <ScrollStage apiRef={stage}>
@@ -126,7 +128,7 @@ export function Landing(): ReactElement {
                     </PixelText>
                   </p>
                   <div className="mx-auto mt-10 grid w-full max-w-xs gap-3 sm:flex sm:max-w-none sm:flex-wrap sm:items-center sm:justify-center">
-                    <PrimaryLink>Launch App</PrimaryLink>
+                    <SiteCta>Launch App</SiteCta>
                     <button
                       type="button"
                       onClick={() => stage.current?.scrollToScene(NAV_SCENES.story)}
@@ -150,6 +152,9 @@ export function Landing(): ReactElement {
                 <p className="mx-auto mt-8 max-w-2xl text-lg leading-relaxed text-neutral-300">
                   Three steps turn a yield-bearing deposit into two tradeable positions.
                 </p>
+                <SceneDocsLink to="/docs#protocol" tone="dark" className="mt-8 justify-center">
+                  Read the protocol reference
+                </SceneDocsLink>
               </SceneBody>
             </ScrollScene>
 
@@ -174,6 +179,9 @@ export function Landing(): ReactElement {
                     Principal trades below its maturity value. The difference between what you pay
                     and what you redeem defines the implied rate for your position.
                   </p>
+                  <SceneDocsLink to="/docs#markets" tone="dark" className="mt-7">
+                    How the rate is priced
+                  </SceneDocsLink>
                 </div>
                 <SceneParallax>
                   <FixedRateVisual />
@@ -285,6 +293,10 @@ export function Landing(): ReactElement {
                     body="Maturity and redemption rules execute on-chain."
                   />
                 </div>
+
+                <SceneDocsLink to="/docs#security" tone="light" className="mt-7">
+                  Read the security model
+                </SceneDocsLink>
               </SceneBody>
             </ScrollScene>
 
@@ -332,70 +344,65 @@ function SceneBody({
 }
 
 /**
- * Fixed, not sticky: in flow the header pushed the scroll stage down by its own
- * height, and that offset became dead scroll before the opening could start.
+ * The way from a chapter to its written counterpart. Each of the three named
+ * chapters has a section in the documentation, and this is the link between
+ * them — the header names jump around the storyboard, this one leaves it.
  */
-function SiteHeader({ onNavigate }: { onNavigate: (scene: number) => void }): ReactElement {
-  return (
-    <header className="fixed inset-x-0 top-0 z-40 border-b border-neutral-950/10 bg-neutral-50/95 backdrop-blur-md">
-      <div className="mx-auto flex h-[4.5rem] w-full max-w-[96rem] items-center justify-between gap-6 px-5 sm:px-8 lg:px-10">
-        <Link
-          to="/"
-          className="flex min-h-11 items-center gap-2.5 rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 focus-visible:ring-offset-4 focus-visible:ring-offset-neutral-50"
-        >
-          <BrandMark className="h-6 w-6 text-accent-500" />
-          <span className="hidden text-base font-medium tracking-[-0.025em] min-[375px]:inline">
-            Everspan
-          </span>
-        </Link>
-
-        {/* While the stage is pinned every scene sits at the same document
-            offset, so an href anchor cannot reach one — the stage maps a scene
-            index back to its scroll position instead. */}
-        <nav aria-label="Primary navigation" className="hidden items-center gap-8 md:flex">
-          {(
-            [
-              ['Protocol', NAV_SCENES.story],
-              ['Markets', NAV_SCENES.markets],
-              ['Security', NAV_SCENES.security],
-            ] as const
-          ).map(([label, scene]) => (
-            <button
-              key={label}
-              type="button"
-              onClick={() => onNavigate(scene)}
-              className="inline-flex min-h-11 items-center rounded-sm px-1 text-sm text-neutral-600 transition-colors duration-100 hover:text-neutral-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
-            >
-              {label}
-            </button>
-          ))}
-        </nav>
-
-        <div className="flex items-center gap-2">
-          <LanguageToggle light />
-          <PrimaryLink compact>Launch App</PrimaryLink>
-        </div>
-      </div>
-    </header>
-  )
-}
-
-function PrimaryLink({
+function SceneDocsLink({
+  to,
+  tone,
   children,
-  compact = false,
+  className = '',
 }: {
+  to: string
+  tone: 'light' | 'dark'
   children: ReactNode
-  compact?: boolean
+  className?: string
 }): ReactElement {
   return (
-    <EnterApp
-      className={`group inline-flex items-center justify-center gap-2 rounded-full bg-accent-500 font-medium text-neutral-50 [touch-action:manipulation] [-webkit-tap-highlight-color:transparent] transition-transform duration-100 ease-spring motion-safe:hover:scale-[1.04] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 motion-reduce:transform-none ${
-        compact ? 'min-h-11 px-5 py-2 text-sm' : 'min-h-12 w-full px-6 py-3 text-sm sm:w-auto'
-      }`}
+    <Link
+      to={to}
+      className={`group inline-flex min-h-11 items-center gap-2 text-sm font-medium no-underline underline-offset-4 transition-colors duration-100 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${
+        tone === 'dark'
+          ? 'text-neutral-50/90 hover:text-neutral-50 focus-visible:outline-neutral-50'
+          : 'text-accent-500 hover:text-neutral-950 focus-visible:outline-accent-500'
+      } ${className}`}
     >
       {children}
       <ArrowRightIcon className="h-4 w-4 transition-transform duration-100 group-hover:translate-x-1 motion-reduce:transform-none" />
-    </EnterApp>
+    </Link>
+  )
+}
+
+/**
+ * The chapter names. While the stage is pinned every scene sits at the same
+ * document offset, so an href anchor cannot reach one — the stage maps a scene
+ * index back to its scroll position instead. Each name has a written chapter
+ * behind it too, which is what the Docs link leads to.
+ */
+function LandingNav({ onNavigate }: { onNavigate: (scene: number) => void }): ReactElement {
+  return (
+    <nav aria-label="Primary navigation" className="hidden items-center gap-8 md:flex">
+      {(
+        [
+          ['Protocol', NAV_SCENES.story],
+          ['Markets', NAV_SCENES.markets],
+          ['Security', NAV_SCENES.security],
+        ] as const
+      ).map(([label, scene]) => (
+        <button
+          key={label}
+          type="button"
+          onClick={() => onNavigate(scene)}
+          className={siteNavItemClass}
+        >
+          {label}
+        </button>
+      ))}
+      <Link to="/docs" className={siteNavItemClass}>
+        Docs
+      </Link>
+    </nav>
   )
 }
 
@@ -544,21 +551,5 @@ function Assurance({
         {body}
       </p>
     </article>
-  )
-}
-
-function SiteFooter(): ReactElement {
-  return (
-    <footer className="surface-ink bg-neutral-950 text-neutral-50">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-5 py-10 sm:flex-row sm:items-center sm:justify-between sm:px-8 lg:px-10">
-        <div className="flex items-center gap-2.5">
-          <BrandMark className="h-5 w-5 text-accent-400" />
-          <span className="text-sm font-medium tracking-[-0.015em]">Everspan</span>
-        </div>
-        <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-400">
-          Stellar Testnet · Soroban · 2026
-        </p>
-      </div>
-    </footer>
   )
 }

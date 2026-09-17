@@ -16,6 +16,7 @@ import { MarketSwitcher } from './MarketSwitcher'
 // PASSKEY-ENTRY: see docs/passkey.md.
 import { PasskeySignIn } from './PasskeySignIn'
 import {
+  BookIcon,
   CheckIcon,
   ChevronDownIcon,
   CopyIcon,
@@ -107,9 +108,7 @@ export function AccountPanel({
   return (
     <section id="panel-account" role="tabpanel" aria-label="Account" className="space-y-6">
       <header className="max-w-2xl">
-        <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-accent-300">
-          Account
-        </p>
+        <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-accent-300">Account</p>
         <h1
           data-panel-heading
           tabIndex={-1}
@@ -209,6 +208,15 @@ export function AccountPanel({
         </Group>
 
         <Group label="About">
+          {/* The full reference, not the marketing walkthrough — the same page
+              the landing chapters link into, so a question asked inside the
+              app lands on the section that answers it. */}
+          <RowLink
+            icon={<BookIcon className="h-5 w-5" />}
+            title="Documentation"
+            subtitle="How Everspan works, end to end"
+            to="/docs"
+          />
           <RowLink
             icon={<InfoIcon className="h-5 w-5" />}
             title="How it works"
@@ -347,7 +355,14 @@ interface RowContentProps {
 const ROW =
   'flex w-full items-center gap-3 px-5 py-3 text-left transition-colors duration-100 hover:bg-raised'
 
-function RowContent({ icon, title, subtitle, value, tone, trailing }: RowContentProps): ReactElement {
+function RowContent({
+  icon,
+  title,
+  subtitle,
+  value,
+  tone,
+  trailing,
+}: RowContentProps): ReactElement {
   return (
     <>
       <span
