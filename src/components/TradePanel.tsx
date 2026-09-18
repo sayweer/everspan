@@ -239,7 +239,14 @@ function LockRateForm({
   }
 
   function submit(): void {
-    if (!valid.ok || needsPrepare || pending || blocked || ptOut <= 0n || (locksLoss && !acceptsLoss))
+    if (
+      !valid.ok ||
+      needsPrepare ||
+      pending ||
+      blocked ||
+      ptOut <= 0n ||
+      (locksLoss && !acceptsLoss)
+    )
       return
     void run(
       'Lock rate',
@@ -262,7 +269,7 @@ function LockRateForm({
           </span>
         </div>
         <p className="mt-1 text-xs text-neutral-400">
-          until {formatMaturity(maturity)} · {countdown.days}d {countdown.hours}h left
+          until {formatMaturity(maturity)} · {`${countdown.days}d`} {countdown.hours}h left
         </p>
       </div>
 
@@ -337,7 +344,7 @@ function LockRateForm({
               <p className="text-xs leading-relaxed text-warning-100/80">
                 You would pay more for {formatAmount(ptOut)} Principal than it redeems for at
                 maturity — a fixed rate of {formatPercent(lockedApy)}. The 0.30% swap fee and this
-                order&apos;s price impact together outweigh the yield left until{' '}
+                order’s price impact together outweigh the yield left until{' '}
                 {formatMaturity(maturity)}. A later maturity, or a deeper pool, prices better.
               </p>
             </div>
@@ -459,13 +466,12 @@ function LongYieldForm({
 
   // Split target (floor(underlying→SY)·rate/SCALE, same as the split preview
   // ever was); PT == YT.
-  const { maxSpendable, valid, underlyingIn, syNeeded: syIn } = useSyPreparation(
-    amount,
-    underlyingBalance,
-    syBalance,
-    market,
-    liveRate,
-  )
+  const {
+    maxSpendable,
+    valid,
+    underlyingIn,
+    syNeeded: syIn,
+  } = useSyPreparation(amount, underlyingBalance, syBalance, market, liveRate)
   const projected = liveRate !== null && syIn > 0n ? (syIn * liveRate) / RATE_SCALE : 0n
   const sellBack = projected > 0n ? quoteSwap(pool, 'PtToSy', projected) : 0n
   const sellBackUnderlying = requiredUnderlyingForSy(sellBack, market, liveRate) ?? 0n
@@ -503,7 +509,14 @@ function LongYieldForm({
   }
 
   function doSplit(): void {
-    if (!allowNewSplit || needsPrepare || !valid.ok || split.pending || split.blocked || projected <= 0n)
+    if (
+      !allowNewSplit ||
+      needsPrepare ||
+      !valid.ok ||
+      split.pending ||
+      split.blocked ||
+      projected <= 0n
+    )
       return
     let captured: bigint | null = null
     void split.run(
@@ -587,7 +600,9 @@ function LongYieldForm({
 
       {needsRecoveryChoice ? (
         <div role="status" className="rounded-xl border border-warning-300 bg-warning-500/10 p-4">
-          <p className="text-sm font-semibold text-warning-100">Existing principal needs a choice</p>
+          <p className="text-sm font-semibold text-warning-100">
+            Existing principal needs a choice
+          </p>
           <p className="mt-1 text-xs leading-relaxed text-warning-200/80">
             This wallet already holds {formatAmount(existingPtBalance)} in principal for{' '}
             {formatMaturity(maturity)}. It may be a fixed-return holding or the first half of an
@@ -725,7 +740,12 @@ function LongYieldForm({
             <span className="h-px flex-1 bg-raised" />
           </>
         )}
-        <StageChip n={needsPrepare ? 2 : 1} label="Split" done={step2} active={!step2 && !needsPrepare} />
+        <StageChip
+          n={needsPrepare ? 2 : 1}
+          label="Split"
+          done={step2}
+          active={!step2 && !needsPrepare}
+        />
         <span className="h-px flex-1 bg-raised" />
         <StageChip n={needsPrepare ? 3 : 2} label="Sell" done={false} active={step2} />
       </ol>

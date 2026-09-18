@@ -107,7 +107,12 @@ export function MarketsList({
                 aria-expanded={showMatured}
                 className="-ml-3 uppercase tracking-[0.14em]"
               >
-                {showMatured ? 'Hide' : 'Show'} matured ({matured.length})
+                {/* One whole string per state rather than a verb glued to a noun:
+                    the two halves cannot be reordered independently, and Turkish
+                    puts the verb last. */}
+                {showMatured
+                  ? `Hide matured (${matured.length})`
+                  : `Show matured (${matured.length})`}
               </Button>
               {showMatured && (
                 <ul className="-mx-4 mt-2 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:block sm:space-y-0 sm:overflow-x-visible sm:px-0 sm:pb-0 sm:divide-y sm:divide-hairline">
@@ -170,7 +175,8 @@ function MarketRow({ mp, nowMs, rateInfo, liveRate, onTrade }: MarketRowProps): 
    */
   const apyTone = fixedApy === null ? 'text-neutral-600' : 'text-accent-300'
 
-  const underlyingLiquidity = pool !== null ? requiredUnderlyingForSy(pool.syReserve, market, liveRate) : null
+  const underlyingLiquidity =
+    pool !== null ? requiredUnderlyingForSy(pool.syReserve, market, liveRate) : null
   const liquidity =
     pool !== null ? (
       underlyingLiquidity !== null ? (

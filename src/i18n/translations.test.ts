@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { translateUiText } from './translations'
+import { EN_TO_TR, translateUiText } from './translations'
 
 describe('UI translations', () => {
   it('translates exact copy in both directions', () => {
@@ -28,10 +28,14 @@ describe('UI translations', () => {
   })
 
   /* The reverse map is built from values, so two keys sharing a Turkish string
-     would silently translate one of them back to the wrong English. */
+     would silently translate one of them back to the wrong English. Checked
+     over the whole table rather than a sample: the two collisions this caught
+     in practice were both introduced by adding a page's worth of copy at once,
+     which is exactly when nobody is comparing against the other 800 entries. */
   it('keeps every Turkish string unique so switching back to English is exact', () => {
-    for (const english of ['On', 'Light', 'Total value', 'Hide amounts', 'Claimable']) {
-      expect(translateUiText(translateUiText(english, 'tr'), 'en')).toBe(english)
-    }
+    const offenders = Object.keys(EN_TO_TR).filter(
+      (english) => translateUiText(translateUiText(english, 'tr'), 'en') !== english,
+    )
+    expect(offenders).toEqual([])
   })
 })

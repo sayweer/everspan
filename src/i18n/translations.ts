@@ -12,8 +12,122 @@ export type Language = 'en' | 'tr'
  * labels. It spreads first so an app string always wins a collision, the app
  * being the surface where an exact wording matters most.
  */
-const EN_TO_TR: Record<string, string> = {
+/** Exported for the coverage test, which is the only thing outside this file
+    that should read the table directly — components go through the bridge. */
+export const EN_TO_TR: Record<string, string> = {
   ...DOCS_EN_TO_TR,
+
+  /* ── Gaps found by a full sweep of every rendered string, 2026-09-18 ────
+     Entry, passkey and relay copy, the transaction-safety banner, the
+     landing's three-step journey, and the error messages the services raise.
+     Everything here was reaching a Turkish interface in English. */
+  'Choose from the wallets on this device': 'Bu cihazdaki cüzdanlar arasından seçin',
+  'Connect to see your positions': 'Pozisyonlarınızı görmek için bağlanın',
+  'Open it on stellar.expert': 'stellar.expert üzerinde açın',
+  'Put the account on the clipboard': 'Hesabı panoya kopyalayın',
+  'Tell us what is missing or broken': 'Eksik ya da bozuk olanı bize bildirin',
+  'The walkthrough on the home page': 'Ana sayfadaki tanıtım',
+
+  'Enter Everspan': 'Everspan’a girin',
+  'Everspan needs an account to sign with — every action on chain is authorized by you, never by us.':
+    'Everspan’ın imzalayacak bir hesaba ihtiyacı var — zincir üzerindeki her işlemi biz değil, siz yetkilendirirsiniz.',
+  'Freighter, xBull, Albedo and others.': 'Freighter, xBull, Albedo ve diğerleri.',
+  'Opening your wallet…': 'Cüzdanınız açılıyor…',
+  'Continue with a passkey': 'Geçiş anahtarıyla devam edin',
+  'Continue with Face ID or Touch ID': 'Face ID veya Touch ID ile devam edin',
+  'Continue where you left off': 'Kaldığınız yerden devam edin',
+  'Setting up your wallet…': 'Cüzdanınız hazırlanıyor…',
+  'No extension, no seed phrase, no XLM to buy first. Everspan creates a Testnet wallet on this device and funds it for you.':
+    'Uzantı yok, kurtarma ifadesi yok, önceden XLM almak yok. Everspan bu cihazda bir Testnet cüzdanı oluşturur ve bakiyesini sizin için yükler.',
+  'It lives on this device only — lose the device and the wallet goes with it.':
+    'Yalnızca bu cihazda yaşar — cihazı kaybederseniz cüzdan da onunla gider.',
+  'Testnet funds have no value.': 'Testnet bakiyelerinin değeri yoktur.',
+
+  'Account funded with 10,000 test XLM.': 'Hesaba 10.000 test XLM yüklendi.',
+  'Funding is paused until the current transaction is resolved.':
+    'Mevcut işlem sonuçlanana kadar bakiye yükleme duraklatıldı.',
+  'Reconnect to the internet before funding this account.':
+    'Bu hesaba bakiye yüklemeden önce internete yeniden bağlanın.',
+  Plus: 'Artı',
+  'in yield exposure. It is not counted above — nothing in the protocol prices the yield still to come.':
+    'getiri maruziyeti. Yukarıdaki toplama dâhil değildir — protokolde henüz oluşmamış getiriyi fiyatlayan bir şey yok.',
+  'One maturity is missing a pool, so the principal held there has no price yet and is left out of this total.':
+    'Bir vadenin havuzu yok; orada tutulan anaparanın henüz fiyatı olmadığı için bu toplamın dışında bırakıldı.',
+
+  '(matured)': '(vadesi doldu)',
+  'live rate': 'canlı oran',
+  'pool.': 'vadeli.',
+  yield: 'kazanç',
+  '. The 0.30% swap fee and this order’s price impact together outweigh the yield left until':
+    '. %0,30 takas ücreti ve bu emrin fiyat etkisi birlikte, şu tarihe kadar kalan getiriyi aşıyor:',
+
+  'Matching PT and YT are burned together and returned to your prepared balance. Your wallet shows the final network fee before approval.':
+    'Eşleşen PT ve YT birlikte yakılır ve hazırlanmış bakiyenize geri döner. Cüzdanınız, onaydan önce nihai ağ ücretini gösterir.',
+  'This becomes matching principal and yield positions with the same maturity. Separating alone does not create extra value.':
+    'Bu, aynı vadeye sahip eşleşen anapara ve kazanç pozisyonlarına dönüşür. Tek başına ayırmak ek değer yaratmaz.',
+
+  'No final result yet. Transaction actions remain locked.':
+    'Henüz kesin bir sonuç yok. İşlem eylemleri kilitli kalır.',
+  'Stellar does not have a final result for this hash yet. Actions remain locked; wait a few seconds, then check again.':
+    'Stellar bu hash için henüz kesin bir sonuca sahip değil. Eylemler kilitli kalır; birkaç saniye bekleyip yeniden kontrol edin.',
+  'The active transaction changed. The newer transaction remains protected.':
+    'Etkin işlem değişti. Daha yeni olan işlem korunmaya devam ediyor.',
+  'Transaction actions unlocked. Review your balances before submitting again.':
+    'İşlem eylemlerinin kilidi açıldı. Yeniden göndermeden önce bakiyelerinizi gözden geçirin.',
+  '· signing wallet unavailable': '· imzalayan cüzdan yok',
+  'The transaction record could not be cleared. Site storage must be restored before actions can be unlocked.':
+    'İşlem kaydı temizlenemedi. Eylemlerin kilidi açılmadan önce site depolaması geri yüklenmelidir.',
+  'Unknown market': 'Bilinmeyen piyasa',
+
+  '01 · STANDARDIZE': '01 · STANDARTLAŞTIR',
+  '02 · SEPARATE': '02 · AYIR',
+  '03 · CHOOSE': '03 · SEÇ',
+  'Start with yield.': 'Getiriyle başlayın.',
+  'Split one position into two.': 'Tek pozisyonu ikiye ayırın.',
+  'Hold the exposure you want.': 'İstediğiniz maruziyeti tutun.',
+  'A yield-bearing asset enters Everspan as Standardized Yield. One interface keeps the rate readable across every maturity.':
+    'Getiri üreten bir varlık Everspan’a Standartlaştırılmış Getiri olarak girer. Tek bir arayüz, oranı her vadede okunabilir tutar.',
+  'Every deposit creates equal amounts of principal and yield. Principal and yield become independent, transferable positions.':
+    'Her mevduat eşit miktarda anapara ve kazanç oluşturur. Anapara ve kazanç bağımsız, transfer edilebilir pozisyonlara dönüşür.',
+  'Buy discounted principal for a maturity-based rate. Hold the yield side for what is released before maturity. Trade or provide liquidity at any time.':
+    'Vadeye dayalı bir oran için iskontolu anapara alın. Vadeden önce serbest bırakılanlar için kazanç tarafını tutun. İstediğiniz zaman işlem yapın veya likidite sağlayın.',
+  'No account needed to look. Signing needs one.':
+    'Bakmak için hesaba gerek yok. İmzalamak için gerekiyor.',
+
+  'Everspan stopped before opening your wallet because the reload-safe transaction record changed. Review the active transaction notice before trying again.':
+    'Yeniden yüklemeye dayanıklı işlem kaydı değiştiği için Everspan cüzdanınızı açmadan durdu. Yeniden denemeden önce etkin işlem bildirimini gözden geçirin.',
+  'Simulation returned no result.': 'Simülasyon sonuç döndürmedi.',
+  'Unknown error': 'Bilinmeyen hata',
+  'Everspan could not reach Stellar to verify this transaction. Your actions remain locked; check again when the connection is stable.':
+    'Everspan bu işlemi doğrulamak için Stellar’a ulaşamadı. Eylemleriniz kilitli kalır; bağlantı kararlı olduğunda yeniden kontrol edin.',
+  'That wallet needs a browser extension, which mobile browsers can’t run. Albedo works in any browser — or open this page on a desktop.':
+    'Bu cüzdan, mobil tarayıcıların çalıştıramadığı bir tarayıcı uzantısı gerektiriyor. Albedo her tarayıcıda çalışır — ya da bu sayfayı masaüstünde açın.',
+  'That wallet needs a browser extension, which mobile browsers can’t run. Use WalletConnect or Albedo instead.':
+    'Bu cüzdan, mobil tarayıcıların çalıştıramadığı bir tarayıcı uzantısı gerektiriyor. Bunun yerine WalletConnect veya Albedo kullanın.',
+  'Unexpected wallet error.': 'Beklenmeyen cüzdan hatası.',
+  'Fund the account with Friendbot — the underlying here is plain XLM.':
+    'Hesabı Friendbot ile fonlayın — buradaki dayanak varlık düz XLM.',
+
+  'Could not reach the faucet for starting funds.': 'Başlangıç bakiyesi için musluğa ulaşılamadı.',
+  'Could not send starting funds.': 'Başlangıç bakiyesi gönderilemedi.',
+  'This device does not remember a wallet. Create one, or connect a wallet instead.':
+    'Bu cihaz bir cüzdan hatırlamıyor. Yeni bir tane oluşturun ya da bir cüzdan bağlayın.',
+  'Could not use your passkey. Try again, or connect a wallet instead.':
+    'Geçiş anahtarınız kullanılamadı. Yeniden deneyin ya da bir cüzdan bağlayın.',
+  'That passkey does not open a wallet here. Connect a wallet instead.':
+    'Bu geçiş anahtarı burada bir cüzdan açmıyor. Bunun yerine bir cüzdan bağlayın.',
+  'The passkey prompt was dismissed. Try again when you are ready.':
+    'Geçiş anahtarı istemi kapatıldı. Hazır olduğunuzda yeniden deneyin.',
+  'This device no longer holds the passkey for that wallet. Sign in again.':
+    'Bu cihaz artık o cüzdanın geçiş anahtarını tutmuyor. Yeniden giriş yapın.',
+  'Could not reach Everspan. Check your connection and try again.':
+    'Everspan’a ulaşılamadı. Bağlantınızı kontrol edip yeniden deneyin.',
+  'Could not submit that transaction. Try again.': 'Bu işlem gönderilemedi. Yeniden deneyin.',
+  'Everspan is not cleared to sponsor that transaction. Retrying will not help.':
+    'Everspan bu işlemin ücretini üstlenmeye yetkili değil. Yeniden denemek işe yaramaz.',
+  'Fee sponsorship is not available right now. Connect a wallet to continue.':
+    'Ücret sponsorluğu şu anda kullanılamıyor. Devam etmek için bir cüzdan bağlayın.',
+  'That transaction could not be prepared. Try again.': 'Bu işlem hazırlanamadı. Yeniden deneyin.',
   'Skip to main content': 'Ana içeriğe geç',
   'App — Everspan': 'Uygulama — Everspan',
   'Wallet disconnected.': 'Cüzdan bağlantısı kesildi.',
@@ -718,6 +832,37 @@ const dynamicPairs: Array<[RegExp, string, RegExp, string]> = [
     'Wallet connected to $1. Account $2.',
   ],
   [/^Copy address (.+)$/u, '$1 adresini kopyala', /^(.+) adresini kopyala$/u, 'Copy address $1'],
+  [/^rate ([\d.]+)$/u, 'oran $1', /^oran ([\d.]+)$/u, 'rate $1'],
+  [
+    /^(.+) you can act with now$/u,
+    'Şu anda kullanabileceğiniz $1',
+    /^Şu anda kullanabileceğiniz (.+)$/u,
+    '$1 you can act with now',
+  ],
+  [
+    /^The (.+) Market on Testnet$/u,
+    'Testnet üzerindeki $1 piyasası',
+    /^Testnet üzerindeki (.+) piyasası$/u,
+    'The $1 Market on Testnet',
+  ],
+  [
+    /^Show matured \((\d+)\)$/u,
+    'Vadesi dolanları göster ($1)',
+    /^Vadesi dolanları göster \((\d+)\)$/u,
+    'Show matured ($1)',
+  ],
+  [
+    /^Hide matured \((\d+)\)$/u,
+    'Vadesi dolanları gizle ($1)',
+    /^Vadesi dolanları gizle \((\d+)\)$/u,
+    'Hide matured ($1)',
+  ],
+  [
+    /^(\d+) maturities are missing a pool, so the principal held there has no price yet and is left out of this total\.$/u,
+    '$1 vadenin havuzu yok; orada tutulan anaparanın henüz fiyatı olmadığı için bu toplamın dışında bırakıldı.',
+    /^(\d+) vadenin havuzu yok; orada tutulan anaparanın henüz fiyatı olmadığı için bu toplamın dışında bırakıldı\.$/u,
+    '$1 maturities are missing a pool, so the principal held there has no price yet and is left out of this total.',
+  ],
   [
     /^Open (.+) on the explorer$/u,
     '$1 kaydını gezginde aç',

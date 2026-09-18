@@ -191,11 +191,7 @@ export function BalanceOverview({
             <span className="min-w-0 flex-1">
               <span className="block text-sm font-medium text-neutral-100">XLM</span>
               <span className="mt-0.5 block truncate text-xs text-neutral-500">
-                {xlmError
-                  ? xlmError.message
-                  : xlmFunded
-                    ? 'For network fees'
-                    : 'Not funded yet'}
+                {xlmError ? xlmError.message : xlmFunded ? 'For network fees' : 'Not funded yet'}
               </span>
             </span>
             {xlmLoading ? (
@@ -246,9 +242,7 @@ export function BalanceOverview({
             >
               {segment.icon}
               <span className="min-w-0 flex-1">
-                <span className="block text-sm font-medium text-neutral-100">
-                  {segment.label}
-                </span>
+                <span className="block text-sm font-medium text-neutral-100">{segment.label}</span>
                 <span className="mt-0.5 block truncate text-xs text-neutral-500">
                   {segment.hint}
                 </span>
@@ -274,11 +268,11 @@ export function BalanceOverview({
 
       {holdings.unmarked.length > 0 && (
         <p className="mt-2 text-xs leading-relaxed text-warning-300">
+          {/* Whole sentences, not a subject glued to a predicate: the two
+              halves cannot be reordered independently, and Turkish needs to. */}
           {holdings.unmarked.length === 1
-            ? 'One maturity is'
-            : `${holdings.unmarked.length} maturities are`}{' '}
-          missing a pool, so the principal held there has no price yet and is left out of this
-          total.
+            ? 'One maturity is missing a pool, so the principal held there has no price yet and is left out of this total.'
+            : `${holdings.unmarked.length} maturities are missing a pool, so the principal held there has no price yet and is left out of this total.`}
         </p>
       )}
 

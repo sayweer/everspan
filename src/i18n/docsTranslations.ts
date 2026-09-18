@@ -144,8 +144,12 @@ export const DOCS_EN_TO_TR: Record<string, string> = {
   'Where the fixed rate comes from': 'Sabit oran nereden gelir',
   'A principal position redeems for a full unit at maturity, so before maturity it trades below one. That discount is the whole trade. Pay less than a unit now, receive a full unit later, and the gap between the two — annualized over the time left — is the rate you have locked.':
     'Bir anapara pozisyonu vadede tam bir birim karşılığında itfa edilir; bu yüzden vadeden önce birin altında işlem görür. İşlemin tamamı bu iskontodur. Şimdi bir birimden az ödersiniz, sonra tam bir birim alırsınız ve ikisi arasındaki fark — kalan süreye göre yıllıklandırıldığında — kilitlediğiniz orandır.',
+  /* The formula is notation, but two of its terms are English words, and the
+     caption names one of them — so the pair has to move together. */
+  'APY = (1 / cost) ^ (365 days / time to maturity) − 1':
+    'APY = (1 / maliyet) ^ (365 gün / vadeye kalan süre) − 1',
   'cost is what one unit of principal costs today, in the deposit asset.':
-    'cost, bir birim anaparanın bugün mevduat varlığı cinsinden maliyetidir.',
+    'maliyet, bir birim anaparanın bugün mevduat varlığı cinsinden değeridir.',
   'Paying 0.958 for a principal position that matures in 90 days locks roughly 19% annualized — and it is locked, because nothing after the purchase changes what the position redeems for. The rate the app shows you before you confirm is the rate that trade produces, including its price impact and fee.':
     '90 günde vadesi dolan bir anapara pozisyonu için 0,958 ödemek yıllık yaklaşık %19’u kilitler — ve gerçekten kilitlidir, çünkü satın alma sonrasında hiçbir şey pozisyonun itfa değerini değiştirmez. Uygulamanın onaydan önce gösterdiği oran, fiyat etkisi ve ücreti dâhil olmak üzere o işlemin ürettiği orandır.',
   'Providing liquidity': 'Likidite sağlamak',

@@ -47,7 +47,14 @@ export function StatBand({ stats }: { stats: Stat[] }): ReactElement {
       <dl className="sr-only">
         {stats.map((stat) => (
           <div key={stat.label}>
-            <dt>{`${stat.label} (${stat.note})`}</dt>
+            {/* Interpolated as siblings rather than composed into one string:
+                the language bridge translates a text node at a time, and a
+                template literal hands it one node it has never seen — so the
+                screen-reader copy stayed English while the visible belt beside
+                it was translated. */}
+            <dt>
+              {stat.label} ({stat.note})
+            </dt>
             <dd>{stat.value}</dd>
           </div>
         ))}
